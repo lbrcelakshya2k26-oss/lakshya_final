@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cultural Events | LAKSHYA 2K26</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="/assets/logo.png">
+    <!-- 1. CONNECT COMMON JS -->
+    <script>const CURRENT_PAGE = 'culturals';</script>
+    <script src="/js/common.js"></script>
+    <script src="/js/chatbot.js"></script>
+
+    <style>
+        /* --- COPYING THEME VARIABLES --- */
+        :root {
+            --primary-color: #00d2ff;
+            --secondary-color: #3a7bd5;
+            --accent-color: #ff00cc;
+            --text-color: #ffffff;
+            --bg-dark: #0a0a0a;
+            --glass-bg: rgba(15, 15, 30, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --card-hover: rgba(0, 210, 255, 0.15);
+            --text-main: var(--text-color);
+            --text-muted: #a0a0b0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
+        
+        body { 
+            background-color: var(--bg-dark); 
+            color: var(--text-main); 
+            font-family: 'Outfit', sans-serif; 
+            min-height: 100vh; 
+            overflow-x: hidden; 
+            display: block; 
+        }
+
+        .cosmic-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
+            background: 
+                radial-gradient(circle at 80% 20%, rgba(255, 0, 204, 0.1) 0%, transparent 30%),
+                radial-gradient(circle at 20% 80%, rgba(0, 210, 255, 0.05) 0%, transparent 30%);
+            background-color: var(--bg-dark);
+        }
+        .grid-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background-image: linear-gradient(var(--glass-border) 1px, transparent 1px),
+            linear-gradient(90deg, var(--glass-border) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.15;
+            mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+        }
+
+        /* --- LAYOUT --- */
+        .main-content {
+            margin-left: 260px; /* Aligned with Sidebar */
+            width: calc(100% - 260px);
+            padding: 3rem 4rem; position: relative;
+            min-height: 100vh;
+        }
+
+        .header-section {
+            display: flex; flex-direction: column; gap: 2rem; margin-bottom: 3rem;
+        }
+
+        .top-bar { display: flex; justify-content: space-between; align-items: center; }
+
+        .page-title {
+            font-family: 'Rajdhani', sans-serif; font-size: 3.5rem; font-weight: 700;
+            text-transform: uppercase; line-height: 1; color: white;
+        }
+        .page-title span { color: var(--accent-color); text-shadow: 0 0 15px rgba(255, 0, 204, 0.4); }
+
+        .user-badge {
+            display: flex; align-items: center; gap: 15px;
+            padding: 8px 12px 8px 20px; background: var(--glass-bg);
+            border: 1px solid var(--glass-border); border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+        .user-info { text-align: right; line-height: 1.2; }
+        .user-name { font-weight: 600; font-size: 0.9rem; color: white; }
+        .user-role { font-size: 0.7rem; color: var(--accent-color); text-transform: uppercase; letter-spacing: 1px; }
+        .user-avatar { 
+            width: 40px; height: 40px; border-radius: 50%; 
+            background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+            display: flex; justify-content: center; align-items: center;
+            font-weight: bold; color: black; font-size: 1.2rem;
+        }
+
+        /* --- IMPORTANT NOTICE BOX --- */
+        .info-notice {
+            background: rgba(255, 0, 204, 0.08);
+            border: 1px solid rgba(255, 0, 204, 0.3);
+            border-left: 4px solid var(--accent-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2.5rem;
+            backdrop-filter: blur(5px);
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+        .info-notice:hover { transform: translateY(-2px); }
+        .info-notice i.notice-icon {
+            color: var(--accent-color);
+            font-size: 1.8rem;
+            margin-top: 2px;
+        }
+        .notice-content h4 {
+            color: white;
+            font-family: 'Rajdhani', sans-serif;
+            text-transform: uppercase;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .notice-content p {
+            color: #e0e0e0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        .notice-dates {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .date-item {
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* --- EVENT CARDS --- */
+        .cards-grid {
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 25px;
+            align-items: stretch;
+        }
+
+        .event-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px; overflow: hidden;
+            position: relative; transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex; flex-direction: column; height: 100%;
+            backdrop-filter: blur(10px);
+        }
+
+        .event-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: var(--accent-color);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 20px rgba(255, 0, 204, 0.2);
+            z-index: 2;
+        }
+
+        .card-image-container {
+            height: 180px; width: 100%; overflow: hidden; position: relative; flex-shrink: 0;
+            background: #000; display: flex; align-items: center; justify-content: center;
+        }
+        .card-img {
+            width: 100%; height: 100%; object-fit: contain; transition: 0.6s;
+        }
+        .event-card:hover .card-img { transform: scale(1.1); }
+        .card-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, transparent 50%, rgba(10,10,10,0.9));
+            pointer-events: none;
+        }
+
+        .card-body { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; gap: 10px; }
+        .card-tag {
+            display: inline-block; margin-bottom: 10px; padding: 4px 10px;
+            border-radius: 4px; background: rgba(255, 0, 204, 0.1);
+            border: 1px solid var(--accent-color); color: var(--accent-color);
+            font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .card-title {
+            font-family: 'Rajdhani', sans-serif; font-size: 1.4rem; font-weight: 700;
+            color: white; line-height: 1.2; min-height: 3.4rem; display: flex; align-items: flex-start;
+        }
+        .card-desc {
+            font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;
+            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+            margin-bottom: 10px; height: 4.5em;
+        }
+        .card-data-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 15px; border-bottom: 1px solid var(--glass-border);
+            margin-top: auto;
+        }
+        .data-item { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 600; }
+        .data-item i { color: var(--accent-color); }
+        .price-text { color: #00ff88; }
+        .team-text { color: #ccc; }
+
+        .card-footer { padding-top: 15px; display: flex; justify-content: center; }
+        .action-buttons { display: flex; gap: 10px; width: 100%; }
+
+        .icon-btn {
+            width: 45px; height: 45px; border-radius: 10px; border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.05); color: white; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: 0.3s;
+        }
+        .icon-btn:hover { background: white; color: black; }
+        
+        .add-btn {
+            flex-grow: 1;
+            background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+            border: none; box-shadow: 0 0 10px rgba(255, 0, 204, 0.2);
+            font-weight: 700; letter-spacing: 1px; text-transform: uppercase; font-family: 'Rajdhani';
+            color: white; cursor: pointer;
+        }
+        .add-btn:hover { transform: translateY(-2px); box-shadow: 0 0 20px rgba(255, 0, 204, 0.4); }
+
+        /* --- MODALS (Shared Styles) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(15px);
+            z-index: 3000; display: none; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.3s; padding: 20px; 
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .glass-modal {
+            width: 100%; max-width: 700px; background: #15151e;
+            border: 1px solid var(--glass-border); border-radius: 24px;
+            padding: 2.5rem; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            transform: scale(0.9); transition: transform 0.3s; max-height: 90vh; overflow-y: auto; 
+        }
+        .modal-overlay.active .glass-modal { transform: scale(1); }
+        .modal-close {
+            position: absolute; top: 20px; right: 20px; font-size: 1.5rem;
+            color: var(--text-muted); cursor: pointer; transition: 0.2s; z-index: 10;
+        }
+        .modal-close:hover { color: #ff4444; }
+
+        /* Select & Buttons */
+        select.cyber-select {
+            width: 100%; padding: 15px; background: rgba(0,0,0,0.5);
+            border: 1px solid var(--glass-border); border-radius: 12px;
+            color: white; font-family: 'Outfit', sans-serif; margin: 1rem 0 2rem 0;
+        }
+        .cyber-btn {
+            width: 100%; padding: 15px; border: none; border-radius: 12px;
+            background: var(--accent-color); color: white;
+            font-weight: 800; font-family: 'Rajdhani', sans-serif; letter-spacing: 1px;
+            text-transform: uppercase; cursor: pointer; font-size: 1.1rem;
+            transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .cyber-btn:hover { letter-spacing: 3px; box-shadow: 0 0 30px var(--accent-color); }
+        
+        .upload-area {
+            border: 2px dashed var(--glass-border); background: rgba(255,255,255,0.02);
+            padding: 20px; border-radius: 12px; text-align: center; cursor: pointer;
+            transition: 0.3s; position: relative;
+        }
+        .upload-area:hover { border-color: var(--accent-color); background: rgba(255, 0, 204, 0.05); }
+        .upload-icon { font-size: 2rem; color: var(--accent-color); margin-bottom: 10px; }
+        
+        /* Search Box */
+        .search-box { flex-grow: 1; position: relative; width: 100%; max-width: 400px; }
+        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+        .search-input {
+            width: 100%; padding: 12px 12px 12px 45px;
+            background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
+            border-radius: 10px; color: white; font-family: 'Outfit', sans-serif;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 30px; right: 30px;
+            background: rgba(15, 15, 25, 0.95); border-left: 4px solid var(--accent-color);
+            padding: 15px 25px; border-radius: 8px; color: white;
+            transform: translateX(150%); transition: transform 0.4s; z-index: 4000;
+            display: flex; align-items: center; gap: 15px;
+        }
+        .toast i { color: var(--accent-color); }
+
+        /* --- FORMATTED TEXT STYLES --- */
+        .fmt-list-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 6px; 
+            line-height: 1.5;   
+        }
+        .fmt-bullet {
+            color: var(--accent-color);
+            font-weight: bold;
+            margin-right: 8px;
+            flex-shrink: 0; 
+            margin-top: 2px;
+        }
+        .fmt-line {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content { margin-left: 0; width: 100%; padding: 1.5rem; padding-top: 90px; }
+            .top-bar { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .page-title { font-size: 2.5rem; }
+            .user-badge { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cosmic-bg"></div>
+    <div class="grid-overlay"></div>
+
+    <main class="main-content">
+        
+        <div class="header-section">
+            <div class="top-bar">
+                <div class="page-title">Cultural <span>Events</span></div>
+                <div class="user-badge">
+                    <div class="user-info">
+                        <div class="user-name" id="navUserName">Loading...</div>
+                        <div class="user-role">Participant</div>
+                    </div>
+                    <div class="user-avatar" id="navUserAvatar">U</div>
+                </div>
+            </div>
+            
+            <div style="margin-top:20px;">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Find cultural events..." onkeyup="filterEvents()">
+                </div>
+            </div>
+        </div>
+
+        <!-- SPECIAL NOTICE FOR RANGAMARTHANDA -->
+        <div class="info-notice">
+            <i class="fa-solid fa-bullhorn notice-icon"></i>
+            <div class="notice-content">
+                <h4>Registration Note: Rangamarthanda (Culturals)</h4>
+                <p>
+                    The registration process for Rangamarthanda is different from other events. 
+                    Participants are required to <strong>submit a clear video/audio file</strong> during the registration process for screening purposes. 
+                    After the screening round, our team will get back to you regarding payment and further steps.
+                </p>
+                <div class="notice-dates">
+                    <div class="date-item">
+                        <i class="fa-regular fa-calendar-xmark"></i> 
+                        Registration Closes: <span style="color:white; margin-left:5px;">25/12/25</span>
+                    </div>
+                    <div class="date-item">
+                        <i class="fa-regular fa-envelope"></i> 
+                        Shortlist Announcement: <span style="color:white; margin-left:5px;">On or before 27/12/25</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cards-grid" id="eventsContainer">
+             <div style="color:#666; grid-column:1/-1; text-align:center;">Loading Cultural Events...</div>
+        </div>
+
+    </main>
+
+    <!-- INFO MODAL -->
+    <div class="modal-overlay" id="infoModal">
+        <div class="glass-modal">
+            <span class="modal-close" onclick="closeModal('infoModal')"><i class="fa-solid fa-xmark"></i></span>
+            <h2 id="modalTitle" style="font-family:'Rajdhani'; font-size:2rem; color:var(--accent-color); margin-bottom:10px;">Event Title</h2>
+            <div style="display:flex; gap:10px; margin-bottom:20px;">
+                <span style="background:rgba(255,255,255,0.1); padding:5px 15px; border-radius:20px; font-size:0.8rem;">CULTURAL</span>
+                <span style="background:rgba(255,255,255,0.1); padding:5px 15px; border-radius:20px; font-size:0.8rem;">₹<span id="modalFee">0</span></span>
+            </div>
+            <hr style="border:0; border-top:1px solid var(--glass-border); margin: 1.5rem 0;">
+            <div id="modalContent" style="color:#ddd; line-height:1.6;"></div>
+            <div style="margin-top: 2rem;">
+                <button class="cyber-btn" onclick="switchToDeptModal()">Register Now <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEPT SELECTION MODAL -->
+    <div class="modal-overlay" id="deptModal">
+        <div class="glass-modal" style="max-width: 450px; text-align: center;">
+            <span class="modal-close" onclick="closeModal('deptModal')"><i class="fa-solid fa-xmark"></i></span>
+            <h2 style="font-family:'Rajdhani'; color:white;">Confirm Registration</h2>
+            <p style="color:#aaa; margin-bottom:20px;">Select your department/category.</p>
+            <select id="deptSelect" class="cyber-select">
+                <option value="" disabled selected>Select Category</option>
+            </select>
+            <button class="cyber-btn" onclick="checkEventRequirementsAndProceed()">Proceed <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- SUBMISSION MODAL -->
+    <div class="modal-overlay" id="submissionModal">
+        <div class="glass-modal" style="max-width: 550px;">
+            <span class="modal-close" onclick="closeModal('submissionModal')"><i class="fa-solid fa-xmark"></i></span>
+            <h2 style="font-family:'Rajdhani'; color:var(--accent-color);">Audition Upload</h2>
+            <p style="color:#aaa; margin-bottom:20px;">Please upload your performance file (Audio/Video).<br>No payment required now.</p>
+
+            <label style="color:white; display:block; margin-bottom:5px;">Upload Video/Audio File <span style="color:red;">*</span></label>
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                <div id="fileNameDisplay" style="color:#ccc;">Click to upload file</div>
+                <input type="file" id="fileInput" style="display:none;" onchange="handleFileSelect(this)">
+            </div>
+
+            <button class="cyber-btn" id="btnSubmitDetails" onclick="uploadAndProceed()" style="margin-top:20px;">
+                Submit for Approval <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- TEAM DETAILS MODAL -->
+    <div class="modal-overlay" id="teamModal">
+        <div class="glass-modal" style="max-width: 600px;">
+            <span class="modal-close" onclick="closeModal('teamModal')"><i class="fa-solid fa-xmark"></i></span>
+            <h2 style="font-family:'Rajdhani'; color:var(--accent-color);">Team Details</h2>
+            <p style="color:#aaa; margin-bottom:15px;">Add your team members below.</p>
+            
+            
+            <div style="margin-bottom:15px;">
+                <label style="color:white; display:block; margin-bottom:5px;">Team Name</label>
+                <input type="text" id="teamNameInput" class="search-input" placeholder="Enter Team Name">
+            </div>
+            
+            <div id="teamMembersContainer" style="max-height: 300px; overflow-y:auto;"></div>
+
+            <button class="cyber-btn" onclick="finalizeRegistration()" style="margin-top:20px;">
+                Submit Registration <i class="fa-solid fa-check"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="notification" class="toast">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="notifMsg">Success</span>
+    </div>
+
+    <script>
+        let allEvents = [];
+        let myRegistrations = [];
+        let currentEventId = null;
+        let pendingItem = null;
+        let selectedFile = null;
+
+        // Keywords to identify cultural events for filtering IN
+        const culturalKeywords = ['cultural', 'music', 'dance', 'singing', 'drama', 'skit', 'fashion', 'art', 'rangamarthanda', 'painting', 'literary'];
+
+        function showNotification(msg, isError = false) {
+            const notif = document.getElementById('notification');
+            document.getElementById('notifMsg').innerText = msg;
+            notif.style.transform = 'translateX(0)';
+            setTimeout(() => { notif.style.transform = 'translateX(150%)'; }, 3000);
+        }
+
+        async function loadUserDetails() {
+            try {
+                const res = await fetch('/api/participant/dashboard-stats');
+                if(res.ok) {
+                    const data = await res.json();
+                    document.getElementById('navUserName').innerText = data.name || "User";
+                    document.getElementById('navUserAvatar').innerText = (data.name || "U").charAt(0).toUpperCase();
+                }
+                const resReg = await fetch('/api/participant/my-registrations-data');
+                if(resReg.ok) myRegistrations = await resReg.json();
+            } catch(e) { console.log("User fetch error", e); }
+        }
+
+        // --- UPDATED: IS CULTURAL EVENT LOGIC ---
+        function isCulturalEvent(event) {
+            // 1. STRICT CHECK: If Admin selected a Technical/Special type, it is NOT cultural
+            const safeTypes = ['Special', 'Major', 'MBA', 'Technical'];
+            // Check exact match or case-insensitive match against the event type
+            if (safeTypes.some(safe => (event.type || '').toLowerCase() === safe.toLowerCase())) {
+                return false; 
+            }
+
+            // 2. Otherwise, check for keywords as usual
+            const t = (event.type || '').toLowerCase();
+            const title = (event.title || '').toLowerCase();
+            return culturalKeywords.some(key => t.includes(key) || title.includes(key));
+        }
+
+        async function loadEvents() {
+            loadUserDetails();
+            const container = document.getElementById('eventsContainer');
+            container.innerHTML = `<div style="color:#666; grid-column:1/-1; text-align:center;">Loading Cultural Events...</div>`;
+
+            try {
+                const res = await fetch('/api/events');
+                if (!res.ok) throw new Error("API Failed");
+                const fullList = await res.json();
+                
+                // --- FILTER IN ONLY CULTURAL EVENTS ---
+                // We reuse the same logic: if it returns true, it's cultural
+                allEvents = fullList.filter(e => isCulturalEvent(e));
+                
+                container.innerHTML = '';
+                if(allEvents.length === 0) {
+                    container.innerHTML = `<div style="color:#666; grid-column:1/-1; text-align:center;">No cultural events found.</div>`;
+                    return;
+                }
+
+                allEvents.forEach(event => {
+                    const bgImage = (event.imageUrl && event.imageUrl !== 'default.jpg') ? event.imageUrl : 'https://via.placeholder.com/400x200/0a0a12/ff00cc?text=CULTURAL';
+                    const teamSize = event.teamSize || "1";
+                    
+                    const card = `
+                    <div class="event-card">
+                        <div class="card-image-container">
+                            <img src="${bgImage}" class="card-img" onerror="this.src='https://via.placeholder.com/400x200/0a0a12/ff00cc?text=CULTURAL'">
+                            <div class="card-overlay"></div>
+                        </div>
+                        <div class="card-body">
+                            <div><span class="card-tag">CULTURAL</span></div>
+                            <h3 class="card-title">${event.title}</h3>
+                            <p class="card-desc">${event.description || 'Join us for this exciting cultural event!'}</p>
+                            <div class="card-data-row">
+                                <div class="data-item price-text"><i class="fa-solid fa-tag"></i> ₹${event.fee}</div>
+                                <div class="data-item team-text"><i class="fa-solid fa-users"></i> ${teamSize} Member(s)</div>
+                            </div>
+                            <div class="card-footer">
+                                <div class="action-buttons">
+                                    <button class="icon-btn" onclick="openInfoModal('${event.eventId}')" title="Details"><i class="fa-solid fa-eye"></i></button>
+                                    <button class="icon-btn add-btn" onclick="prepareRegister('${event.eventId}')" title="Register">REGISTER <i class="fa-solid fa-arrow-right"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                    container.innerHTML += card;
+                });
+
+            } catch (e) { 
+                console.error(e);
+                container.innerHTML = `<div style="color:#ff4444; grid-column:1/-1; text-align:center;">Failed to load events.</div>`;
+            }
+        }
+
+        function filterEvents() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('.event-card').forEach(card => {
+                const title = card.querySelector('.card-title').innerText.toLowerCase();
+                card.style.display = title.includes(input) ? 'flex' : 'none';
+            });
+        }
+
+        // --- ADDED: TEXT FORMATTER (Consistent with Events Page) ---
+        function formatText(text) {
+            if (!text) return '';
+            const lines = text.split(/\r\n|\n|\r/);
+            let html = '';
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                if (!trimmed) return; 
+                if (trimmed.startsWith('->') || trimmed.startsWith('=>')) {
+                    const cleanText = trimmed.replace(/^(-?>|=>)\s*/, '');
+                    html += `
+                        <div class="fmt-list-item">
+                            <span class="fmt-bullet">•</span>
+                            <span>${cleanText}</span>
+                        </div>`;
+                } else {
+                    html += `<div class="fmt-line">${trimmed}</div>`;
+                }
+            });
+            return html;
+        }
+
+        // --- REUSED MODAL LOGIC ---
+        function openInfoModal(id) {
+            const event = allEvents.find(e => e.eventId === id);
+            currentEventId = id;
+            document.getElementById('modalTitle').innerText = event.title;
+            document.getElementById('modalFee').innerText = event.fee;
+            
+            let content = '';
+            if (event.description) {
+                 content += `<div style="margin-bottom:15px; font-size:1.1rem;">${formatText(event.description)}</div>`;
+            }
+            if(event.sections && event.sections.length > 0) {
+                event.sections.forEach(sec => {
+                    content += `
+                    <div style="margin-top:15px;">
+                        <strong style="color:white; display:block; margin-bottom:5px;">${sec.heading}</strong>
+                        <div class="formatted-content" style="font-size:0.9rem;">${formatText(sec.content)}</div>
+                    </div>`;
+                });
+            }
+            document.getElementById('modalContent').innerHTML = content;
+            document.getElementById('infoModal').classList.add('active');
+        }
+
+        function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
+
+        function prepareRegister(id) {
+            currentEventId = id;
+            openDeptModal();
+        }
+
+        function switchToDeptModal() {
+            closeModal('infoModal');
+            setTimeout(() => openDeptModal(), 300);
+        }
+
+        function openDeptModal() {
+            const event = allEvents.find(e => e.eventId === currentEventId);
+            const select = document.getElementById('deptSelect');
+            select.innerHTML = '<option value="" disabled selected>Select Category</option>';
+            // For culturals, defaulting to General if no specific depts
+            select.innerHTML += '<option value="General">General / Open Category</option>';
+            document.getElementById('deptModal').classList.add('active');
+        }
+
+        function checkEventRequirementsAndProceed() {
+            const select = document.getElementById('deptSelect');
+            if(!select.value) { select.style.borderColor = '#ff4444'; return; }
+            const selectedDept = select.value;
+
+            // Check Registration
+            if (myRegistrations.find(r => r.eventId === currentEventId)) {
+                showNotification("⚠️ You are already registered for this event.", true);
+                closeModal('deptModal');
+                return;
+            }
+
+            pendingItem = {
+                eventId: currentEventId,
+                deptName: selectedDept, dept: selectedDept,
+                addedAt: new Date().toISOString(),
+                teamName: null, teamMembers: [],
+                submissionTitle: "Cultural Performance", submissionAbstract: null, submissionUrl: null
+            };
+
+            closeModal('deptModal');
+            openSubmissionModal(); 
+        }
+
+        function openSubmissionModal() {
+            document.getElementById('fileInput').value = '';
+            document.getElementById('fileNameDisplay').innerText = "Click to upload file";
+            selectedFile = null;
+            document.getElementById('submissionModal').classList.add('active');
+        }
+
+        function handleFileSelect(input) {
+            if (input.files && input.files[0]) {
+                selectedFile = input.files[0];
+                document.getElementById('fileNameDisplay').innerText = selectedFile.name;
+            }
+        }
+
+        async function uploadAndProceed() {
+            const btn = document.getElementById('btnSubmitDetails');
+            
+            // Check if file is mandatory? Let's make it optional for now or user can skip
+            if (selectedFile) {
+                btn.innerText = "Uploading..."; btn.disabled = true;
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                try {
+                    const res = await fetch('/api/utility/upload-file', { method: 'POST', body: formData });
+                    const data = await res.json();
+                    if(data.url) pendingItem.submissionUrl = data.url;
+                } catch(e) {
+                    alert("Upload failed.");
+                    btn.innerText = "Submit for Approval"; btn.disabled = false;
+                    return;
+                }
+            }
+            
+            closeModal('submissionModal');
+            if(selectedFile) btn.innerText = "Submit for Approval"; btn.disabled = false;
+            
+            checkTeamAndAdd();
+        }
+
+        function checkTeamAndAdd() {
+            const event = allEvents.find(e => e.eventId === currentEventId);
+            let maxTeamSize = 1;
+            if(event.teamSize) {
+                const matches = event.teamSize.match(/(\d+)/g); 
+                if(matches) maxTeamSize = parseInt(matches[matches.length - 1]);
+            }
+
+            if(maxTeamSize > 1) openTeamModal(maxTeamSize);
+            else submitRegistrationDirectly();
+        }
+
+        function openTeamModal(maxSize) {
+            const container = document.getElementById('teamMembersContainer');
+            container.innerHTML = ''; 
+            const additionalMembers = maxSize - 1; 
+
+            const note = document.createElement('p');
+            note.style.color = 'var(--accent-color)'; note.style.fontSize = '0.9rem';
+            note.innerHTML = `Please add details for up to <b>${additionalMembers}</b> additional members.`;
+            container.appendChild(note);
+
+            for(let i = 1; i <= additionalMembers; i++) {
+                const div = document.createElement('div');
+                div.style.marginTop = '15px'; div.style.padding = '10px';
+                div.style.border = '1px solid var(--glass-border)'; div.style.borderRadius = '8px';
+                div.innerHTML = `
+                    <strong style="color:var(--accent-color)">Member ${i + 1}</strong>
+                    <input type="text" class="search-input member-name" placeholder="Full Name" style="margin-top:5px;">
+                    <input type="text" class="search-input member-roll" placeholder="Roll No" style="margin-top:5px;">
+                    <input type="text" class="search-input member-mobile" placeholder="Mobile" style="margin-top:5px;">
+                    <input type="email" class="search-input member-email" placeholder="Email ID" style="margin-top:5px;">
+                `;
+                container.appendChild(div);
+            }
+            document.getElementById('teamNameInput').value = '';
+            document.getElementById('teamModal').classList.add('active');
+        }
+
+        async function finalizeRegistration() {
+            const teamName = document.getElementById('teamNameInput').value;
+            if(!teamName) { alert("Please enter a Team Name"); return; }
+            
+            const members = [];
+            const memberDivs = document.querySelectorAll('#teamMembersContainer > div');
+            memberDivs.forEach((div) => {
+                const name = div.querySelector('.member-name').value;
+                const roll = div.querySelector('.member-roll').value;
+                const mobile = div.querySelector('.member-mobile').value;
+                const email = div.querySelector('.member-email').value;
+                if(name) members.push({ name, roll, mobile, email });
+            });
+
+            pendingItem.teamName = teamName;
+            pendingItem.teamMembers = members;
+            closeModal('teamModal');
+            await submitRegistrationDirectly();
+        }
+
+        async function submitRegistrationDirectly() {
+            showNotification("Submitting Registration...");
+            try {
+                // Add PaymentMode as 'REVIEW' so it stays pending payment in backend
+                pendingItem.paymentMode = 'REVIEW'; 
+                
+                const res = await fetch('/api/register-event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(pendingItem)
+                });
+
+                const data = await res.json();
+                if(res.ok) {
+                    showNotification("Registration Submitted! Wait for Approval.");
+                    // Reload to update status
+                    setTimeout(() => window.location.href = 'my-registrations', 2000);
+                } else {
+                    alert(data.error || "Registration failed.");
+                }
+            } catch(e) { console.error(e); alert("Network Error"); }
+        }
+
+        window.onload = loadEvents;
+    </script>
+</body>
+</html>

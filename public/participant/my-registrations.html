@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Registrations | LAKSHYA 2K26</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Razorpay SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <link rel="icon" type="image/png" href="/assets/logo.png">
+    
+    <script>const CURRENT_PAGE = 'my-registrations';</script>
+    <script src="/js/common.js"></script>
+    <script src="/js/chatbot.js"></script>
+
+    <style>
+        /* --- COSMIC THEME --- */
+        :root { 
+            --primary-color: #00d2ff; 
+            --secondary-color: #3a7bd5; 
+            --accent-color: #ff00cc; 
+            --glass-bg: rgba(20, 20, 35, 0.85); 
+            --glass-border: rgba(255, 255, 255, 0.1); 
+            --text-color: #ffffff; 
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body { 
+            background-color: #0a0a0a; 
+            color: var(--text-color); 
+            display: flex; 
+            min-height: 100vh; 
+            overflow-x: hidden; 
+        }
+
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('../assets/admin-block.jpg') no-repeat center center/cover; z-index: -2; opacity: 0.6; }
+        .overlay-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 12, 0.92); z-index: -1; }
+
+        .main { 
+            flex-grow: 1; 
+            padding: 3rem; 
+            margin-left: 260px; 
+            width: calc(100% - 260px); 
+            overflow-y: auto; 
+        }
+
+        @media (max-width: 1024px) { 
+            .main { width: 100%; margin-left: 0; padding-top: 90px; padding-left: 20px; padding-right: 20px; } 
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; padding-bottom: 80px; }
+        .page-header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .page-header h2 { font-family: 'Montserrat', sans-serif; font-size: 2rem; color: white; }
+
+        /* --- REGISTRATION CARDS --- */
+        .reg-list { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+        .reg-card { 
+            background: rgba(30, 30, 40, 0.6); 
+            border: 1px solid var(--glass-border); 
+            border-radius: 15px; 
+            padding: 1.5rem; 
+            display: flex; 
+            flex-wrap: wrap; 
+            align-items: center; 
+            justify-content: space-between; 
+            gap: 20px; 
+            transition: 0.3s; 
+            position: relative; 
+            overflow: hidden; 
+        }
+        .reg-card:hover { transform: translateY(-3px); border-color: var(--primary-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .reg-card::before { content:''; position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: var(--primary-color); }
+        .reg-card.pending::before { background: #ffc107; }
+        .reg-card.review::before { background: var(--accent-color); }
+        
+        .reg-details { flex: 1; min-width: 200px; }
+        .reg-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 5px; color: white; font-family: 'Montserrat'; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .reg-meta { color: #aaa; font-size: 0.9rem; display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 8px; }
+        
+        /* BADGES */
+        .kit-badge {
+            background: linear-gradient(45deg, #ff00cc, #6600cc);
+            color: white;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 8px rgba(255, 0, 204, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .team-badge { background: rgba(255, 0, 204, 0.1); border: 1px dashed var(--accent-color); color: #ff88dd; padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; display: inline-block; margin-top: 5px; }
+        .coupon-badge { background: rgba(0, 255, 136, 0.1); border: 1px dashed #00ff88; color: #00ff88; padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; display: inline-block; margin-top: 5px; margin-left: 10px; }
+        
+        .status-badge { padding: 6px 12px; border-radius: 50px; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
+        .status-paid { background: rgba(76, 175, 80, 0.2); color: #4caf50; border: 1px solid rgba(76, 175, 80, 0.3); }
+        .status-pending { background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.3); }
+        .status-review { background: rgba(255, 0, 204, 0.2); color: #ff88dd; border: 1px solid rgba(255, 0, 204, 0.3); }
+        
+        .reg-actions { display: flex; gap: 10px; }
+        .btn-action { padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 0.9rem; border: none; display: flex; align-items: center; gap: 8px; }
+        
+        .btn-pay { background: #ffc107; color: black; }
+        .btn-pay:hover { background: #ffdb4d; transform: translateY(-2px); }
+        .btn-pay.disabled { background: #333; color: #666; cursor: not-allowed; }
+        
+        .btn-receipt { background: rgba(0, 210, 255, 0.1); color: var(--primary-color); border: 1px solid var(--primary-color); }
+        .btn-receipt:hover { background: var(--primary-color); color: black; }
+        
+        .empty-state { text-align: center; padding: 50px 20px; color: #888; }
+        .btn-browse { margin-top: 20px; display: inline-block; padding: 12px 30px; border: 1px solid var(--primary-color); color: var(--primary-color); text-decoration: none; border-radius: 50px; font-weight: 600; transition: 0.3s; }
+        .btn-browse:hover { background: var(--primary-color); color: black; }
+        
+        /* Payment Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 11000; justify-content: center; align-items: center; backdrop-filter: blur(5px); padding: 20px; }
+        .modal-content { background: #1a1a2e; padding: 2rem; border-radius: 15px; border: 1px solid var(--primary-color); width: 100%; max-width: 400px; text-align: center; animation: slideUp 0.3s ease-out; position: relative; }
+        .btn-modal { padding: 10px 25px; border-radius: 50px; border: none; font-weight: 600; cursor: pointer; background: var(--primary-color); color: black; margin-top: 10px; }
+
+        /* Suggestion Box */
+        .coupon-suggestion {
+            background: rgba(0, 210, 255, 0.1);
+            border: 1px dashed var(--primary-color);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+            color: #fff;
+            display: none; /* Hidden by default */
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .coupon-suggestion:hover {
+            background: rgba(0, 210, 255, 0.2);
+        }
+        .coupon-suggestion i { color: var(--primary-color); margin-right: 5px; }
+        .coupon-suggestion strong { color: var(--primary-color); }
+
+        /* --- T&C LIST STYLES --- */
+        .tnc-list { text-align: left; margin: 15px 0; max-height: 300px; overflow-y: auto; padding-right: 5px; }
+        .tnc-list ul { padding-left: 20px; margin: 0; list-style-type: disc; }
+        .tnc-list li { margin-bottom: 10px; font-size: 0.85rem; color: #ddd; line-height: 1.4; }
+        .tnc-list strong { color: var(--primary-color); }
+        .tnc-list::-webkit-scrollbar { width: 5px; }
+        .tnc-list::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        .tnc-list::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 5px; }
+
+        .btn-remove-coupon {
+            background: rgba(255, 68, 68, 0.2) !important;
+            color: #ff4444 !important;
+            border: 1px solid #ff4444 !important;
+        }
+        .btn-remove-coupon:hover {
+            background: #ff4444 !important;
+            color: white !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+    
+    <main class="main">
+        <div class="container">
+            <div class="page-header">
+                <h2>My Registrations</h2>
+            </div>
+            <div id="regContainer" class="reg-list">
+                <div class="empty-state">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;"></i>
+                    <p style="margin-top:10px;">Loading records...</p>
+                </div>
+            </div>
+        </div>
+        <div style="text-align:center; padding-top:40px;">
+             <a href="/terms" target="_blank" style="color:#666; text-decoration:none; font-size:0.9rem;">Terms & Conditions</a>
+        </div>
+    </main>
+
+    <!-- PAYMENT MODAL -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content" style="text-align:left; border:1px solid var(--primary-color);">
+            <h3 style="text-align:center; margin-bottom:20px; color:white; font-family:'Montserrat';">Complete Payment</h3>
+            
+            <div style="margin-bottom:10px; display:flex; justify-content:space-between;">
+                <label style="color:#aaa; font-size:0.9rem;">Event Fee</label>
+                <div style="font-size:1rem; color:white;" id="payOriginalAmount">₹0</div>
+            </div>
+            <div id="payDiscountRow" style="margin-bottom:10px; display:none; justify-content:space-between; color:#00ff88;">
+                <label style="font-size:0.9rem;">Discount</label>
+                <div style="font-size:1rem; font-weight:bold;" id="payDiscountAmount">-₹0</div>
+            </div>
+            <div id="paySubtotalRow" style="margin-bottom:10px; display:none; justify-content:space-between; color:#ccc;">
+                <label style="font-size:0.9rem; color:#aaa;">Discounted Price</label>
+                <div style="font-size:1rem; color:white;" id="paySubtotalAmount">₹0</div>
+            </div>
+
+            <div style="margin-bottom:15px;">
+                <label style="color:#aaa; font-size:0.9rem; margin-bottom:5px; display:block;">Have a Coupon?</label>
+                <div id="couponSuggestion" class="coupon-suggestion" onclick="applySuggestion('LAKSHYA2K26')">
+                    <i class="fa-solid fa-gift"></i> 2nd Event Offer! Use code <strong>LAKSHYA2K26</strong>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="payCouponInput" placeholder="Enter Code" style="width:100%; padding:8px; background:rgba(255,255,255,0.1); border:1px solid #444; color:white; border-radius:5px; text-transform: uppercase;">
+                    <button onclick="handleCouponAction()" id="btnApplyCoupon" style="padding:8px 15px; background:var(--primary-color); border:none; border-radius:5px; cursor:pointer; font-weight:bold; color:black; min-width:80px;">Apply</button>
+                </div>
+                <div id="payCouponMsg" style="font-size:0.85rem; margin-top:5px; min-height:1.2em;"></div>
+            </div>
+
+            <div style="margin-bottom:10px; display:flex; justify-content:space-between;">
+                <label style="color:#aaa; font-size:0.9rem;">Platform Fee (2.36%)</label>
+                <div style="font-size:1rem; color:white;" id="payFeeAmount">₹0</div>
+            </div>
+
+            <div style="margin-bottom:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center;">
+                <span style="color:#ccc;">Total Payable</span>
+                <span style="font-size:1.6rem; color:#00ff88; font-weight:bold;" id="payFinalAmount">₹0</span>
+            </div>
+
+            <div id="payKitSummary" style="margin-top: 5px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.2); font-size: 0.85rem; display:none;">
+                <strong style="color:var(--accent-color); display:block; margin-bottom:5px;">Registration Kit:</strong>
+                <span id="payKitStatus" style="display:flex; align-items:center; gap:5px;"></span>
+            </div>
+
+            <div style="display:flex; gap:10px; justify-content:center; margin-top: 20px;">
+                <button onclick="closePaymentModal()" style="padding:12px 20px; background:transparent; border:1px solid #555; color:#ccc; border-radius:8px; cursor:pointer; flex:1;">Cancel</button>
+                <button onclick="processPayment()" id="btnFinalPay" style="padding:12px 20px; background:linear-gradient(45deg, #00d2ff, #007bff); border:none; color:white; border-radius:8px; cursor:pointer; font-weight:bold; flex:1;">Pay Now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- T&C MODAL -->
+    <div class="modal" id="tncModal">
+        <div class="modal-content" style="max-width:500px; text-align:left;">
+            <div style="text-align:center; margin-bottom:15px;">
+                <i class="fa-solid fa-file-contract" style="font-size:2.5rem; color:var(--primary-color);"></i>
+                <h3 style="color:white; font-family:'Montserrat'; margin-top:10px;">Coupon Terms & Conditions</h3>
+            </div>
+            <div class="tnc-list">
+                <ul>
+                    <li>The coupon <strong>LAKSHYA2K26</strong> is applicable only to <strong>Major, MBA, and Cultural Events</strong>.</li>
+                    <li>It offers <strong>50% off</strong> on the second eligible event in a single transaction.</li>
+                    <li>The coupon <strong>cannot</strong> be applied to Special Events.</li>
+                    <li>The coupon is valid <strong>once per user</strong> and per order.</li>
+                    <li><strong>Registration kits</strong> are provided <strong>ONLY</strong> for events booked at the full <strong>₹200</strong> price.</li>
+                    <li><strong>Discounted registrations</strong> are <strong>NOT</strong> eligible for registration kits.</li>
+                    <li>Special Events do not include registration kits, regardless of the fee.</li>
+                    <li>Once payment is completed, coupon benefits and kit eligibility <strong>cannot be changed</strong>.</li>
+                </ul>
+            </div>
+            <div style="display:flex; justify-content:center; margin-top:20px;">
+                <button class="btn-modal" onclick="closeTnCPopup()">I Understand</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allRegistrations = [];
+        let eventCache = {};
+        let currentUser = { name: 'Student', rollNo: '', email: '' };
+        
+        let pendingTx = { 
+            regId: null, 
+            eventId: null, 
+            amount: 0, 
+            coupon: null, 
+            discountedBase: 0,
+            eventHasKit: false
+        };
+
+        const culturalKeywords = ['cultural', 'music', 'dance', 'singing', 'drama', 'skit', 'fashion', 'art', 'rangamarthanda', 'painting', 'literary', 'major', 'mba', 'management'];
+
+        const kitEligibleKeywords = ['major', 'mba', 'management', 'cultural', 'music', 'dance', 'singing', 'drama', 'art', 'fashion', 'literary', 'technical'];
+
+        function isCulturalEvent(title, type) {
+            const t = (type || '').toLowerCase();
+            const ti = (title || '').toLowerCase();
+            return culturalKeywords.some(key => t.includes(key) || ti.includes(key));
+        }
+
+        function isKitCategory(eventDetails) {
+            const t = (eventDetails.type || '').toLowerCase();
+            const ti = (eventDetails.title || '').toLowerCase();
+            return kitEligibleKeywords.some(key => t.includes(key) || ti.includes(key));
+        }
+
+        async function init() {
+            try {
+                const resEvents = await fetch('/api/events');
+                const events = await resEvents.json();
+                events.forEach(e => eventCache[e.eventId] = e);
+                const resUser = await fetch('/api/participant/dashboard-stats');
+                if(resUser.ok) currentUser = await resUser.json();
+                const resReg = await fetch('/api/participant/my-registrations-data');
+                if(resReg.redirected) { window.location.href = '../login'; return; }
+                allRegistrations = await resReg.json();
+                renderRegistrations();
+            } catch (e) {
+                document.getElementById('regContainer').innerHTML = '<div class="empty-state" style="color:red;">Error loading data.</div>';
+            }
+        }
+
+        function renderRegistrations() {
+            const container = document.getElementById('regContainer');
+            container.innerHTML = '';
+            if (allRegistrations.length === 0) {
+                container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-clipboard-list" style="font-size:4rem; opacity:0.2; margin-bottom:15px;"></i><h3>No Registrations Yet</h3><p>You haven't registered for any events.</p><a href="events" class="btn-browse">Browse Events</a></div>`;
+                return;
+            }
+            
+            allRegistrations.forEach(reg => {
+                const eventDetails = eventCache[reg.eventId] || { title: reg.eventId, fee: '0', type: '' };
+                const isPaid = reg.paymentStatus === 'COMPLETED';
+                const isCultural = isCulturalEvent(eventDetails.title, eventDetails.type);
+                const isApproved = reg.approvalStatus === 'APPROVED';
+
+                // --- ROBUST KIT CHECK LOGIC ---
+                // 1. Base Eligibility
+                const baseEligible = eventDetails.includesKit === true || 
+                                     (eventDetails.description && eventDetails.description.toLowerCase().includes('kit')) ||
+                                     isKitCategory(eventDetails);
+                
+                let showKitBadge = baseEligible;
+
+                // 2. Discount Check: If Paid, did they pay full price?
+                if (isPaid) {
+                    const paid = parseFloat(reg.amountPaid) || 0;
+                    const fee = parseFloat(eventDetails.fee) || 0;
+                    // If paid < fee (minus tolerance), it's discounted -> No Kit
+                    if (paid < (fee - 1)) {
+                        showKitBadge = false; 
+                    }
+                } 
+
+                let kitBadgeHtml = '';
+                if (showKitBadge) {
+                    kitBadgeHtml = `<span class="kit-badge"><i class="fa-solid fa-box-open"></i> KIT INCLUDED</span>`;
+                }
+
+                let statusHtml = '';
+                let cardClass = 'reg-card';
+                let actionBtn = '';
+
+                if (isPaid) {
+                    statusHtml = `<span class="status-badge status-paid"><i class="fa-solid fa-check"></i> Paid</span>`;
+                    actionBtn = `<button class="btn-action btn-receipt" onclick="printReceipt('${reg.registrationId}')"><i class="fa-solid fa-print"></i> Receipt</button>`;
+                } else {
+                    cardClass = 'reg-card pending';
+                    if (isCultural) {
+                        if (isApproved) {
+                            statusHtml = `<span class="status-badge status-pending" style="border-color:#00ff88; color:#00ff88;"><i class="fa-solid fa-check"></i> Approved</span>`;
+                            actionBtn = `<button class="btn-action btn-pay" onclick="openPaymentModal('${reg.registrationId}', '${reg.eventId}', ${eventDetails.fee || 0})"><i class="fa-solid fa-credit-card"></i> Pay Now</button>`;
+                        } else {
+                            cardClass = 'reg-card review';
+                            statusHtml = `<span class="status-badge status-review"><i class="fa-solid fa-hourglass-half"></i> Under Review</span>`;
+                            actionBtn = `<button class="btn-action btn-pay disabled" disabled title="Waiting for coordinator approval"><i class="fa-solid fa-lock"></i> Locked</button>`;
+                        }
+                    } else {
+                        statusHtml = `<span class="status-badge status-pending"><i class="fa-solid fa-clock"></i> Pending</span>`;
+                        actionBtn = `<button class="btn-action btn-pay" onclick="openPaymentModal('${reg.registrationId}', '${reg.eventId}', ${eventDetails.fee || 0})"><i class="fa-solid fa-credit-card"></i> Pay Now</button>`;
+                    }
+                }
+                
+                let teamHtml = '';
+                if(reg.teamName) {
+                    const count = (reg.teamMembers ? reg.teamMembers.length : 0) + 1;
+                    teamHtml = `<div class="team-badge"><i class="fa-solid fa-users"></i> ${reg.teamName} (${count})</div>`;
+                }
+
+                let couponHtml = '';
+                if(reg.couponUsed && reg.couponUsed !== 'NONE' && reg.couponUsed !== null) {
+                    couponHtml = `<div class="coupon-badge"><i class="fa-solid fa-tag"></i> ${reg.couponUsed}</div>`;
+                }
+
+                const div = document.createElement('div');
+                div.className = cardClass;
+                div.innerHTML = `
+                    <div class="reg-details">
+                        <div class="reg-title">
+                            ${eventDetails.title}
+                            ${kitBadgeHtml}
+                        </div>
+                        <div class="reg-meta">
+                            <span><i class="fa-solid fa-building-columns"></i> ${reg.deptName}</span>
+                            <span><i class="fa-solid fa-calendar"></i> ${new Date(reg.registeredAt).toLocaleDateString()}</span>
+                            <span><i class="fa-solid fa-tag"></i> ₹${eventDetails.fee || 0}</span>
+                        </div>
+                        ${teamHtml} ${couponHtml}
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px;">${statusHtml}</div>
+                    <div class="reg-actions">${actionBtn}</div>`;
+                container.appendChild(div);
+            });
+        }
+
+        // --- PAYMENT MODAL LOGIC ---
+        function updateModalTotals(baseAmount) {
+            let currentBase = parseFloat(baseAmount) || 0;
+            let discountAmount = 0;
+            
+            if (pendingTx.coupon) {
+                const c = pendingTx.coupon;
+                const percent = parseFloat(c.percentage || c.percent);
+                const flat = parseFloat(c.discountAmount || c.value || c.discount || c.amount || c.off);
+
+                if (!isNaN(percent) && percent > 0) {
+                    discountAmount = (currentBase * percent) / 100;
+                } else if (!isNaN(flat) && flat > 0) {
+                    if (c.type === 'percent') {
+                         discountAmount = (currentBase * flat) / 100;
+                    } else {
+                        discountAmount = flat;
+                    }
+                }
+                discountAmount = Math.min(discountAmount, currentBase);
+                currentBase = currentBase - discountAmount;
+            }
+
+            const discRow = document.getElementById('payDiscountRow');
+            const subRow = document.getElementById('paySubtotalRow');
+            
+            if(discountAmount > 0) {
+                discRow.style.display = 'flex';
+                document.getElementById('payDiscountAmount').innerText = '-₹' + discountAmount.toFixed(2);
+                subRow.style.display = 'flex';
+                document.getElementById('paySubtotalAmount').innerText = '₹' + currentBase.toFixed(2);
+            } else {
+                discRow.style.display = 'none';
+                subRow.style.display = 'none';
+            }
+
+            const kitDiv = document.getElementById('payKitSummary');
+            const kitStatus = document.getElementById('payKitStatus');
+
+            if (pendingTx.eventHasKit) {
+                kitDiv.style.display = 'block';
+                if (discountAmount > 0) {
+                    kitStatus.innerHTML = `<i class="fa-solid fa-circle-xmark" style="color:#ff4444;"></i> <span style="color:#aaa;">Not included with discount</span>`;
+                } else {
+                    kitStatus.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#00ff88;"></i> <span style="color:white;">Included</span>`;
+                }
+            } else {
+                kitDiv.style.display = 'none';
+            }
+
+            const platformFee = (currentBase * 0.0236);
+            const finalTotal = currentBase + platformFee;
+            
+            pendingTx.discountedBase = currentBase;
+
+            document.getElementById('payFeeAmount').innerText = '₹' + platformFee.toFixed(2);
+            document.getElementById('payFinalAmount').innerText = '₹' + finalTotal.toFixed(2);
+        }
+
+        function checkEventEligibility(eventId) {
+            const paidEvents = allRegistrations.filter(r => r.paymentStatus === 'COMPLETED');
+            const paidCount = paidEvents.length;
+            const currentEvent = eventCache[eventId];
+            if(!currentEvent) return false;
+            const isSpecial = isCulturalEvent(currentEvent.title, currentEvent.type);
+            if (paidCount >= 1 && isSpecial) return true;
+            return false;
+        }
+
+        function applySuggestion(code) { document.getElementById('payCouponInput').value = code; }
+
+        function openPaymentModal(regId, eventId, amount) {
+            const validAmount = parseFloat(amount) || 0;
+            const eventInfo = eventCache[eventId];
+            const hasKit = eventInfo ? (
+                eventInfo.includesKit === true || 
+                (eventInfo.description && eventInfo.description.toLowerCase().includes('kit')) ||
+                isKitCategory(eventInfo)
+            ) : false;
+
+            pendingTx = { regId: regId, eventId: eventId, amount: validAmount, coupon: null, discountedBase: validAmount, eventHasKit: hasKit };
+            document.getElementById('payOriginalAmount').innerText = '₹' + validAmount;
+            
+            document.getElementById('payCouponInput').value = '';
+            document.getElementById('payCouponInput').disabled = false;
+            document.getElementById('payCouponMsg').innerText = '';
+            
+            const btn = document.getElementById('btnApplyCoupon');
+            btn.innerHTML = "Apply";
+            btn.className = "";
+            btn.removeAttribute('style');
+            btn.style.background = "var(--primary-color)";
+            btn.style.color = "black";
+            btn.disabled = false;
+
+            document.getElementById('payDiscountRow').style.display = 'none';
+            document.getElementById('paySubtotalRow').style.display = 'none';
+
+            const isEligible = checkEventEligibility(eventId);
+            document.getElementById('couponSuggestion').style.display = isEligible ? 'block' : 'none';
+            
+            updateModalTotals(validAmount); 
+            document.getElementById('paymentModal').style.display = 'flex';
+        }
+
+        function closePaymentModal() { document.getElementById('paymentModal').style.display = 'none'; }
+
+        function handleCouponAction() {
+            if(pendingTx.coupon) removePayCoupon();
+            else validatePayCoupon();
+        }
+
+        function removePayCoupon() {
+            pendingTx.coupon = null;
+            const input = document.getElementById('payCouponInput');
+            input.value = ''; input.disabled = false;
+            document.getElementById('payCouponMsg').innerText = '';
+            const btn = document.getElementById('btnApplyCoupon');
+            btn.innerHTML = "Apply";
+            btn.removeAttribute('style');
+            btn.style.background = "var(--primary-color)";
+            btn.style.color = "black";
+            btn.classList.remove('btn-remove-coupon');
+            updateModalTotals(pendingTx.amount);
+        }
+
+        async function validatePayCoupon() {
+            const code = document.getElementById('payCouponInput').value.trim();
+            if(!code) return;
+            const btn = document.getElementById('btnApplyCoupon');
+            const msg = document.getElementById('payCouponMsg');
+            const input = document.getElementById('payCouponInput');
+            
+            btn.innerText = "..."; btn.disabled = true;
+            try {
+                const mockCart = [{ eventId: pendingTx.eventId }];
+                const res = await fetch('/api/coupon/validate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, cartItems: mockCart }) });
+                const data = await res.json();
+                if(res.ok) {
+                    pendingTx.coupon = data.coupon || data; 
+                    let discountDisplay = "";
+                    const c = pendingTx.coupon;
+                    if(c.percentage || c.percent) discountDisplay = `${c.percentage || c.percent}%`;
+                    else if (c.value || c.discount || c.amount || c.discountAmount) discountDisplay = `₹${c.value || c.discount || c.amount || c.discountAmount}`;
+                    else discountDisplay = "Coupon";
+
+                    msg.innerText = `Success! ${discountDisplay} Discount Applied.`; msg.style.color = '#00ff88';
+                    btn.innerHTML = '<i class="fa-solid fa-trash"></i> Remove';
+                    btn.removeAttribute('style'); 
+                    btn.classList.add('btn-remove-coupon');
+                    btn.disabled = false;
+                    input.disabled = true;
+                    showTnCPopup();
+                } else {
+                    pendingTx.coupon = null;
+                    msg.innerText = data.error || "Invalid Coupon"; msg.style.color = '#ff4444';
+                    btn.innerText = "Apply"; btn.disabled = false;
+                }
+                updateModalTotals(pendingTx.amount);
+            } catch(e) {
+                msg.innerText = "Network error."; msg.style.color = '#ff4444';
+                btn.innerText = "Apply"; btn.disabled = false;
+            }
+        }
+
+        function showTnCPopup() { document.getElementById('tncModal').style.display = 'flex'; }
+        function closeTnCPopup() { document.getElementById('tncModal').style.display = 'none'; }
+
+        // --- UPDATED PROCESS PAYMENT (FIXED FOR REDIRECT) ---
+        async function processPayment() {
+            const btn = document.getElementById('btnFinalPay');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Redirecting...';
+            btn.disabled = true;
+
+            const couponCodeToSend = pendingTx.coupon ? pendingTx.coupon.code : null;
+
+            try {
+                const singleItemCart = [{ eventId: pendingTx.eventId }];
+                const orderRes = await fetch('/api/payment/create-order', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ cartItems: singleItemCart, couponCode: couponCodeToSend }) 
+                });
+                
+                const orderData = await orderRes.json();
+                
+                if (!orderData.paymentLink) {
+                    throw new Error("Link creation failed. Please check backend configuration.");
+                }
+
+                // IMPORTANT: Save IDs to LocalStorage to use them after redirect
+                localStorage.setItem('LAKSHYA_PENDING_REGS', JSON.stringify([pendingTx.regId]));
+                localStorage.setItem('LAKSHYA_PENDING_COUPON', couponCodeToSend || "");
+                localStorage.setItem('LAKSHYA_ITEM_AMOUNTS', JSON.stringify(orderData.itemAmounts));
+
+                // REDIRECT TO PAYMENT LINK
+                window.location.href = orderData.paymentLink;
+
+            } catch (e) {
+                console.error(e);
+                alert("Payment initiation failed. Please try again.");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function printReceipt(regId) {
+            const reg = allRegistrations.find(r => r.registrationId === regId);
+            if (!reg) return;
+            const eventDetails = eventCache[reg.eventId] || { title: "Event", fee: "0" };
+            const timestamp = reg.paymentDate || reg.registeredAt || new Date().toISOString();
+            const dateObj = new Date(timestamp);
+            const dateStr = dateObj.toLocaleDateString('en-US');
+            const verifyLink = `${window.location.origin}/receipt-view?id=${regId}`;
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(verifyLink)}`;
+            
+            const paid = parseFloat(reg.amountPaid) || parseFloat(eventDetails.fee) || 0;
+            const fee = parseFloat(eventDetails.fee) || 0;
+            
+            // --- UPDATED KIT LOGIC FOR RECEIPT ---
+            const baseEligible = eventDetails.includesKit === true || 
+                                 (eventDetails.description && eventDetails.description.toLowerCase().includes('kit')) ||
+                                 isKitCategory(eventDetails);
+            
+            let kitStatusText = "";
+            let kitColor = "#000";
+
+            if (baseEligible) {
+                if (paid < (fee - 1)) {
+                    kitStatusText = "NO KIT (DISCOUNT APPLIED)";
+                    kitColor = "#d9534f"; // Red
+                } else {
+                    kitStatusText = "REGISTRATION KIT INCLUDED";
+                    kitColor = "#00d2ff"; // Blue
+                }
+            } else {
+                kitStatusText = "STANDARD ENTRY (NO KIT)";
+                kitColor = "#777";
+            }
+            
+            const tax = (paid * 0.0236).toFixed(2);
+            const totalWithTax = (paid + parseFloat(tax)).toFixed(2);
+
+            const win = window.open('', '', 'width=850,height=900');
+            win.document.write(`
+                <html>
+                <head>
+                    <title>Entry Pass - ${eventDetails.title}</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+                    <style>
+                        body { font-family: 'Roboto', sans-serif; padding: 40px; background:#f0f2f5; display:flex; justify-content:center; }
+                        .pass-container {
+                            background: white; width: 100%; max-width: 600px; padding: 0;
+                            border: 2px solid #00d2ff; border-radius: 12px; position: relative;
+                            box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden;
+                        }
+                        .pass-header { padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0f0f0; }
+                        .pass-header img { height: 60px; width: auto; object-fit: contain; }
+                        .pass-title { text-align: center; flex: 1; }
+                        .pass-title h1 { margin: 0; font-size: 24px; color: #888; letter-spacing: 2px; font-weight: 700; text-transform: uppercase; }
+                        .pass-title p { margin: 5px 0 0; font-size: 10px; color: #aaa; letter-spacing: 3px; text-transform: uppercase; font-weight: 600; }
+                        .pass-body { padding: 30px; }
+                        .meta-row { display: flex; justify-content: space-between; font-size: 11px; color: #555; font-weight: 600; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+                        .separator { border-bottom: 2px dashed #ddd; margin-bottom: 30px; position: relative; }
+                        .event-info { margin-bottom: 35px; text-align: center; }
+                        .event-info h3 { margin: 0 0 8px; font-size: 22px; color: #222; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
+                        .event-info p { margin: 0; color: #666; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+                        .details-grid { display: grid; grid-template-columns: 140px 1fr; row-gap: 12px; font-size: 12px; margin-bottom: 35px; align-items: baseline; }
+                        .label { color: #777; font-weight: 500; }
+                        .value { color: #000; font-weight: 700; text-align: right; text-transform: uppercase; font-size: 13px; }
+                        .amount-val { color: #00d2ff; font-size: 18px; font-weight: 800; }
+                        .footer-row { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px; }
+                        .qr-section { text-align: center; }
+                        .qr-img { width: 90px; height: 90px; border: 1px solid #eee; padding: 3px; background: #fff; }
+                        .scan-text { font-size: 9px; color: #888; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px; font-weight: 500; }
+                        .stamp { border: 3px solid #4caf50; color: #4caf50; padding: 8px 20px; font-weight: 800; text-transform: uppercase; transform: rotate(-5deg); display: inline-block; font-size: 16px; letter-spacing: 2px; border-radius: 6px; opacity: 0.8; background: rgba(76, 175, 80, 0.05); }
+                        .btn-print { position: fixed; bottom: 30px; right: 30px; padding: 14px 30px; background: #222; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 5px 20px rgba(0,0,0,0.3); font-size: 14px; transition: 0.3s; }
+                        .btn-print:hover { background: #000; transform: translateY(-3px); }
+                        @media print { .btn-print, body { background: white; padding: 0; } .pass-container { border: 1px solid #00d2ff !important; box-shadow: none; border-radius: 0; width: 100%; max-width: 100%; margin: 0; } .pass-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="pass-container">
+                        <div class="pass-header">
+                            <img src="https://res.cloudinary.com/dpz44zf0z/image/upload/v1764610592/1000150316_94d436c3b0efe15eb7fb1d332f32709f-10_6_2025_7_05_27_AM_wt8kgm.png" alt="College Logo">
+                            <div class="pass-title">
+                                <h1>Lakshya 2K26</h1>
+                                <p>Official Entry Pass</p>
+                            </div>
+                            <img src="https://res.cloudinary.com/dpz44zf0z/image/upload/v1764605760/logo_oeso2m.png" alt="Event Logo">
+                        </div>
+                        <div class="pass-body">
+                            <div class="meta-row">
+                                <span><strong>ID:</strong> ${regId.substring(0,8).toUpperCase()}</span>
+                                <span>${dateStr}</span>
+                            </div>
+                            <div class="separator"></div>
+                            <div class="event-info">
+                                <h3>${eventDetails.title}</h3>
+                                <p>${reg.deptName}</p>
+                            </div>
+                            <div class="details-grid">
+                                <div class="label">Participant Name</div>
+                                <div class="value">${currentUser.name}</div>
+                                <div class="label">Roll Number</div>
+                                <div class="value">${currentUser.rollNo || '-'}</div>
+                                ${reg.teamName ? `<div class="label">Team Name</div><div class="value">${reg.teamName}</div>` : ''}
+                                ${reg.couponUsed && reg.couponUsed !== 'NONE' ? `<div class="label">Coupon Used</div><div class="value" style="color:#00d2ff;">${reg.couponUsed}</div>` : ''}
+                                <div class="label">Payment Mode</div>
+                                <div class="value">${reg.paymentMode || 'ONLINE'}</div>
+                                <div class="label">Amount Paid</div>
+                                <div class="value amount-val">₹${totalWithTax}</div>
+                                <div class="label">Kit Status</div>
+                                <div class="value" style="color:${kitColor};">${kitStatusText}</div>
+                            </div>
+                            <div class="footer-row">
+                                <div class="qr-section">
+                                    <img src="${qrUrl}" class="qr-img" alt="QR Code for Verification">
+                                    <div class="scan-text">Scan to Verify</div>
+                                </div>
+                                <div class="stamp">PAID & CONFIRMED</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-print" onclick="window.print()">Print Entry Pass</button>
+                </body>
+                </html>
+            `);
+        }
+
+        init();
+    </script>
+</body>
+</html>

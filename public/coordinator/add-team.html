@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Team | LAKSHYA 2K26</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="\assets\logo.png">
+    
+    <!-- Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <!-- Image & Zip Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <style>
+        /* --- COSMIC COORDINATOR THEME --- */
+        :root {
+            --primary-color: #00d2ff;
+            --accent-color: #ff00cc;
+            --glass-bg: rgba(20, 20, 35, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+            --sidebar-width: 260px;
+            --input-bg: #0a0a12;
+            --card-bg: rgba(255, 255, 255, 0.05);
+
+            /* ID Card Theme Colors */
+            --central-primary: #00d2ff;
+            --central-secondary: #002e4e;
+            --central-accent: #ffd700;
+            --event-primary: #ff00cc;
+            --event-secondary: #4a003a;
+            --event-accent: #00ffcc;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #050510; color: var(--text-color); display: flex; min-height: 100vh; overflow-x: hidden; }
+
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('../assets/admin-block.jpg') no-repeat center/cover; z-index: -2; }
+        .overlay-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,15,0.9); z-index: -1; }
+
+        /* --- SIDEBAR --- */
+        .sidebar { 
+            width: var(--sidebar-width); background: var(--glass-bg); border-right: 1px solid var(--glass-border); 
+            padding: 2rem; display: flex; flex-direction: column; z-index: 1000; height: 100vh; position: sticky; top: 0; 
+            transition: transform 0.3s ease-in-out;
+        }
+        .logo { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--primary-color); margin-bottom: 3rem; text-align: center; display: flex; justify-content: space-between; align-items: center; }
+        .menu { list-style: none; flex-grow: 1; } .menu li { margin-bottom: 1rem; }
+        .menu a { text-decoration: none; color: #ccc; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; transition: 0.3s; }
+        .menu a:hover, .menu a.active { background: rgba(0, 210, 255, 0.1); color: var(--primary-color); }
+        .logout { color: #ff4444; cursor: pointer; margin-top: auto; }
+
+        /* --- MOBILE HEADER --- */
+        .mobile-header {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 70px;
+            background: rgba(20, 20, 35, 0.95); border-bottom: 1px solid var(--glass-border);
+            z-index: 900; align-items: center; justify-content: space-between; padding: 0 20px;
+            backdrop-filter: blur(10px);
+        }
+        .mobile-logo { font-family: 'Montserrat', sans-serif; font-weight: 900; color: white; font-size: 1.2rem; }
+        .menu-toggle { font-size: 1.5rem; color: var(--primary-color); cursor: pointer; }
+        
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; }
+        .sidebar-overlay.active { display: block; }
+
+        /* --- MAIN CONTENT --- */
+        .main { flex-grow: 1; padding: 2rem; overflow-y: auto; z-index: 1; width: 100%; }
+        .header { margin-bottom: 2rem; }
+        .header h2 { font-family: 'Montserrat', sans-serif; font-size: 1.8rem; margin: 0; color: var(--primary-color); }
+        .header p { color: #aaa; font-size: 0.9rem; }
+
+        /* --- FORM CARD --- */
+        .form-container {
+            background: rgba(20, 20, 35, 0.8);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto 3rem auto;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+        .form-container.editing { border-color: var(--accent-color); box-shadow: 0 0 20px rgba(255, 0, 204, 0.2); }
+        .form-container::before { content:''; position: absolute; top:0; left:0; width: 100%; height: 3px; background: linear-gradient(90deg, var(--primary-color), var(--accent-color)); }
+
+        .type-toggle { display: flex; background: #000; border-radius: 8px; padding: 5px; margin-bottom: 25px; border: 1px solid #333; }
+        .type-option { flex: 1; text-align: center; padding: 10px; cursor: pointer; border-radius: 6px; font-weight: 600; color: #888; transition: 0.3s; }
+        .type-option.active { background: var(--primary-color); color: #000; box-shadow: 0 0 15px rgba(0, 210, 255, 0.4); }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .full-width { grid-column: span 2; }
+
+        label { display: block; margin-bottom: 8px; color: #ccc; font-size: 0.9rem; }
+        label.required::after { content: " *"; color: #ff4444; }
+        input, select { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid #333; color: white; border-radius: 8px; outline: none; transition: 0.3s; }
+        input:focus, select:focus { border-color: var(--primary-color); box-shadow: 0 0 10px rgba(0, 210, 255, 0.1); }
+        
+        .file-upload-box { border: 2px dashed #444; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .file-upload-box:hover { border-color: var(--primary-color); background: rgba(0, 210, 255, 0.05); }
+        #previewImage { max-width: 100px; max-height: 100px; margin-top: 10px; border-radius: 50%; border: 2px solid var(--primary-color); display: none; object-fit: cover; }
+
+        .btn-submit { background: linear-gradient(135deg, #00d2ff, #3a7bd5); color: white; padding: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem; margin-top: 20px; transition: 0.3s; }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 210, 255, 0.5); }
+        
+        .btn-cancel { background: #ff4444; color: white; padding: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; display: none; }
+        
+        .loader { display: none; text-align: center; margin-top: 10px; color: var(--primary-color); font-weight: bold; }
+
+        /* --- LIST SECTION STYLES --- */
+        .list-section { max-width: 1300px; margin: 0 auto; }
+        .list-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        
+        .filter-tabs { display: flex; gap: 10px; }
+        .filter-tab { padding: 8px 16px; background: rgba(255,255,255,0.1); border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: 0.3s; border: 1px solid transparent; }
+        .filter-tab.active { background: var(--primary-color); color: #000; font-weight: bold; }
+        .filter-tab:hover:not(.active) { border-color: var(--primary-color); color: var(--primary-color); }
+
+        .actions-right { display: flex; gap: 10px; }
+        .event-filter select { padding: 8px 15px; background: #151520; width: 200px; }
+        
+        .btn-pdf { background: #ff00cc; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .btn-pdf:hover { background: #d600ab; }
+        
+        .btn-bulk-zip { background: #4a003a; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-bulk-zip:hover { background: #6b0054; transform: translateY(-2px); }
+
+        /* Team Grid */
+        .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 40px; align-items: start; justify-items: center; }
+        
+        /* Standard Member Card (For Volunteers/Faculty) */
+        .team-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: 0.3s;
+            position: relative;
+            width: 100%;
+            max-width: 320px;
+        }
+        .team-card:hover { transform: translateY(-5px); border-color: var(--primary-color); }
+        .team-card .card-header-standard { height: 80px; background: linear-gradient(135deg, #00d2ff22, #3a7bd522); position: relative;}
+        .team-card .card-profile {
+            width: 80px; height: 80px; border-radius: 50%; border: 3px solid #151520; object-fit: cover;
+            position: absolute; top: 40px; left: 20px; background: #000;
+        }
+        .team-card .card-body { padding: 50px 20px 20px 20px; }
+        .team-card .card-body h3 { font-size: 1.1rem; margin-bottom: 2px; }
+        .team-card .card-body p.role { color: var(--primary-color); font-size: 0.85rem; font-weight: bold; margin-bottom: 10px; }
+        .info-row { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #aaa; margin-bottom: 5px; }
+        .info-row i { width: 15px; color: #666; }
+        .card-footer-standard { padding: 15px 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; background: rgba(0,0,0,0.2); }
+        .badge { padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+        .badge-student { background: rgba(255, 193, 7, 0.15); color: #ffc107; }
+        .badge-faculty { background: rgba(255, 0, 204, 0.15); color: #ff00cc; }
+        
+        /* -----------------------------------------
+           NEW ID CARD STYLES
+           ----------------------------------------- */
+        .id-card { background: #fff; border-radius: 25px; overflow: hidden; color: #333; box-shadow: 0 25px 50px rgba(0,0,0,0.7); position: relative; display: flex; flex-direction: column; border: 1px solid rgba(0,0,0,0.1); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .id-card .card-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: #fff; position: relative; z-index: 5; border: none; height: auto; }
+        .college-logo { height: 45px; }
+        .fest-logo { height: 50px; }
+        .college-title { font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 800; text-align: center; color: #111; line-height: 1.2; text-transform: uppercase; flex: 1; padding: 0 8px; }
+        .id-card .banner { text-align: center; font-family: 'Montserrat', sans-serif; font-weight: 900; text-transform: uppercase; color: white; letter-spacing: 3px; position: relative; z-index: 5; }
+        .profile-section { display: flex; flex-direction: column; align-items: center; padding: 25px 0 15px 0; position: relative; z-index: 5; }
+        .photo-frame { border: 5px solid; overflow: hidden; background: #f8f8f8; z-index: 2; box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
+        .photo-frame img { width: 100%; height: 100%; object-fit: cover; }
+        .user-name { font-family: 'Montserrat', sans-serif; font-weight: 900; text-align: center; text-transform: uppercase; }
+        .details-section { padding: 10px 30px; flex-grow: 1; position: relative; z-index: 5; }
+        .detail-row { margin-bottom: 8px; }
+        .detail-label { font-size: 0.65rem; font-weight: 700; color: #aaa; text-transform: uppercase; display: block; }
+        .detail-value { font-size: 0.95rem; font-weight: 600; color: #222; }
+        .watermark-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; overflow: hidden; z-index: 1; }
+        .watermark-text { font-family: 'Montserrat', sans-serif; font-weight: 900; opacity: 0.04; text-transform: uppercase; text-align: center; line-height: 1.1; }
+        .id-card .card-footer { display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; position: relative; z-index: 5; }
+
+        /* Central Template */
+        .central-card { width: 400px; height: 650px; border: 3px solid var(--central-primary); box-shadow: 0 0 30px rgba(0, 210, 255, 0.3); }
+        .central-card .banner { background: var(--central-secondary); padding: 15px 0; font-size: 1.4rem; border-bottom: 4px solid var(--central-primary); }
+        .central-card .photo-frame { width: 200px; height: 200px; border-radius: 50%; border-color: var(--central-primary); }
+        .central-card .user-name { color: var(--central-secondary); font-size: 1.8rem; margin-top: 15px; }
+        .central-card .role-badge { background: var(--central-accent); color: #000; padding: 8px 25px; border-radius: 30px; font-weight: 900; font-size: 0.9rem; margin-top: 10px; border: 2px solid #b89b00; }
+        .central-card .detail-value { font-size: 1.15rem; }
+        .central-card .watermark-text { font-size: 3.5rem; transform: rotate(-25deg); }
+        .central-card .card-footer { height: 75px; background: var(--central-secondary); font-size: 1.1rem; border-top: 5px solid var(--central-primary); }
+
+        /* Event Template */
+        .event-card { width: 350px; height: 580px; border: 1px solid var(--event-primary); }
+        .event-card .banner { background: linear-gradient(135deg, var(--event-primary), var(--event-secondary)); padding: 12px 0; font-size: 1.1rem; }
+        .event-card .photo-frame { width: 160px; height: 160px; border-radius: 20px; border-color: var(--event-primary); transform: rotate(-3deg); }
+        .event-card .user-name { color: var(--event-primary); font-size: 1.6rem; margin-top: 10px; }
+        .event-card .role-badge { background: #000; color: var(--event-accent); padding: 6px 18px; font-weight: 800; font-size: 0.8rem; margin-top: 8px; clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%); }
+        .event-card .watermark-text { font-size: 2.8rem; transform: rotate(-25deg); }
+        .event-card .card-footer { height: 65px; background: var(--event-primary); font-size: 1rem; }
+
+        .card-actions { position: absolute; right: 15px; top: 15px; display: flex; gap: 8px; z-index: 10; }
+        .action-btn { background: white; border: 1px solid #ddd; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s; }
+        .btn-edit { color: #4caf50; } .btn-delete { color: #f44336; } .btn-id-download { color: #00d2ff; }
+        .action-btn:hover { transform: scale(1.1); background: #f0f0f0; }
+
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: -100%; width: 280px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
+            .sidebar.active { left: 0; transform: translateX(0); }
+            .mobile-header { display: flex; }
+            .main { padding: 1.5rem; padding-top: 90px; width: 100%; margin-left: 0; }
+            .form-grid { grid-template-columns: 1fr; }
+            .list-controls { flex-direction: column; align-items: stretch; }
+            .team-grid { grid-template-columns: 1fr; }
+            .central-card, .event-card { width: 100%; height: auto; max-width: 350px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <div class="mobile-header">
+        <div class="mobile-logo">TEAM ADDON</div>
+        <i class="fa-solid fa-bars menu-toggle" onclick="toggleSidebar()"></i>
+    </div>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <main class="main">
+        <div class="header">
+            <h2>Manage Team</h2>
+            <p>Add and view Student Coordinators for your Department</p>
+        </div>
+
+        <!-- 1. ADD MEMBER FORM -->
+        <div class="form-container" id="formContainer">
+            <h3 id="formTitle" style="color:var(--primary-color); margin-bottom:15px; display:none;">Edit Member</h3>
+            
+            <div class="type-toggle">
+                <div class="type-option active" onclick="setMemberType('student')" id="btnStudent">Student Coordinator</div>
+                <div class="type-option" onclick="setMemberType('faculty')" id="btnFaculty">Faculty Coordinator</div>
+            </div>
+
+            <form id="addTeamForm" onsubmit="submitTeamMember(event)">
+                <input type="hidden" id="memberType" name="type" value="student">
+                <input type="hidden" id="deptInput" name="deptName">
+                <input type="hidden" id="memberId" name="memberId"> <!-- For Editing -->
+                <input type="hidden" id="existingImageUrl" name="existingImageUrl"> <!-- For Editing -->
+
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Department (Auto-Detected)</label>
+                        <input type="text" id="deptDisplay" readonly placeholder="Loading Department...">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="required">Full Name</label>
+                        <input type="text" name="fullName" id="inputFullName" required placeholder="Enter full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="required">Mobile Number</label>
+                        <input type="tel" name="mobile" id="inputMobile" required pattern="[0-9]{10}" placeholder="10-digit mobile">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="required">Email Address</label>
+                        <input type="email" name="email" id="inputEmail" required placeholder="official@email.com">
+                    </div>
+
+                    <div class="form-group" id="yearGroup">
+                        <label class="required">Year</label>
+                        <select name="year" id="yearSelect">
+                            <option value="I">I Year</option>
+                            <option value="II">II Year</option>
+                            <option value="III">III Year</option>
+                            <option value="IV">IV Year</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="required">Assign Event / Role</label>
+                        <select name="eventName" id="eventSelect" required>
+                            <option value="">-- Loading Events --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="required">Position</label>
+                        <select name="position" id="positionSelect" required>
+                            <option value="">-- Select Position --</option>
+                            <option value="Central Coordinator">Central Coordinator</option>
+                            <option value="Event Coordinator">Event Coordinator</option>
+                            <option value="Event Volunteer">Event Volunteer</option>
+                            <option value="Decoration Volunteer">Decoration Volunteer</option>
+                            <option value="Promotion Coordinator">Promotion Coordinator</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="required">Profile Picture</label>
+                        <div class="file-upload-box" onclick="document.getElementById('picInput').click()">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <p id="fileName">Click to upload image (Max 2MB)</p>
+                            <input type="file" id="picInput" name="image" accept="image/*" hidden onchange="previewFile()" required>
+                            <img id="previewImage">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="loader" class="loader"><i class="fa-solid fa-spinner fa-spin"></i> Processing... Please wait.</div>
+                <button type="submit" class="btn-submit" id="submitBtn">Add Team Member</button>
+                <button type="button" class="btn-cancel" id="cancelBtn" onclick="resetForm()">Cancel Edit</button>
+            </form>
+        </div>
+
+        <!-- 2. TEAM LIST SECTION -->
+        <section class="list-section">
+            <h3 style="margin-bottom: 20px; color: var(--primary-color); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                <i class="fa-solid fa-users-rectangle"></i> Current Team Members
+            </h3>
+
+            <div class="list-controls">
+                <div class="filter-tabs">
+                    <div class="filter-tab active" onclick="filterList('all', this)">All</div>
+                    <div class="filter-tab" onclick="filterList('student', this)">Students</div>
+                    <div class="filter-tab" onclick="filterList('faculty', this)">Faculty</div>
+                </div>
+
+                <div class="actions-right">
+                    <div class="event-filter">
+                        <select id="eventFilterSelect" onchange="applyFilters()">
+                            <option value="all">Filter by Event: All</option>
+                        </select>
+                    </div>
+                    <button class="btn-bulk-zip" onclick="downloadAllIDsZip()">
+                        <i class="fa-solid fa-file-zipper"></i> Bulk IDs
+                    </button>
+                    <button class="btn-pdf" onclick="downloadTeamPDF()">
+                        <i class="fa-solid fa-file-pdf"></i> PDF
+                    </button>
+                </div>
+            </div>
+
+            <div id="teamGrid" class="team-grid">
+                <p style="color: #666; width: 100%;">Loading team members...</p>
+            </div>
+        </section>
+    </main>
+    <script src="/js/common-menu.js"></script>
+    <script>
+        let userDept = "";
+        let allMembers = [];
+        let isEditMode = false;
+
+        const LOGO_COLLEGE = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSYabbSdzP1fVSWmX1zYq13NpiD8wX0UEzpg&s";
+        const LOGO_LAKSHYA = "https://res.cloudinary.com/dpz44zf0z/image/upload/v1764605760/logo_oeso2m.png";
+
+        async function initPage() {
+            try {
+                const res = await fetch('/api/coordinator/dashboard-data');
+                if (res.redirected) { window.location.href = '../login'; return; }
+                const data = await res.json();
+                
+                userDept = data.dept || "General";
+                document.getElementById('deptDisplay').value = userDept;
+                document.getElementById('deptInput').value = userDept;
+
+                await loadEvents(userDept);
+                await loadTeamList();
+            } catch (e) { console.error("Init Error:", e); }
+        }
+
+        async function loadEvents(dept) {
+            const select = document.getElementById('eventSelect');
+            const filterSelect = document.getElementById('eventFilterSelect');
+            select.innerHTML = '<option value="">-- Select Event --</option>';
+
+            try {
+                const res = await fetch('/api/coordinator/my-events');
+                const events = await res.json();
+
+                let optionsHtml = '';
+                if (events.length > 0) {
+                    optionsHtml += `<optgroup label="Department Events">`;
+                    events.forEach(e => {
+                        optionsHtml += `<option value="${e.title}">${e.title}</option>`;
+                        const filterOpt = document.createElement('option');
+                        filterOpt.value = e.title;
+                        filterOpt.innerText = e.title;
+                        filterSelect.appendChild(filterOpt);
+                    });
+                    optionsHtml += `</optgroup>`;
+                }
+
+                optionsHtml += `<optgroup label="General Duties">
+                    <option value="Central">Central</option>
+                    <option value="Decoration Team">Decoration Team</option>
+                    <option value="Promotion Team">Promotion Team</option>
+                </optgroup>`;
+                
+                select.innerHTML += optionsHtml;
+                
+                ['Central', 'Decoration Team', 'Promotion Team'].forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t; opt.innerText = t;
+                    filterSelect.appendChild(opt);
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadTeamList() {
+            const grid = document.getElementById('teamGrid');
+            grid.innerHTML = '<p style="color:#aaa;">Refreshing list...</p>';
+            try {
+                const res = await fetch('/api/coordinator/team-members');
+                allMembers = await res.json();
+                applyFilters();
+            } catch (e) {
+                grid.innerHTML = '<p style="color:red;">Failed to load team list.</p>';
+            }
+        }
+
+        let currentTypeFilter = 'all';
+        function filterList(type, element) {
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+            currentTypeFilter = type;
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const eventFilter = document.getElementById('eventFilterSelect').value;
+            const grid = document.getElementById('teamGrid');
+            const filtered = allMembers.filter(m => {
+                const matchType = currentTypeFilter === 'all' || m.roleType === currentTypeFilter;
+                const matchEvent = eventFilter === 'all' || m.eventName === eventFilter;
+                return matchType && matchEvent;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<p style="color:#666; grid-column: 1/-1;">No members found matching filters.</p>';
+                return;
+            }
+
+            grid.innerHTML = filtered.map(m => {
+                const isStudent = m.roleType === 'student';
+                const isCoordinator = m.position === "Central Coordinator" || m.position === "Event Coordinator";
+
+                const actionButtons = `
+                    <div class="card-actions">
+                        ${isCoordinator ? `<button class="action-btn btn-id-download" title="Download ID" onclick="downloadSingleID('card-${m.memberId}', '${m.fullName}')"><i class="fa-solid fa-download"></i></button>` : ''}
+                        <button class="action-btn btn-edit" onclick="editMember('${m.memberId}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="action-btn btn-delete" onclick="deleteMember('${m.memberId}', '${m.fullName}')"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+
+                // Logic to switch templates: Use high-impact ID cards ONLY for student coordinators
+                if (m.position === "Central Coordinator" && isStudent) {
+                    return `
+                    <div class="id-card central-card" id="card-${m.memberId}">
+                        ${actionButtons}
+                        <div class="card-header">
+                            <img src="${LOGO_COLLEGE}" class="college-logo">
+                            <div class="college-title">LAKIREDDY BALI REDDY <br> COLLEGE OF ENGINEERING</div>
+                            <img src="${LOGO_LAKSHYA}" class="fest-logo">
+                        </div>
+                        <div class="banner">LAKSHYA 2K26</div>
+                        <div class="profile-section">
+                            <div class="photo-frame">
+                                <img src="${m.imageUrl || 'assets/default-user.png'}" crossorigin="anonymous" onerror="this.src='assets/default-user.png'">
+                            </div>
+                            <div class="user-name">${m.fullName}</div>
+                            <div class="role-badge">CENTRAL TEAM</div>
+                        </div>
+                        <div class="details-section">
+                            <div class="detail-row">
+                                <span class="detail-label">Department</span>
+                                <span class="detail-value">${m.deptName || userDept}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Mobile</span>
+                                <span class="detail-value">${m.mobile}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Responsibility</span>
+                                <span class="detail-value">${m.eventName}</span>
+                            </div>
+                        </div>
+                        <div class="watermark-container">
+                            <div class="watermark-text">LAKSHYA 2K26<br>CENTRAL</div>
+                        </div>
+                        <div class="card-footer">CENTRAL COORDINATOR</div>
+                    </div>`;
+                } else if (m.position === "Event Coordinator" && isStudent) {
+                    return `
+                    <div class="id-card event-card" id="card-${m.memberId}">
+                        ${actionButtons}
+                        <div class="card-header">
+                            <img src="${LOGO_COLLEGE}" class="college-logo">
+                            <div class="college-title">LAKIREDDY BALI REDDY <br> COLLEGE OF ENGINEERING</div>
+                            <img src="${LOGO_LAKSHYA}" class="fest-logo">
+                        </div>
+                        <div class="banner">LAKSHYA 2K26</div>
+                        <div class="profile-section">
+                            <div class="photo-frame">
+                                <img src="${m.imageUrl || 'assets/default-user.png'}" crossorigin="anonymous" onerror="this.src='assets/default-user.png'">
+                            </div>
+                            <div class="user-name">${m.fullName}</div>
+                            <div class="role-badge">EVENT TEAM</div>
+                        </div>
+                        <div class="details-section">
+                            <div class="detail-row">
+                                <span class="detail-label">Event Name</span>
+                                <span class="detail-value">${m.eventName}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Department</span>
+                                <span class="detail-value">${m.deptName || userDept}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Year of Study</span>
+                                <span class="detail-value">${m.year} Year</span>
+                            </div>
+                        </div>
+                        <div class="watermark-container">
+                            <div class="watermark-text">LAKSHYA 2K26<br>EVENT</div>
+                        </div>
+                        <div class="card-footer">EVENT COORDINATOR</div>
+                    </div>`;
+                } else {
+                    // Standard template for volunteers/faculty
+                    return `
+                    <div class="team-card">
+                        <div class="card-header-standard">
+                            ${actionButtons}
+                        </div>
+                        <img src="${m.imageUrl || 'assets/default-user.png'}" class="card-profile" alt="Profile" onerror="this.src='assets/default-user.png'">
+                        <div class="card-body">
+                            <h3>${m.fullName}</h3>
+                            <p class="role">${m.position}</p>
+                            <div class="info-row"><i class="fa-solid fa-envelope"></i> ${m.email}</div>
+                            <div class="info-row"><i class="fa-solid fa-phone"></i> ${m.mobile}</div>
+                            ${m.roleType === 'student' ? `<div class="info-row"><i class="fa-solid fa-graduation-cap"></i> ${m.year} Year</div>` : ''}
+                        </div>
+                        <div class="card-footer-standard">
+                            <span>${m.eventName}</span>
+                            <span class="badge ${m.roleType === 'student' ? 'badge-student' : 'badge-faculty'}">
+                                ${m.roleType.toUpperCase()}
+                            </span>
+                        </div>
+                    </div>`;
+                }
+            }).join('');
+        }
+
+        /* --- DOWNLOAD LOGIC --- */
+
+        async function downloadSingleID(elementId, name) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            // Temporarily hide buttons for capture
+            const actions = element.querySelector('.card-actions');
+            if(actions) actions.style.display = 'none';
+
+            try {
+                const canvas = await html2canvas(element, {
+                    scale: 3, // High quality
+                    useCORS: true,
+                    backgroundColor: null
+                });
+                const link = document.createElement('a');
+                link.download = `ID_${name.replace(/\s+/g, '_')}_Lakshya2K26.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            } catch (err) {
+                console.error("ID Generation Error:", err);
+                alert("Error generating image. Ensure your profile photo is accessible.");
+            } finally {
+                if(actions) actions.style.display = 'flex';
+            }
+        }
+
+        async function downloadAllIDsZip() {
+            const btn = document.querySelector('.btn-bulk-zip');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Zipping...';
+            btn.disabled = true;
+
+            const zip = new JSZip();
+            const idCards = document.querySelectorAll('.id-card');
+            
+            if (idCards.length === 0) {
+                alert("No ID Cards visible to download.");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            try {
+                for (let card of idCards) {
+                    const name = card.querySelector('.user-name').innerText;
+                    const actions = card.querySelector('.card-actions');
+                    if(actions) actions.style.display = 'none';
+
+                    const canvas = await html2canvas(card, { scale: 2, useCORS: true });
+                    const imgData = canvas.toDataURL("image/png").split(',')[1];
+                    zip.file(`ID_${name.replace(/\s+/g, '_')}.png`, imgData, {base64: true});
+
+                    if(actions) actions.style.display = 'flex';
+                }
+
+                const content = await zip.generateAsync({type:"blob"});
+                saveAs(content, `Lakshya2K26_Coordinators_IDs.zip`);
+            } catch (err) {
+                alert("Error creating ZIP. Some images might be failing to load.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        /* --- REST OF FUNCTIONS --- */
+
+        async function deleteMember(id, name) {
+            if(!confirm(`Are you sure you want to remove ${name}?`)) return;
+            try {
+                const res = await fetch('/api/coordinator/delete-team-member', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ memberId: id, deptName: userDept })
+                });
+                if (res.ok) {
+                    allMembers = allMembers.filter(m => m.memberId !== id);
+                    applyFilters();
+                    alert("Member removed.");
+                } else { alert("Failed to delete."); }
+            } catch(e) { alert("Error deleting member."); }
+        }
+
+        function editMember(id) {
+            const member = allMembers.find(m => m.memberId === id);
+            if (!member) return;
+
+            document.getElementById('memberId').value = member.memberId;
+            document.getElementById('existingImageUrl').value = member.imageUrl;
+            document.getElementById('inputFullName').value = member.fullName;
+            document.getElementById('inputMobile').value = member.mobile;
+            document.getElementById('inputEmail').value = member.email;
+            document.getElementById('eventSelect').value = member.eventName;
+            document.getElementById('positionSelect').value = member.position;
+            
+            setMemberType(member.roleType);
+            if(member.roleType === 'student') document.getElementById('yearSelect').value = member.year;
+
+            if (member.imageUrl) {
+                document.getElementById('picInput').removeAttribute('required');
+                const p = document.getElementById('previewImage');
+                p.src = member.imageUrl;
+                p.style.display = 'block';
+                document.getElementById('fileName').innerText = "Click to change image (Optional)";
+            }
+
+            document.getElementById('submitBtn').innerText = "Update Team Member";
+            document.getElementById('cancelBtn').style.display = 'block';
+            document.getElementById('formTitle').style.display = 'block';
+            document.getElementById('formContainer').classList.add('editing');
+            
+            isEditMode = true;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetForm() {
+            document.getElementById('addTeamForm').reset();
+            document.getElementById('memberId').value = "";
+            document.getElementById('existingImageUrl').value = "";
+            document.getElementById('picInput').setAttribute('required', 'required');
+            document.getElementById('submitBtn').innerText = "Add Team Member";
+            document.getElementById('cancelBtn').style.display = 'none';
+            document.getElementById('formTitle').style.display = 'none';
+            document.getElementById('formContainer').classList.remove('editing');
+            document.getElementById('previewImage').style.display = 'none';
+            document.getElementById('fileName').innerText = "Click to upload image (Max 2MB)";
+            document.getElementById('deptInput').value = userDept;
+            setMemberType('student');
+            isEditMode = false;
+        }
+
+        async function submitTeamMember(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const loader = document.getElementById('loader');
+            const form = document.getElementById('addTeamForm');
+            const fileInput = document.getElementById('picInput');
+            if (!isEditMode && fileInput.files.length === 0) {
+                alert("Please upload a profile picture.");
+                return;
+            }
+            btn.disabled = true;
+            loader.style.display = 'block';
+            const endpoint = isEditMode ? '/api/coordinator/update-team-member' : '/api/coordinator/add-team-member';
+            const method = isEditMode ? 'PUT' : 'POST'; 
+            try {
+                const res = await fetch(endpoint, {
+                    method: method,
+                    body: new FormData(form)
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    alert(isEditMode ? "Member Updated!" : "Member Added!");
+                    resetForm();
+                    loadTeamList();
+                } else {
+                    alert("Error: " + (result.error || "Failed"));
+                }
+            } catch (err) { alert("Connection failed."); } 
+            finally {
+                btn.disabled = false;
+                loader.style.display = 'none';
+            }
+        }
+
+        async function downloadTeamPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const btn = document.querySelector('.btn-pdf');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+            btn.disabled = true;
+            try {
+                const eventFilter = document.getElementById('eventFilterSelect').value;
+                const dataToPrint = allMembers.filter(m => {
+                    const matchType = currentTypeFilter === 'all' || m.roleType === currentTypeFilter;
+                    const matchEvent = eventFilter === 'all' || m.eventName === eventFilter;
+                    return matchType && matchEvent;
+                });
+                if(dataToPrint.length === 0) return alert("No members to print.");
+                doc.setFontSize(18);
+                doc.setTextColor(0, 210, 255);
+                doc.text(`Team List - ${userDept}`, 14, 20);
+                doc.setFontSize(10);
+                doc.setTextColor(100);
+                doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 28);
+                const toDataURL = url => fetch(url)
+                    .then(response => response.blob())
+                    .then(blob => new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    }))
+                    .catch(() => null);
+                const processedRows = await Promise.all(dataToPrint.map(async (m, i) => {
+                    let imgData = null;
+                    if(m.imageUrl && !m.imageUrl.includes('default-user')) {
+                        imgData = await toDataURL(m.imageUrl);
+                    }
+                    return {
+                        index: i + 1, name: m.fullName, position: m.position,
+                        event: m.eventName, type: m.roleType.toUpperCase(),
+                        mobile: m.mobile, imgData: imgData
+                    };
+                }));
+                doc.autoTable({
+                    head: [['#', 'Photo', 'Name', 'Position', 'Event', 'Type', 'Mobile']],
+                    body: processedRows.map(row => [row.index, '', row.name, row.position, row.event, row.type, row.mobile]),
+                    startY: 35, rowPageBreak: 'avoid',
+                    bodyStyles: { minCellHeight: 15, valign: 'middle' },
+                    columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 15 }, 6: { cellWidth: 30 } },
+                    didDrawCell: (data) => {
+                        if (data.section === 'body' && data.column.index === 1) {
+                            const row = processedRows[data.index];
+                            if (row && row.imgData) {
+                                try { doc.addImage(row.imgData, 'JPEG', data.cell.x + 2, data.cell.y + 2, 11, 11); } catch(e) {}
+                            }
+                        }
+                    }
+                });
+                doc.save(`${userDept}_Team_List.pdf`);
+            } catch(e) { alert("Error generating PDF."); } 
+            finally { btn.innerHTML = originalText; btn.disabled = false; }
+        }
+
+        function setMemberType(type) {
+            document.getElementById('memberType').value = type;
+            document.getElementById('btnStudent').classList.toggle('active', type === 'student');
+            document.getElementById('btnFaculty').classList.toggle('active', type === 'faculty');
+            document.getElementById('yearGroup').style.display = type === 'faculty' ? 'none' : 'block';
+            if(type==='faculty') document.getElementById('yearSelect').removeAttribute('required');
+            else document.getElementById('yearSelect').setAttribute('required', 'required');
+        }
+
+        function previewFile() {
+            const file = document.getElementById('picInput').files[0];
+            const preview = document.getElementById('previewImage');
+            if (file) {
+                document.getElementById('fileName').innerText = file.name;
+                const reader = new FileReader();
+                reader.onload = (e) => { preview.src = e.target.result; preview.style.display = 'block'; }
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        window.addEventListener('load', initPage);
+    </script>
+</body>
+</html>

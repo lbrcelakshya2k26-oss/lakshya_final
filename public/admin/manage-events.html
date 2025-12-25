@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Events | Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- COSMIC ADMIN THEME --- */
+        :root {
+            --primary-color: #00d2ff;
+            --accent-color: #ff00cc;
+            --glass-bg: rgba(15, 15, 25, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(0, 0, 0, 0.4);
+            --text-color: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #050510; color: var(--text-color); display: flex; min-height: 100vh; overflow-x: hidden; }
+
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('../assets/admin-block.jpg') no-repeat center center/cover; z-index: -2; opacity: 0.4; }
+        .overlay-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 12, 0.92); z-index: -1; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px; background: var(--glass-bg); border-right: 1px solid var(--glass-border);
+            padding: 2rem; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 1000;
+        }
+        .logo { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--primary-color); margin-bottom: 3rem; text-align: center; }
+        .menu { list-style: none; flex-grow: 1; } .menu li { margin-bottom: 1rem; }
+        .menu a { text-decoration: none; color: #ccc; display: flex; align-items: center; gap: 10px; padding: 12px 15px; border-radius: 8px; transition: 0.3s; }
+        .menu a:hover, .menu a.active { background: rgba(0, 210, 255, 0.15); color: var(--primary-color); border: 1px solid rgba(0, 210, 255, 0.2); }
+        .logout { color: #ff4444; cursor: pointer; margin-top: auto; }
+
+        /* Main Content */
+        .main { flex-grow: 1; padding: 2rem; margin-left: 260px; overflow-y: auto; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .page-header h2 { color: white; font-family: 'Montserrat', sans-serif; font-size: 2rem; }
+        
+        .btn-add { background: var(--primary-color); color: black; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-add:hover { transform: translateY(-2px); box-shadow: 0 0 15px rgba(0,210,255,0.4); }
+
+        /* Event Grid */
+        .event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        .event-card {
+            background: rgba(30, 30, 40, 0.6); border: 1px solid var(--glass-border);
+            border-radius: 12px; overflow: hidden; transition: 0.3s; position: relative;
+            display: flex; flex-direction: column;
+        }
+        .event-card:hover { transform: translateY(-5px); border-color: var(--primary-color); }
+        
+        .card-img { width: 100%; height: 160px; object-fit: cover; }
+        .card-body { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        .card-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; color: white; }
+        .card-type { font-size: 0.85rem; color: var(--primary-color); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .card-desc { color: #aaa; font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4; flex-grow: 1; }
+        
+        .card-actions { display: flex; gap: 10px; margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .btn-action { flex: 1; padding: 8px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 5px; }
+        .btn-edit { background: rgba(255, 255, 255, 0.1); color: white; }
+        .btn-edit:hover { background: white; color: black; }
+        .btn-delete { background: rgba(255, 68, 68, 0.15); color: #ff4444; }
+        .btn-delete:hover { background: #ff4444; color: white; }
+
+        /* Edit Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 2000; display: none;
+            justify-content: center; align-items: center; backdrop-filter: blur(5px);
+        }
+        .modal-box {
+            background: #151520; width: 90%; max-width: 800px; max-height: 90vh;
+            border-radius: 15px; border: 1px solid var(--glass-border);
+            padding: 2rem; overflow-y: auto; position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+        .modal-close { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 1.5rem; color: #aaa; }
+        
+        /* Form Styles in Modal */
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 8px; color: #ccc; font-size: 0.9rem; }
+        input, select, textarea {
+            width: 100%; padding: 12px; background: var(--input-bg);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
+            color: white; outline: none;
+        }
+        input:focus { border-color: var(--primary-color); }
+        
+        .dept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        .dept-check { display: flex; align-items: center; gap: 8px; color: #ddd; cursor: pointer; }
+
+        .dynamic-section { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; margin-bottom: 10px; position: relative; }
+        .remove-sec { position: absolute; top: 10px; right: 10px; color: #ff4444; cursor: pointer; }
+
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <aside class="sidebar">
+        <div class="logo">LAKSHYA ADMIN</div>
+        <ul class="menu">
+            <li><a href="dashboard"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+            <li><a href="registrations"><i class="fa-solid fa-clipboard-list"></i> Registrations</a></li>
+            <li><a href="add-event"><i class="fa-solid fa-calendar-plus"></i> Add Event</a></li>
+            <li><a href="manage-events" class="active"><i class="fa-solid fa-list-check"></i> Manage Events</a></li>
+            <li><a href="departments"><i class="fa-solid fa-building-columns"></i> Departments</a></li>
+            <li><a href="manage-users"><i class="fa-solid fa-users"></i> Users</a></li>
+            <li><a onclick="localStorage.clear(); window.location.href='../login'" class="logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="main">
+        <div class="page-header">
+            <h2>Manage Events</h2>
+            <a href="add-event" class="btn-add"><i class="fa-solid fa-plus"></i> Create New</a>
+        </div>
+
+        <div class="event-grid" id="eventGrid">
+            <p style="color:#aaa;">Loading events...</p>
+        </div>
+    </main>
+
+    <!-- EDIT MODAL -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-box">
+            <span class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></span>
+            <h3 style="color:var(--primary-color); margin-bottom:20px; font-family:'Montserrat';">Edit Event</h3>
+            
+            <form onsubmit="event.preventDefault(); updateEvent();">
+                <input type="hidden" id="editEventId">
+                
+                <div class="form-group">
+                    <label>Event Title</label>
+                    <input type="text" id="editTitle" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Short Description</label>
+                    <textarea id="editDesc" rows="2" required></textarea>
+                </div>
+
+                <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                    <div>
+                        <label>Type</label>
+                        <select id="editType">
+                            <option value="Major">Major</option>
+                            <option value="Special">Special</option>
+                            <option value="MBA">MBA</option>
+                            <option value="Cultural">Cultural</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Fee (₹)</label>
+                        <input type="number" id="editFee" min="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Departments</label>
+                    <div class="dept-grid" id="editDeptGrid"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Rules & Sections</label>
+                    <div id="editSections"></div>
+                    <button type="button" onclick="addEditSection()" style="width:100%; padding:8px; background:transparent; border:1px dashed #555; color:#aaa; cursor:pointer;">+ Add Section</button>
+                </div>
+
+                <div class="form-group">
+                    <label>Update Image (Optional)</label>
+                    <input type="file" id="editImage" accept="image/*">
+                </div>
+
+                <button type="submit" class="btn-add" style="width:100%; justify-content:center;">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let allDepts = [];
+
+        // 1. Load Data
+        async function init() {
+            // Fetch Depts first
+            const dRes = await fetch('/api/admin/departments');
+            allDepts = await dRes.json();
+            
+            // Fetch Events
+            const eRes = await fetch('/api/events');
+            const events = await eRes.json();
+            
+            renderEvents(events);
+        }
+
+        // 2. Render Grid
+        function renderEvents(events) {
+            const grid = document.getElementById('eventGrid');
+            grid.innerHTML = '';
+            
+            if(events.length === 0) {
+                grid.innerHTML = '<p style="color:#aaa;">No events found.</p>';
+                return;
+            }
+
+            events.forEach(ev => {
+                const card = document.createElement('div');
+                card.className = 'event-card';
+                card.innerHTML = `
+                    <img src="${ev.imageUrl || '../assets/default.jpg'}" class="card-img" alt="Event">
+                    <div class="card-body">
+                        <div class="card-title">${ev.title}</div>
+                        <div class="card-type">${ev.type}</div>
+                        <div class="card-desc">${ev.description || 'No description.'}</div>
+                        <div class="card-actions">
+                            <button class="btn-action btn-edit" onclick='openEditModal(${JSON.stringify(ev).replace(/'/g, "&apos;")})'>
+                                <i class="fa-solid fa-pen"></i> Edit
+                            </button>
+                            <button class="btn-action btn-delete" onclick="deleteEvent('${ev.eventId}')">
+                                <i class="fa-solid fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 3. Delete Logic
+        async function deleteEvent(id) {
+            if(!confirm("Are you sure you want to delete this event? This cannot be undone.")) return;
+            
+            try {
+                const res = await fetch('/api/admin/delete-event', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ eventId: id })
+                });
+                if(res.ok) { alert("Event deleted"); init(); }
+                else alert("Failed to delete");
+            } catch(e) { alert("Error deleting event"); }
+        }
+
+        // 4. Edit Modal Logic
+        function openEditModal(ev) {
+            document.getElementById('editEventId').value = ev.eventId;
+            document.getElementById('editTitle').value = ev.title;
+            document.getElementById('editDesc').value = ev.description || '';
+            document.getElementById('editType').value = ev.type;
+            document.getElementById('editFee').value = ev.fee;
+
+            // Populate Depts
+            const deptGrid = document.getElementById('editDeptGrid');
+            deptGrid.innerHTML = '';
+            allDepts.forEach(d => {
+                const isChecked = ev.departments && ev.departments.includes(d.name) ? 'checked' : '';
+                deptGrid.innerHTML += `
+                    <label class="dept-check">
+                        <input type="checkbox" value="${d.name}" ${isChecked}> ${d.name}
+                    </label>
+                `;
+            });
+
+            // Populate Sections
+            const secContainer = document.getElementById('editSections');
+            secContainer.innerHTML = '';
+            if(ev.sections) {
+                ev.sections.forEach(sec => {
+                    addEditSection(sec.heading, sec.content);
+                });
+            }
+
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function addEditSection(title = '', content = '') {
+            const div = document.createElement('div');
+            div.className = 'dynamic-section';
+            div.innerHTML = `
+                <span class="remove-sec" onclick="this.parentElement.remove()"><i class="fa-solid fa-times"></i></span>
+                <input type="text" class="sec-title" placeholder="Title" value="${title}" style="margin-bottom:5px; font-weight:bold;">
+                <textarea class="sec-content" rows="2" placeholder="Content">${content}</textarea>
+            `;
+            document.getElementById('editSections').appendChild(div);
+        }
+
+        function closeModal() { document.getElementById('editModal').style.display = 'none'; }
+
+        // 5. Update Logic
+        async function updateEvent() {
+            const id = document.getElementById('editEventId').value;
+            const title = document.getElementById('editTitle').value;
+            const desc = document.getElementById('editDesc').value;
+            const type = document.getElementById('editType').value;
+            const fee = document.getElementById('editFee').value;
+            const imgInput = document.getElementById('editImage');
+
+            // Get Depts
+            const depts = [];
+            document.querySelectorAll('#editDeptGrid input:checked').forEach(cb => depts.push(cb.value));
+
+            // Get Sections
+            const sections = [];
+            document.querySelectorAll('#editSections .dynamic-section').forEach(div => {
+                sections.push({
+                    heading: div.querySelector('.sec-title').value,
+                    content: div.querySelector('.sec-content').value
+                });
+            });
+
+            const formData = new FormData();
+            formData.append('eventId', id);
+            formData.append('title', title);
+            formData.append('description', desc);
+            formData.append('type', type);
+            formData.append('fee', fee);
+            formData.append('departments', JSON.stringify(depts));
+            formData.append('sections', JSON.stringify(sections));
+            
+            if(imgInput.files[0]) formData.append('image', imgInput.files[0]);
+
+            try {
+                const res = await fetch('/api/admin/update-event', { method: 'POST', body: formData });
+                if(res.ok) { alert("Event updated!"); closeModal(); init(); }
+                else alert("Failed update");
+            } catch(e) { alert("Error updating"); }
+        }
+
+        init();
+    </script>
+</body>
+</html>

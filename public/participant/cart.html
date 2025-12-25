@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Cart | LAKSHYA 2K26</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="/assets/logo.png">
+    
+    <style>
+        /* --- COSMIC THEME --- */
+        :root { 
+            --primary-color: #00d2ff; 
+            --secondary-color: #3a7bd5; 
+            --accent-color: #ff00cc; 
+            --glass-bg: rgba(20, 20, 35, 0.85); 
+            --glass-border: rgba(255, 255, 255, 0.1); 
+            --text-color: #ffffff; 
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #050510; color: var(--text-color); display: flex; min-height: 100vh; overflow-x: hidden; }
+        
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('../assets/admin-block.jpg') no-repeat center center/cover; z-index: -2; opacity: 0.6; }
+        .overlay-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 12, 0.92); z-index: -1; }
+
+        .main { 
+            flex-grow: 1; 
+            padding: 2.5rem; 
+            margin-left: 260px; 
+            width: calc(100% - 260px); 
+            overflow-y: auto; 
+            transition: margin-left 0.3s; 
+        }
+        @media (max-width: 1024px) {
+            .main { width: 100%; margin-left: 0; padding: 1.5rem; padding-top: 90px; }
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; padding-bottom: 80px; }
+        .page-header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .page-header h2 { font-family: 'Montserrat', sans-serif; font-size: 2rem; color: white; margin: 0; }
+        .item-count { background: var(--primary-color); color: black; padding: 2px 10px; border-radius: 50px; font-size: 0.9rem; font-weight: bold; }
+
+        /* CART ITEMS */
+        .cart-list { display: flex; flex-direction: column; gap: 1.5rem; }
+        .cart-item { 
+            background: rgba(30, 30, 40, 0.6); border: 1px solid var(--glass-border); 
+            border-radius: 15px; padding: 1.5rem; display: flex; flex-wrap: wrap; 
+            align-items: center; justify-content: space-between; gap: 20px; 
+            position: relative; transition: 0.3s;
+        }
+        .cart-item:hover { border-color: var(--primary-color); transform: translateY(-2px); }
+        .item-details { flex: 1; min-width: 250px; }
+        .item-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; color: white; font-family: 'Montserrat', sans-serif; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .item-meta { color: #aaa; font-size: 0.9rem; display: flex; gap: 15px; margin-bottom: 8px; flex-wrap: wrap; }
+        
+        .kit-badge {
+            background: linear-gradient(45deg, #ff00cc, #6600cc); color: white; font-size: 0.75rem;
+            padding: 5px 12px; border-radius: 50px; font-weight: 600; display: inline-flex; align-items: center;
+            gap: 5px; box-shadow: 0 2px 8px rgba(255, 0, 204, 0.3); letter-spacing: 0.5px;
+            cursor: pointer; transition: transform 0.2s; border: 1px solid rgba(255,255,255,0.2);
+        }
+        .kit-badge:hover { transform: scale(1.05); background: linear-gradient(45deg, #6600cc, #ff00cc); }
+
+        .item-actions { display: flex; align-items: center; gap: 20px; }
+        .item-price { font-size: 1.5rem; font-weight: 700; color: #4caf50; display: flex; align-items: center; gap: 10px; }
+        .original-price { font-size: 1rem; color: #888; text-decoration: line-through; font-weight: 400; }
+        
+        .btn-remove { 
+            width: 40px; height: 40px; border-radius: 50%; background: rgba(255, 68, 68, 0.1); 
+            color: #ff4444; display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; transition: 0.3s; font-size: 1.1rem;
+        }
+        .btn-remove:hover { background: #ff4444; color: white; transform: rotate(90deg); }
+
+        /* COUPON & SUMMARY */
+        .offer-banner {
+            background: linear-gradient(90deg, rgba(255,0,204,0.1), rgba(0,210,255,0.1));
+            border: 1px dashed var(--accent-color); padding: 15px; border-radius: 10px;
+            margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;
+        }
+        .offer-text strong { color: var(--accent-color); font-size: 1.1rem; }
+        .offer-text p { margin: 5px 0 0; font-size: 0.9rem; color: #ccc; }
+        .btn-use-offer { background: var(--accent-color); color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
+
+        .coupon-box {
+            margin-top: 1.5rem; padding: 1.5rem; background: rgba(20, 20, 35, 0.6);
+            border: 1px dashed var(--primary-color); border-radius: 10px; 
+            display: flex; align-items: center; gap: 15px; flex-wrap: wrap;
+        }
+        .coupon-input { flex-grow: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); padding: 12px; color: white; border-radius: 8px; text-transform: uppercase; font-weight: bold; font-size: 1rem; }
+        .btn-apply { background: var(--primary-color); color: black; padding: 12px 25px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; white-space: nowrap; }
+        .btn-remove-coupon { background: rgba(255, 68, 68, 0.2); color: #ff4444; padding: 12px 20px; border: 1px solid #ff4444; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; white-space: nowrap; }
+        .btn-remove-coupon:hover { background: #ff4444; color: white; }
+
+        .cart-summary { 
+            margin-top: 2rem; padding: 2rem; background: rgba(20, 20, 35, 0.9); 
+            border: 1px solid var(--primary-color); border-radius: 15px; 
+            display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; 
+            gap: 30px; box-shadow: 0 0 30px rgba(0, 210, 255, 0.1); 
+        }
+        .summary-details { width: 100%; max-width: 300px; }
+        .price-row { display: flex; justify-content: space-between; color: #ccc; margin-bottom: 8px; font-size: 1rem; }
+        .total-row { display: flex; justify-content: space-between; color: white; font-size: 1.6rem; font-weight: 800; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .kit-summary { margin-top: 15px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.2); font-size: 0.85rem; color: #aaa; }
+        .kit-summary strong { color: var(--accent-color); display: block; margin-bottom: 5px; }
+        .kit-summary ul { list-style: none; padding: 0; }
+        .kit-summary li { margin-bottom: 3px; display: flex; align-items: center; gap: 5px; }
+        
+        .summary-actions { flex: 1; width: 100%; min-width: 280px; display: flex; flex-direction: column; gap: 20px; }
+        .btn-checkout { 
+            padding: 16px; background: linear-gradient(135deg, var(--primary-color), #0088cc); 
+            color: black; border: none; border-radius: 10px; font-weight: 700; font-size: 1.2rem; 
+            cursor: pointer; transition: 0.3s; width: 100%; text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 5px 20px rgba(0,210,255,0.3);
+        }
+        .btn-checkout:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,210,255,0.5); }
+
+        .empty-state { text-align: center; padding: 50px 20px; color: #888; }
+        .btn-browse { margin-top: 20px; display: inline-block; padding: 12px 30px; border: 1px solid var(--primary-color); color: var(--primary-color); text-decoration: none; border-radius: 50px; font-weight: 600; transition: 0.3s; }
+        .btn-browse:hover { background: var(--primary-color); color: black; }
+
+        /* MODALS */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 3000; justify-content: center; align-items: center; backdrop-filter: blur(5px); padding: 20px; }
+        .modal-content { background: #1a1a2e; padding: 2rem; border-radius: 15px; border: 1px solid var(--primary-color); width: 100%; max-width: 400px; text-align: center; animation: slideUp 0.3s ease-out; position: relative; }
+        .modal-icon { font-size: 3rem; margin-bottom: 1rem; color: var(--primary-color); }
+        .btn-modal { padding: 10px 25px; border-radius: 50px; border: none; font-weight: 600; cursor: pointer; background: var(--primary-color); color: black; margin-top: 10px; }
+        
+        .tnc-list { text-align: left; margin: 15px 0; max-height: 300px; overflow-y: auto; padding-right: 5px; }
+        .tnc-list ul { padding-left: 20px; margin: 0; list-style-type: disc; }
+        .tnc-list li { margin-bottom: 10px; font-size: 0.85rem; color: #ddd; line-height: 1.4; }
+        
+        .kit-popup-list { text-align: left; margin: 20px 0; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; border: 1px dashed var(--accent-color); }
+        .kit-popup-list ul { list-style: none; padding: 0; }
+        .kit-popup-list li { margin-bottom: 12px; display: flex; align-items: center; gap: 10px; color: white; font-size: 1rem; }
+
+        @media (max-width: 768px) {
+            .cart-item { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .item-details { width: 100%; }
+            .cart-summary { flex-direction: column; padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <main class="main">
+        <div class="container">
+            <div class="page-header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <img src="/assets/logo.png" alt="LAKSHYA Logo" style="height: 55px; width: auto; filter: drop-shadow(0 0 5px rgba(0, 210, 255, 0.5));">
+                    <h2>Your Cart <span class="item-count" id="cartCount">0</span></h2>
+                </div>
+            </div>
+            
+            <div id="cartContainer" class="cart-list"></div>
+
+            <div id="offerBanner" class="offer-banner" style="display:none;">
+                <div class="offer-text"><strong><i class="fa-solid fa-gift"></i> Combo Offer!</strong><p>50% OFF on every additional event.</p></div>
+                <button class="btn-use-offer" onclick="applyOfferCode()">Use LAKSHYA2K26</button>
+            </div>
+
+            <div id="couponSection" class="coupon-box" style="display:none;">
+                <div style="flex-grow:1;">
+                    <div style="margin-bottom:5px; color:var(--primary-color); font-weight:600;"><i class="fa-solid fa-tag"></i> Have a Coupon?</div>
+                </div>
+                <div id="couponInputWrapper" style="display:flex; gap:10px; flex-wrap:wrap; width:100%; max-width:400px;">
+                    <input type="text" id="couponInput" class="coupon-input" placeholder="Enter Code">
+                    <button class="btn-apply" onclick="applyCoupon()" id="applyBtn">Apply</button>
+                </div>
+                <div id="couponAppliedWrapper" style="display:none; align-items:center; gap:10px; width:100%; max-width:400px; justify-content:flex-end;">
+                    <span style="color:white; font-weight:bold; background:rgba(0,255,136,0.1); padding:8px 15px; border-radius:5px; border:1px solid #00ff88;">
+                        <i class="fa-solid fa-check-circle"></i> <span id="appliedCodeDisplay"></span>
+                    </span>
+                    <button class="btn-remove-coupon" onclick="removeCoupon()">Remove</button>
+                </div>
+                <div id="discountMsg" style="width:100%; text-align:right; color:#00ff88; font-size:0.9rem; margin-top:5px; display:none;"></div>
+                <div id="errorMsg" style="width:100%; text-align:right; color:#ff4444; font-size:0.9rem; margin-top:5px; display:none;"></div>
+            </div>
+
+            <div id="summarySection" class="cart-summary" style="display:none;">
+                <div class="summary-details">
+                    <div class="price-row"><span>Subtotal</span> <span id="subTotal">₹0</span></div>
+                    <div class="price-row" id="discountRow" style="display:none; color:#00ff88;"><span>Discount</span> <span id="discountVal">- ₹0</span></div>
+                    <div class="price-row" id="feeRow" style="color:#aaa;"><span>Platform Fee (2.36%)</span> <span id="feeVal">₹0</span></div>
+                    <div class="total-row"><span>Total Payable</span> <span id="totalAmount">₹0</span></div>
+                    <div id="kitDetails" class="kit-summary" style="display:none;">
+                        <strong><i class="fa-solid fa-box-open"></i> Kits Included:</strong><ul id="kitList"></ul>
+                    </div>
+                </div>
+                
+                <div class="summary-actions">
+                    <div class="payment-methods" style="margin-bottom:10px; color:#aaa; font-size:0.9rem;">
+                        <i class="fa-solid fa-lock"></i> Secured by Razorpay
+                    </div>
+                    <button class="btn-checkout" onclick="initiateCheckout()">
+                        Pay Now <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODALS -->
+    <div class="modal" id="customModal">
+        <div class="modal-content">
+            <div class="modal-icon" id="popupIcon"></div>
+            <h3 id="popupTitle" style="color:white; font-family:'Montserrat'; margin-bottom:10px;"></h3>
+            <div id="popupMessage" style="color:#ccc; margin-bottom:20px;"></div>
+            <div id="popupButtons" style="display:flex; justify-content:center; gap:10px;"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="kitModal">
+        <div class="modal-content">
+            <div class="modal-icon"><i class="fa-solid fa-box-open" style="color: #ff00cc;"></i></div>
+            <h3 style="color:white; font-family:'Montserrat'; margin-bottom:10px;">Kit Contents</h3>
+            <div class="kit-popup-list">
+                <ul>
+                    <li><i class="fa-solid fa-bag-shopping"></i> Student Bag Pack</li>
+                    <li><i class="fa-solid fa-book"></i> Scribble Pad</li>
+                    <li><i class="fa-solid fa-pen-nib"></i> Pen</li>
+                    <li><i class="fa-solid fa-ticket"></i> Food Coupons (₹100)</li>
+                </ul>
+            </div>
+            <button class="btn-modal" onclick="document.getElementById('kitModal').style.display='none'">Awesome!</button>
+        </div>
+    </div>
+
+    <div class="modal" id="tncModal">
+        <div class="modal-content" style="max-width:500px;">
+            <div style="text-align:center;"><i class="fa-solid fa-file-contract" style="font-size:2.5rem; color:var(--primary-color);"></i><h3>Coupon Terms</h3></div>
+            <div class="tnc-list">
+                <ul>
+                    <li>Coupon <strong>LAKSHYA2K26</strong> applicable to Major, MBA, Cultural.</li>
+                    <li><strong>50% off</strong> on 2nd eligible event.</li>
+                    <li>Registration kits <strong>ONLY</strong> for full price events.</li>
+                    <li>Discounted events do <strong>NOT</strong> get a kit.</li>
+                </ul>
+            </div>
+            <button class="btn-modal" onclick="closeTnCPopup()">I Understand</button>
+        </div>
+    </div>
+
+    <script>const CURRENT_PAGE = 'cart';</script>
+    <script src="/js/common.js"></script>
+    <script src="/js/chatbot.js"></script>
+
+    <script>
+        let cartItems = [];
+        let eventsCache = {};
+        let activeCoupon = null; 
+        let currentTotal = 0;
+        let historyCount = 0; 
+
+        function showPopup(title, message, type, callback) {
+            const modal = document.getElementById('customModal');
+            document.getElementById('popupTitle').innerText = title;
+            document.getElementById('popupMessage').innerHTML = message;
+            const btnContainer = document.getElementById('popupButtons');
+            let iconHtml = '<i class="fa-solid fa-circle-info"></i>';
+            if(type === 'success') iconHtml = '<i class="fa-solid fa-circle-check" style="color:#00ff88;"></i>';
+            if(type === 'error') iconHtml = '<i class="fa-solid fa-circle-exclamation" style="color:#ff4444;"></i>';
+            document.getElementById('popupIcon').innerHTML = iconHtml;
+            if (type === 'confirm') {
+                btnContainer.innerHTML = `<button class="btn-modal" style="background:transparent; border:1px solid #555; color:#ccc;" onclick="closePopup()">Cancel</button> <button class="btn-modal" id="confirmBtn">Yes, Proceed</button>`;
+                document.getElementById('confirmBtn').onclick = () => { closePopup(); if(callback) callback(); };
+            } else {
+                btnContainer.innerHTML = `<button class="btn-modal" onclick="closePopup()">OK</button>`;
+            }
+            modal.style.display = 'flex';
+        }
+        function closePopup() { document.getElementById('customModal').style.display = 'none'; }
+        function showKitPopup() { document.getElementById('kitModal').style.display = 'flex'; }
+        function showTnCPopup() { document.getElementById('tncModal').style.display = 'flex'; }
+        function closeTnCPopup() { document.getElementById('tncModal').style.display = 'none'; }
+
+        async function initCart() {
+            try {
+                const [resEvents, resCart] = await Promise.all([fetch('/api/events'), fetch('/api/cart')]);
+                const allEvents = await resEvents.json();
+                allEvents.forEach(e => eventsCache[e.eventId] = e);
+                cartItems = await resCart.json();
+                document.getElementById('cartCount').innerText = cartItems.length;
+                if (cartItems.length === 0) showEmpty(); else renderCart();
+            } catch (e) { showEmpty(); }
+        }
+
+        function showEmpty() {
+            document.getElementById('cartContainer').innerHTML = `<div class="empty-state"><i class="fa-solid fa-cart-plus empty-icon" style="font-size:4rem; opacity:0.2; margin-bottom:15px;"></i><h3 style="color:white;">Cart Empty</h3><p>You have no events in your cart.</p><a href="events" class="btn-browse">Browse Events</a></div>`;
+            document.getElementById('summarySection').style.display = 'none';
+            document.getElementById('couponSection').style.display = 'none';
+            document.getElementById('offerBanner').style.display = 'none';
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cartContainer');
+            container.innerHTML = '';
+            let total = 0;
+            let currentEligibleIndex = 0; 
+            const kitEligibleNames = [];
+
+            cartItems.forEach((item, index) => {
+                const ev = eventsCache[item.eventId];
+                if (!ev) return;
+                
+                let originalFee = parseInt(ev.fee || 0);
+                total += originalFee;
+                let finalItemFee = originalFee;
+                
+                const t = (ev.type || '').toLowerCase();
+                const isTypeEligible = t.includes('major') || t.includes('mba') || t.includes('cultural') || t.includes('music') || t.includes('dance');
+                let isDiscounted = false; 
+                
+                if (isTypeEligible) {
+                    currentEligibleIndex++; 
+                    if (activeCoupon && activeCoupon.code === 'LAKSHYA2K26') {
+                        if ((historyCount + currentEligibleIndex) > 1) {
+                            isDiscounted = true;
+                            finalItemFee = originalFee / 2;
+                        }
+                    } else if (activeCoupon && activeCoupon.percentage) {
+                        finalItemFee = originalFee - (originalFee * activeCoupon.percentage / 100);
+                    }
+                }
+
+                let showKitBadge = item.includesKit; 
+                if (isDiscounted) showKitBadge = false;
+                if (activeCoupon && activeCoupon.percentage && finalItemFee < originalFee) showKitBadge = false;
+
+                if (showKitBadge) kitEligibleNames.push(ev.title);
+
+                let priceHtml = `₹${originalFee}`;
+                if (finalItemFee < originalFee) priceHtml = `<span class="original-price">₹${originalFee}</span> ₹${finalItemFee}`;
+
+                container.innerHTML += `
+                    <div class="cart-item">
+                        <div class="item-details">
+                            <div class="item-title">
+                                ${ev.title} 
+                                ${showKitBadge ? `<span class="kit-badge" onclick="showKitPopup()"><i class="fa-solid fa-box-open"></i> KIT</span>` : ''}
+                            </div>
+                            <div class="item-meta">
+                                <span><i class="fa-solid fa-layer-group"></i> ${ev.type}</span>
+                                <span><i class="fa-solid fa-building-columns"></i> ${item.dept}</span>
+                            </div>
+                            ${item.teamName ? `<div style="color:#ff88dd; font-size:0.8rem;"><i class="fa-solid fa-users"></i> Team: ${item.teamName}</div>` : ''}
+                        </div>
+                        <div class="item-actions">
+                            <div class="item-price">${priceHtml}</div>
+                            <div class="btn-remove" onclick="confirmRemove(${index})"><i class="fa-solid fa-trash-can"></i></div>
+                        </div>
+                    </div>`;
+            });
+
+            const kitListEl = document.getElementById('kitList');
+            kitListEl.innerHTML = '';
+            if (kitEligibleNames.length > 0) {
+                kitEligibleNames.forEach(name => { kitListEl.innerHTML += `<li><i class="fa-solid fa-check"></i> ${name}</li>`; });
+                document.getElementById('kitDetails').style.display = 'block';
+            } else {
+                document.getElementById('kitDetails').style.display = 'none';
+            }
+
+            document.getElementById('offerBanner').style.display = ((historyCount + currentEligibleIndex) >= 2) ? 'flex' : 'none';
+            currentTotal = total;
+            updateTotalDisplay();
+            document.getElementById('summarySection').style.display = 'flex';
+            document.getElementById('couponSection').style.display = 'flex';
+        }
+
+        function updateTotalDisplay() {
+            document.getElementById('subTotal').innerText = '₹' + currentTotal;
+            let finalAmount = currentTotal;
+            
+            if (activeCoupon) {
+                let discount = 0;
+                if (activeCoupon.discountAmount !== undefined) discount = activeCoupon.discountAmount;
+                else if (activeCoupon.percentage) discount = Math.round((currentTotal * activeCoupon.percentage) / 100);
+                
+                finalAmount = Math.max(0, Math.round(currentTotal - discount));
+                document.getElementById('discountRow').style.display = 'flex';
+                document.getElementById('discountVal').innerText = '- ₹' + discount;
+            } else {
+                document.getElementById('discountRow').style.display = 'none';
+            }
+
+            const platformFee = Math.ceil(finalAmount * 0.0236);
+            finalAmount += platformFee;
+            document.getElementById('feeRow').style.display = 'flex';
+            document.getElementById('feeVal').innerText = '+ ₹' + platformFee;
+            document.getElementById('totalAmount').innerText = '₹' + finalAmount;
+        }
+
+        function applyOfferCode() { document.getElementById('couponInput').value = "LAKSHYA2K26"; applyCoupon(); }
+
+        async function applyCoupon() {
+            const code = document.getElementById('couponInput').value.trim();
+            if(!code) return;
+            const btn = document.getElementById('applyBtn');
+            const msgSuccess = document.getElementById('discountMsg');
+            const msgError = document.getElementById('errorMsg');
+            btn.innerText = "..."; btn.disabled = true;
+            msgSuccess.style.display = 'none'; msgError.style.display = 'none';
+            try {
+                const res = await fetch('/api/coupon/validate', { 
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ code, cartItems: cartItems }) 
+                });
+                const data = await res.json();
+                if(res.ok) {
+                    activeCoupon = data; historyCount = data.historyCount || 0; 
+                    msgSuccess.innerText = data.discountAmount === 0 ? "Coupon Applied! (Discount triggers on 2nd event)" : `Success! Discount Applied.`;
+                    document.getElementById('couponInputWrapper').style.display = 'none';
+                    document.getElementById('couponAppliedWrapper').style.display = 'flex';
+                    document.getElementById('appliedCodeDisplay').innerText = code.toUpperCase();
+                    msgSuccess.style.display = 'block';
+                    showTnCPopup();
+                } else {
+                    activeCoupon = null; historyCount = 0;
+                    msgError.innerText = data.error || "Invalid Coupon"; msgError.style.display = 'block';
+                }
+                btn.innerText = "Apply"; btn.disabled = false;
+                renderCart();
+            } catch(e) { msgError.innerText = "Connection error."; msgError.style.display = 'block'; btn.disabled = false; }
+        }
+
+        function removeCoupon() {
+            activeCoupon = null; historyCount = 0;
+            document.getElementById('couponInput').value = '';
+            document.getElementById('couponInputWrapper').style.display = 'flex';
+            document.getElementById('couponAppliedWrapper').style.display = 'none';
+            document.getElementById('discountMsg').style.display = 'none';
+            document.getElementById('errorMsg').style.display = 'none';
+            renderCart();
+        }
+
+        function confirmRemove(index) { showPopup("Remove Item", "Remove this event?", 'confirm', () => removeItem(index)); }
+        async function removeItem(index) {
+            cartItems.splice(index, 1);
+            await fetch('/api/cart', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ items: cartItems }) });
+            removeCoupon();
+            if(cartItems.length === 0) showEmpty(); else renderCart();
+        }
+
+        function initiateCheckout() { showPopup("Confirm Checkout", "Proceed with payment? You will be redirected to Razorpay.", 'confirm', () => performCheckout()); }
+
+        async function performCheckout() {
+            const btn = document.querySelector('.btn-checkout');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+            btn.disabled = true;
+            
+            try {
+                // --- CRITICAL FIX: FORCE SAVE CART TO DB BEFORE LEAVING SITE ---
+                // This ensures the backend can recover the cart even if localStorage is lost.
+                await fetch('/api/cart', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ items: cartItems }) 
+                });
+
+                const couponCodeToSend = activeCoupon ? activeCoupon.code : null;
+                const orderRes = await fetch('/api/payment/create-order', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ cartItems: cartItems, couponCode: couponCodeToSend }) 
+                });
+                
+                const orderData = await orderRes.json();
+                if (!orderData.paymentLink) throw new Error("Link creation failed");
+
+                // Snapshot for verification page
+                localStorage.setItem('LAKSHYA_PENDING_CART', JSON.stringify(cartItems));
+                localStorage.setItem('LAKSHYA_PENDING_COUPON', couponCodeToSend || "");
+                localStorage.setItem('LAKSHYA_ITEM_AMOUNTS', JSON.stringify(orderData.itemAmounts));
+
+                window.location.href = orderData.paymentLink;
+
+            } catch (e) { 
+                console.error(e); 
+                showPopup("Error", e.message || "Payment gateway error.", 'error'); 
+                btn.disabled = false; 
+                btn.innerHTML = originalText;
+            }
+        }
+        initCart();
+    </script>
+</body>
+</html>

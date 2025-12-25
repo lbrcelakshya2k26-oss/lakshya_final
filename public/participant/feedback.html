@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback | LAKSHYA 2K26</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="\assets\logo.png">
+    <!-- 1. CONNECT COMMON JS & SET PAGE ID -->
+    <script>const CURRENT_PAGE = 'feedback';</script>
+    <script src="/js/common.js"></script>
+    <script src="/js/chatbot.js"></script>
+
+    <style>
+        /* --- COSMIC THEME --- */
+        :root {
+            --primary-color: #00d2ff;
+            --accent-color: #ff00cc;
+            --glass-bg: rgba(20, 20, 35, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #0a0a0a; color: var(--text-color); display: flex; min-height: 100vh; overflow-x: hidden; }
+
+        /* Background */
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('../assets/admin-block.jpg') no-repeat center center/cover; z-index: -2; }
+        .overlay-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 15, 0.92); z-index: -1; }
+
+        /* --- MAIN CONTENT (Adjusted for Common Sidebar) --- */
+        .main { 
+            flex-grow: 1; 
+            padding: 3rem; 
+            margin-left: 260px; /* Matches common.js */
+            width: calc(100% - 260px); 
+            overflow-y: auto; 
+        }
+        
+        /* --- RESPONSIVE --- */
+        @media (max-width: 1024px) {
+            .main { width: 100%; margin-left: 0; padding: 1.5rem; padding-top: 90px; }
+        }
+
+        .container { max-width: 800px; margin: 0 auto; }
+
+        h2 { margin-bottom: 2rem; font-family: 'Montserrat', sans-serif; color: var(--primary-color); }
+
+        /* Form */
+        .glass-form {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);
+            border-radius: 15px; padding: 2rem;
+        }
+        
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 8px; color: #ccc; }
+        
+        select, textarea {
+            width: 100%; padding: 12px; background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border); color: white; border-radius: 8px;
+        }
+        option { background: #1a1a2e; }
+
+        /* Star Rating */
+        .rating { display: flex; gap: 10px; font-size: 1.5rem; color: #555; cursor: pointer; }
+        .rating i.active { color: gold; }
+
+        .btn-submit {
+            background: var(--primary-color); color: black; padding: 12px 30px;
+            border: none; border-radius: 50px; font-weight: bold; cursor: pointer;
+            transition: 0.3s; text-transform: uppercase;
+        }
+        .btn-submit:hover { box-shadow: 0 0 15px var(--primary-color); transform: translateY(-2px); }
+
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <!-- Sidebar Injected by Common JS -->
+
+    <main class="main">
+        <div class="container">
+            <h2>Event Feedback</h2>
+            
+            <div class="glass-form">
+                <form onsubmit="event.preventDefault(); submitFeedback();">
+                    
+                    <div class="form-group">
+                        <label>Select Event (Attended Only)</label>
+                        <select id="eventSelect" required>
+                            <option value="" disabled selected>Loading your attended events...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Rating</label>
+                        <div class="rating" id="ratingStars">
+                            <i class="fa-solid fa-star" data-val="1"></i>
+                            <i class="fa-solid fa-star" data-val="2"></i>
+                            <i class="fa-solid fa-star" data-val="3"></i>
+                            <i class="fa-solid fa-star" data-val="4"></i>
+                            <i class="fa-solid fa-star" data-val="5"></i>
+                        </div>
+                        <input type="hidden" id="ratingVal" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Your Feedback</label>
+                        <textarea id="feedbackText" rows="5" placeholder="Share your experience..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-submit">Submit Feedback</button>
+                </form>
+            </div>
+
+            <!-- Footer Terms Link -->
+            <div style="text-align:center; padding-top:30px;">
+                 <a href="/terms" target="_blank" style="color:#666; text-decoration:none; font-size:0.9rem;">Terms & Conditions</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Original Logic -->
+    <script>
+        let currentRating = 0;
+
+        // Star Rating Logic
+        document.querySelectorAll('.rating i').forEach(star => {
+            star.addEventListener('click', function() {
+                currentRating = this.dataset.val;
+                document.getElementById('ratingVal').value = currentRating;
+                updateStars();
+            });
+        });
+
+        function updateStars() {
+            document.querySelectorAll('.rating i').forEach(star => {
+                if(star.dataset.val <= currentRating) star.classList.add('active');
+                else star.classList.remove('active');
+            });
+        }
+
+        // Load Attended Events
+        async function loadAttendedEvents() {
+            const select = document.getElementById('eventSelect');
+            try {
+                const res = await fetch('/api/participant/my-registrations-data');
+                const data = await res.json();
+                
+                // Filter only attended events
+                const attended = data.filter(r => r.attendance === true);
+                
+                select.innerHTML = '<option value="" disabled selected>Select an event</option>';
+                
+                if(attended.length === 0) {
+                    select.innerHTML += '<option value="" disabled>No attended events found.</option>';
+                    return;
+                }
+
+                attended.forEach(reg => {
+                    const opt = document.createElement('option');
+                    opt.value = reg.eventId;
+                    opt.innerText = reg.eventId; // Ideally map to Event Title
+                    select.appendChild(opt);
+                });
+
+            } catch(e) {
+                console.error(e);
+                select.innerHTML = '<option value="" disabled>Error loading events</option>';
+            }
+        }
+
+        async function submitFeedback() {
+            const eventId = document.getElementById('eventSelect').value;
+            const feedback = document.getElementById('feedbackText').value;
+            
+            if(!currentRating) { alert("Please give a rating!"); return; }
+
+            const data = { eventId, rating: currentRating, feedback };
+
+            try {
+                const res = await fetch('/api/participant/submit-feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if(res.ok) {
+                    alert("Thank you for your feedback!");
+                    window.location.reload();
+                } else {
+                    alert("Submission failed.");
+                }
+            } catch(e) {
+                alert("Server Error");
+            }
+        }
+
+        loadAttendedEvents();
+    </script>
+</body>
+</html>

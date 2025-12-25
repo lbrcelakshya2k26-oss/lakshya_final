@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAKSHYA 2K26 | Unveiling The Future</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="\assets\logo.png">
+    <style>
+        /* --- GLOBAL VARIABLES --- */
+        :root {
+            --primary-color: #00d2ff;
+            --secondary-color: #3a7bd5;
+            --accent-color: #ff00cc;
+            --text-color: #ffffff;
+            --success-color: #00ff88;
+            --error-color: #ff4d4d;
+            --glass-bg: rgba(15, 15, 30, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --mobile-glass: rgba(5, 5, 12, 0.95);
+            --dark-overlay: linear-gradient(to bottom, rgba(5, 5, 15, 0.2), rgba(5, 5, 15, 0.75));
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            color: var(--text-color);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- BACKGROUND LAYERS (KEPT ORIGINAL) --- */
+        .bg-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('../assets/admin-block.jpg') no-repeat center top/cover;
+            z-index: -2;
+            animation: zoomEffect 20s infinite alternate;
+            filter: brightness(1.2); 
+        }
+
+        .overlay-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--dark-overlay);
+            z-index: -1;
+        }
+
+        .hero-particles {
+            position: fixed;
+            width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px);
+            background-size: 550px 550px, 350px 350px;
+            opacity: 0.4;
+            z-index: -1;
+            animation: starMove 100s linear infinite;
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            position: fixed; top: 0; left: 0; width: 100%;
+            height: 80px; /* Slight height reduction */
+            padding: 0 4%;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 1000; transition: 0.4s;
+            background: rgba(5, 5, 10, 0.6); 
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .logo {
+            cursor: pointer; 
+            z-index: 1002;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo img {
+            height: 45px; /* Slight reduction */
+            width: auto;
+            filter: drop-shadow(0 0 5px rgba(0, 210, 255, 0.6));
+            transition: transform 0.3s ease;
+        }
+
+        .logo span {
+            font-family: 'Montserrat', sans-serif; 
+            font-size: 1.4rem; /* Adjusted size */
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--primary-color), #ffffff);
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+        }
+
+        .logo:hover img {
+            transform: scale(1.1) rotate(5deg);
+            filter: drop-shadow(0 0 12px rgba(0, 210, 255, 0.8));
+        }
+        
+        .nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; transition: 0.4s; }
+
+        .nav-links li a {
+            text-decoration: none; color: var(--text-color); font-weight: 500;
+            font-size: 0.8rem; /* DECREASED MENU ITEM SIZE */
+            text-transform: uppercase; letter-spacing: 0.5px;
+            transition: 0.3s; position: relative; white-space: nowrap;
+        }
+
+        .nav-links li a:hover, .nav-links li a.active { color: var(--primary-color); text-shadow: 0 0 10px var(--primary-color); }
+        .nav-links li a::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0%; height: 2px; background: var(--primary-color); transition: 0.3s; }
+        .nav-links li a:hover::after { width: 100%; }
+
+        /* Adjusted button sizes in nav */
+        .btn-login { padding: 0.5rem 1.2rem; border: 1px solid var(--primary-color); border-radius: 50px; color: var(--primary-color) !important; font-size: 0.8rem !important; }
+        .btn-register { padding: 0.5rem 1.2rem; background: linear-gradient(45deg, var(--secondary-color), var(--primary-color)); border-radius: 50px; color: white !important; font-size: 0.8rem !important; }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle { display: none; flex-direction: column; justify-content: space-between; width: 28px; height: 20px; cursor: pointer; z-index: 1003; }
+        .bar { width: 100%; height: 3px; background-color: white; border-radius: 3px; transition: 0.4s; }
+        
+        .menu-toggle.is-active .bar:nth-child(1) { transform: translateY(8.5px) rotate(45deg); background-color: var(--primary-color); }
+        .menu-toggle.is-active .bar:nth-child(2) { opacity: 0; }
+        .menu-toggle.is-active .bar:nth-child(3) { transform: translateY(-8.5px) rotate(-45deg); background-color: var(--primary-color); }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            min-height: 100vh;
+            width: 100%;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+            padding: 80px 20px 40px; /* Adjusted padding to account for fixed header/footer */
+        }
+
+        .responsive-corners {
+            position: absolute;
+            top: 100px;
+            width: 100%;
+            padding: 0 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: none; 
+            z-index: 10;
+        }
+
+        .date-wrapper, .countdown-wrapper {
+            animation: fadeDown 1s ease-out 0.5s forwards;
+            opacity: 0;
+            transform: translateY(-20px);
+            pointer-events: auto;
+        }
+
+        .date-wrapper { text-align: left; display: flex; align-items: center; gap: 20px; }
+        
+        .college-logo-corner {
+            width: 80px; height: auto;
+            mix-blend-mode: screen; 
+            filter: brightness(200%) contrast(120%) drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+        }
+
+        .event-date {
+            font-size: 1.4rem; font-weight: 800; color: var(--accent-color);
+            letter-spacing: 2px; text-transform: uppercase;
+            text-shadow: 0 0 15px rgba(255, 0, 204, 0.6);
+            border-left: 4px solid var(--primary-color);
+            padding-left: 15px; line-height: 1;
+        }
+
+        .countdown-small { display: flex; gap: 8px; }
+
+        .time-box-small {
+            background: rgba(0, 0, 0, 0.6); border: 1px solid var(--primary-color);
+            padding: 6px 8px; border-radius: 6px; text-align: center; min-width: 50px;
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.2); backdrop-filter: blur(5px);
+        }
+
+        .time-val-small { font-size: 1.1rem; font-weight: 700; color: white; display: block; line-height: 1; }
+        .time-label-small { font-size: 0.5rem; color: var(--primary-color); text-transform: uppercase; letter-spacing: 1px; margin-top: 3px; }
+
+        /* Hero Content */
+        .hero-content {
+            z-index: 1; max-width: 1000px; display: flex;
+            flex-direction: column; align-items: center; margin-top: 40px; 
+        }
+
+        .hero-tagline {
+            font-size: 1.2rem; letter-spacing: 5px; text-transform: uppercase;
+            color: var(--primary-color); margin-bottom: 0.5rem;
+            animation: fadeDown 1s ease-out 0.2s forwards; opacity: 0;
+        }
+
+        .hero-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(2.5rem, 7vw, 6rem); /* Improved fluid sizing */
+            font-weight: 900; line-height: 1.1; margin-bottom: 1rem;
+            background: linear-gradient(to bottom, #ffffff, #b3ecff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px rgba(0, 210, 255, 0.3);
+            animation: fadeUp 1s ease-out 0.4s forwards; opacity: 0; transform: translateY(30px);
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1rem, 2vw, 1.5rem); color: #e0e0e0; margin-bottom: 2.5rem; font-weight: 300;
+            animation: fadeUp 1s ease-out 0.6s forwards; opacity: 0; transform: translateY(30px);
+        }
+
+        .cta-btn {
+            display: inline-block; padding: 0.9rem 3rem; font-size: 1.1rem;
+            font-weight: 600; color: white; text-decoration: none;
+            background: rgba(0, 0, 0, 0.3); border: 1px solid var(--primary-color);
+            border-radius: 50px; overflow: hidden; transition: 0.4s;
+            text-transform: uppercase; letter-spacing: 2px;
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.2);
+            animation: fadeUp 1s ease-out 0.8s forwards; opacity: 0; transform: translateY(50px); 
+        }
+
+        .cta-btn:hover {
+            background: var(--primary-color);
+            box-shadow: 0 0 40px var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* --- FOOTER (REDESIGNED LAYOUT) --- */
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 8px 4%; /* Decreased footer size/padding */
+            background: rgba(5, 5, 10, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 999;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem; /* Smaller footer text */
+        }
+
+        .footer-left {
+            text-align: left;
+        }
+
+        .footer-right {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        footer a:hover { color: var(--accent-color); }
+        
+        .footer-text { margin: 0; color: rgba(255, 255, 255, 0.8); line-height: 1.4; }
+        .sub-text { font-size: 0.7rem; opacity: 0.6; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px);
+            z-index: 2000; display: none; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        
+        .modal-content {
+            background: rgba(20, 20, 35, 0.95); border: 1px solid var(--glass-border);
+            border-radius: 15px; padding: 2rem; text-align: center; width: 90%; max-width: 380px;
+            transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .modal-icon { font-size: 3rem; margin-bottom: 0.8rem; }
+        .modal-icon.success { color: var(--success-color); text-shadow: 0 0 20px rgba(0, 255, 136, 0.4); }
+        .modal-icon.error { color: var(--error-color); text-shadow: 0 0 20px rgba(255, 77, 77, 0.4); }
+        .modal-icon.info { color: var(--primary-color); text-shadow: 0 0 20px rgba(0, 210, 255, 0.4); }
+
+        .modal-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; color: white; }
+        .modal-message { color: #ccc; font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.5; }
+
+        .modal-btn {
+            background: var(--primary-color); color: #000; border: none; padding: 10px 25px;
+            font-weight: 700; border-radius: 30px; cursor: pointer; font-size: 0.9rem;
+            transition: 0.3s; width: 100%;
+        }
+        .modal-btn:hover { background: white; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
+
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+
+        /* Animations */
+        @keyframes zoomEffect { 0% { transform: scale(1); } 100% { transform: scale(1.15); } }
+        @keyframes starMove { from { transform: translateY(0); } to { transform: translateY(-1000px); } }
+        @keyframes fadeDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+        /* --- RESPONSIVE ADJUSTMENTS --- */
+        @media (max-width: 1100px) {
+            nav { padding: 0 2rem; }
+            .menu-toggle { display: flex; }
+            
+            .nav-links {
+                position: fixed; top: 0; right: -100%;
+                height: 100vh; width: 70%; max-width: 300px;
+                background: var(--mobile-glass); backdrop-filter: blur(20px);
+                flex-direction: column; justify-content: flex-start;
+                align-items: center; gap: 1.8rem;
+                padding-top: 90px; padding-bottom: 50px;
+                border-left: 1px solid var(--glass-border);
+                transition: right 0.4s ease-in-out;
+                z-index: 1001; overflow-y: auto;
+                box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+            }
+            .nav-links.active { right: 0; }
+            .nav-links li a { font-size: 1rem; } /* Slightly larger for touch on mobile */
+        }
+        
+        @media (max-width: 768px) {
+            .hero { flex-direction: column; justify-content: center; padding-top: 60px; padding-bottom: 100px; } /* More space for footer */
+
+            .responsive-corners {
+                position: relative; top: 0; width: 100%; padding: 0;
+                display: flex; flex-direction: column; align-items: center;
+                gap: 1rem; margin-bottom: 1.5rem;
+            }
+
+            .date-wrapper { flex-direction: column; gap: 8px; align-items: center; justify-content: center; text-align: center; }
+            .college-logo-corner { width: 70px; margin-bottom: 5px; }
+            .event-date { 
+                border-left: none; padding-left: 0; font-size: 1.2rem; 
+                color: var(--accent-color); border-bottom: 3px solid var(--primary-color); padding-bottom: 5px;
+            }
+            
+            .countdown-wrapper { width: 100%; display: flex; justify-content: center; }
+            .hero-content { margin-top: 0; padding: 0 10px; }
+            .hero-subtitle { font-size: 0.95rem; max-width: 95%; margin-bottom: 1.5rem; }
+            .hero-tagline { display: none; }
+            .cta-btn { margin-top: 10px; padding: 0.7rem 1.8rem; font-size: 0.95rem; }
+            
+            /* Stack Footer on small mobile */
+            footer {
+                flex-direction: column;
+                text-align: center;
+                gap: 8px;
+                padding: 10px;
+                padding-bottom: 15px;
+            }
+            .footer-left, .footer-right { text-align: center; align-items: center; }
+        }
+
+        @media (max-width: 480px) {
+            .logo img { height: 35px; }
+            .logo span { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BACKGROUND LAYERS -->
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+    <div class="hero-particles"></div>
+
+    <!-- NAVIGATION -->
+    <nav>
+        <div class="logo" onclick="window.location.href='home'">
+            <img src="/assets/logo.png" alt="Lakshya 2K26 Logo" onerror="this.style.display='none'">
+            <span>LAKSHYA 2K26</span>
+        </div>
+        
+        <ul class="nav-links" id="navLinks">
+            <li><a href="home" class="active" onclick="closeMenu()">Home</a></li>
+            <li><a href="about" onclick="closeMenu()">About Us</a></li>
+            <li><a href="brochure" onclick="closeMenu()">Brochure</a></li>
+            <li><a href="events" onclick="closeMenu()">Events</a></li>
+            <li><a href="culturals" onclick="closeMenu()">Rangamarthanda</a></li>
+            <li><a href="committee" onclick="closeMenu()">Committee</a></li>
+            <!-- Removed Privacy Policy from Top Nav as requested -->
+            <li><a href="contact" onclick="closeMenu()">Contact</a></li>
+            <li><a href="register" class="btn-register" onclick="closeMenu()">Register</a></li>
+            <li><a href="login" class="btn-login" onclick="closeMenu()">Login</a></li>
+        </ul>
+
+        <!-- Hamburger Icon -->
+        <div class="menu-toggle" id="mobile-menu" onclick="toggleMenu()">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <header class="hero">
+        <div class="responsive-corners">
+            <div class="date-wrapper">
+                <img src="../assets/college-logo.png" alt="College Logo" class="college-logo-corner" onerror="this.style.display='none'">
+                <div class="event-date">03 JAN 2026</div>
+            </div>
+
+            <div class="countdown-wrapper">
+                <div class="countdown-small" id="countdown">
+                    <div class="time-box-small"><span class="time-val-small" id="days">00</span><span class="time-label-small">Days</span></div>
+                    <div class="time-box-small"><span class="time-val-small" id="hours">00</span><span class="time-label-small">Hours</span></div>
+                    <div class="time-box-small"><span class="time-val-small" id="minutes">00</span><span class="time-label-small">Mins</span></div>
+                    <div class="time-box-small"><span class="time-val-small" id="seconds">00</span><span class="time-label-small">Secs</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-content">
+            <p class="hero-tagline">get Ready for Unveiling the future</p> 
+            <h1 class="hero-title">LAKSHYA 2K26</h1>
+            <p class="hero-subtitle">19th National Level Technical & Cultural Symposium</p>
+            <a href="register" class="cta-btn">Start Your Journey</a>
+        </div>
+    </header>
+
+    <!-- FOOTER (New Layout) -->
+  
+
+    <!-- POPUP MODAL -->
+    <div class="modal-overlay" id="customPopup">
+        <div class="modal-content">
+            <div class="modal-icon" id="popupIcon"><i class="fas fa-check-circle"></i></div>
+            <h3 class="modal-title" id="popupTitle">Success!</h3>
+            <p class="modal-message" id="popupMessage">Operation completed.</p>
+            <button class="modal-btn" onclick="closePopup()">OK</button>
+        </div>
+    </div>
+
+    <script src="/js/chatbot.js"></script>
+
+    <script>
+        // Mobile Menu Logic
+        const nav = document.getElementById('navLinks');
+        const menuToggle = document.getElementById('mobile-menu');
+
+        function toggleMenu() {
+            nav.classList.toggle('active');
+            menuToggle.classList.toggle('is-active');
+        }
+
+        function closeMenu() {
+            nav.classList.remove('active');
+            menuToggle.classList.remove('is-active');
+        }
+
+        document.addEventListener('click', function(event) {
+            const isClickInsideNav = nav.contains(event.target);
+            const isClickInsideToggle = menuToggle.contains(event.target);
+            if (!isClickInsideNav && !isClickInsideToggle && nav.classList.contains('active')) {
+                closeMenu();
+            }
+        });
+
+        // Popup Logic
+        function showPopup(title, message, type = 'success') {
+            const popup = document.getElementById('customPopup');
+            const icon = document.getElementById('popupIcon');
+            const titleEl = document.getElementById('popupTitle');
+            const msgEl = document.getElementById('popupMessage');
+
+            titleEl.innerText = title;
+            msgEl.innerText = message;
+
+            icon.className = 'modal-icon ' + type;
+            if (type === 'success') icon.innerHTML = '<i class="fas fa-check-circle"></i>';
+            else if (type === 'error') icon.innerHTML = '<i class="fas fa-times-circle"></i>';
+            else icon.innerHTML = '<i class="fas fa-info-circle"></i>';
+            
+            popup.classList.add('active');
+        }
+
+        function closePopup() {
+            document.getElementById('customPopup').classList.remove('active');
+        }
+
+        // Countdown Logic
+        const targetDate = new Date("Jan 3, 2026 00:00:00").getTime();
+        const timer = setInterval(function() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+            if (distance < 0) {
+                clearInterval(timer);
+                document.getElementById("countdown").innerHTML = "<h4 style='color:var(--primary-color);'>EVENT LIVE!</h4>";
+                return;
+            }
+            document.getElementById("days").innerText = String(Math.floor(distance / (1000 * 60 * 60 * 24))).padStart(2, '0');
+            document.getElementById("hours").innerText = String(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+            document.getElementById("minutes").innerText = String(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+            document.getElementById("seconds").innerText = String(Math.floor((distance % (1000 * 60)) / 1000)).padStart(2, '0');
+        }, 1000);
+    </script>
+</body>
+</html>

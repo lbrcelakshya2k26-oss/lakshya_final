@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users | Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- COSMIC ADMIN THEME --- */
+        :root {
+            --primary-color: #00d2ff;
+            --accent-color: #ff00cc;
+            --glass-bg: rgba(20, 20, 35, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #050510; color: var(--text-color); display: flex; min-height: 100vh; }
+
+        /* Background Image Layer */
+        .bg-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('../assets/admin-block.jpg') no-repeat center center/cover;
+            z-index: -2;
+        }
+        .overlay-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 15, 0.85); z-index: -1;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--glass-bg);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem;
+            display: flex; flex-direction: column;
+            flex-shrink: 0;
+        }
+        .logo { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--primary-color); margin-bottom: 3rem; text-align: center; }
+        .menu { list-style: none; flex-grow: 1; }
+        .menu li { margin-bottom: 1rem; }
+        .menu a {
+            text-decoration: none; color: #ccc; display: flex; align-items: center; gap: 10px;
+            padding: 10px; border-radius: 8px; transition: 0.3s;
+        }
+        .menu a:hover, .menu a.active { background: rgba(0, 210, 255, 0.1); color: var(--primary-color); }
+        .logout { color: #ff4444; cursor: pointer; margin-top: auto; }
+
+        /* Main Content */
+        .main { flex-grow: 1; padding: 2rem; overflow-y: auto; position: relative; z-index: 1; }
+        .container { max-width: 600px; margin: 0 auto; }
+
+        .glass-box { background: var(--glass-bg); padding: 2rem; border-radius: 10px; border: 1px solid var(--glass-border); }
+        h2 { margin-bottom: 1.5rem; color: var(--primary-color); font-family: 'Montserrat', sans-serif; }
+        
+        label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: #ccc; }
+        input, select { width: 100%; padding: 10px; margin-bottom: 1rem; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; border-radius: 5px; }
+        option { background: #111; }
+        button { padding: 10px 20px; background: #00d2ff; border: none; cursor: pointer; font-weight: bold; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">LAKSHYA ADMIN</div>
+        <ul class="menu">
+            <li><a href="dashboard" >
+    <i class="fa-solid fa-gauge-high"></i> Dashboard
+</a></li>
+
+<li><a href="registrations">
+    <i class="fa-solid fa-clipboard-list"></i> Registrations
+</a></li>
+
+<li><a href="add-event">
+    <i class="fa-solid fa-calendar-plus"></i> Add Event
+</a></li>
+
+<li><a href="departments">
+    <i class="fa-solid fa-building-columns"></i> Departments
+</a></li>
+
+<li><a href="manage-users" class="active">
+    <i class="fa-solid fa-users"></i> Users
+</a></li>
+
+<li><a href="committee">
+    <i class="fa-solid fa-user-tie"></i> Committee
+</a></li>
+
+<li><a href="setup-scoring">
+    <i class="fa-solid fa-sliders"></i> Setup Scoring
+</a></li>
+
+<li><a href="view-scores">
+    <i class="fa-solid fa-square-poll-vertical"></i> View Scores
+</a></li>
+ <li><a onclick="logout()" class="logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <h2>Create Coordinator Login</h2>
+            <div class="glass-box">
+                <form onsubmit="event.preventDefault(); createCoord();">
+                    <label>Department</label>
+                    <select id="dept">
+                        <option value="" disabled selected>Loading...</option>
+                    </select>
+
+                    <label>Email ID</label>
+                    <input type="email" id="email" placeholder="coord.cse@lakshya.in" required>
+
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="Set a strong password" required>
+
+                    <button type="submit" id="createBtn">Generate Login</button>
+                    <a href="dashboard " style="color:#ccc; margin-left:15px; text-decoration:none;">Back</a>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 1. Load Departments from Database
+        async function loadDepts() {
+            const select = document.getElementById('dept');
+            
+            try {
+                const res = await fetch('/api/admin/departments');
+                if (!res.ok) throw new Error("Failed to fetch");
+                
+                const departments = await res.json();
+                
+                select.innerHTML = '<option value="" disabled selected>Select Department</option>';
+                
+                // Sort alphabetically for better UX
+                departments.sort((a, b) => a.name.localeCompare(b.name));
+
+                departments.forEach(dept => {
+                    const opt = document.createElement('option');
+                    opt.value = dept.name; // Using name as value
+                    opt.innerText = dept.name;
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.error(err);
+                select.innerHTML = '<option value="" disabled>Error loading departments</option>';
+            }
+        }
+
+        loadDepts();
+
+        // 2. Create User
+        async function createCoord() {
+            const dept = document.getElementById('dept').value;
+            const btn = document.getElementById('createBtn');
+
+            if(!dept) { alert("Please select a department"); return; }
+
+            btn.innerText = "Creating...";
+            btn.disabled = true;
+
+            const data = {
+                role: 'coordinator',
+                fullName: dept + " Coordinator",
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                dept: dept
+            };
+
+            try {
+                const res = await fetch('/api/admin/create-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if(res.ok) {
+                    alert("Coordinator Created Successfully!");
+                    // Clear form
+                    document.getElementById('email').value = '';
+                    document.getElementById('password').value = '';
+                } else {
+                    const err = await res.json();
+                    alert("Failed to create: " + (err.error || "Unknown error"));
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Server Error");
+            } finally {
+                btn.innerText = "Generate Login";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

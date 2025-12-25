@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approvals | Coordinator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="\assets\logo.png">
+    
+    <style>
+        /* --- COSMIC THEME VARIABLES --- */
+        :root {
+            --primary-color: #00d2ff;
+            --secondary-color: #3a7bd5;
+            --accent-color: #ff00cc;
+            --success-color: #00ff88;
+            --danger-color: #ff4444;
+            --glass-bg: #141423; 
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+            --sidebar-width: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { 
+            background-color: #050510; color: var(--text-color); 
+            display: flex; min-height: 100vh; overflow-x: hidden; 
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- BACKGROUND LAYERS --- */
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('../assets/admin-block.jpg') no-repeat center/cover; z-index: -2; }
+        .overlay-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,15,0.9); z-index: -1; }
+
+        /* --- SIDEBAR --- */
+        .sidebar { 
+            width: var(--sidebar-width); background: var(--glass-bg); border-right: 1px solid var(--glass-border); 
+            padding: 2rem; display: flex; flex-direction: column; height: 100vh; position: sticky; top: 0; z-index: 1000; 
+            transition: transform 0.3s ease-in-out;
+        }
+        .logo { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--primary-color); margin-bottom: 3rem; text-align: center; display: flex; justify-content: space-between; align-items: center; }
+        .menu { list-style: none; flex-grow: 1; } .menu li { margin-bottom: 1rem; }
+        .menu a { text-decoration: none; color: #ccc; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; transition: 0.3s; }
+        .menu a:hover, .menu a.active { background: rgba(0, 210, 255, 0.1); color: var(--primary-color); border: 1px solid rgba(0,210,255,0.2); box-shadow: 0 0 15px rgba(0,210,255,0.1); }
+        .logout { color: #ff4444; cursor: pointer; margin-top: auto; border: 1px solid rgba(255,68,68,0.2); }
+        .logout:hover { background: rgba(255,68,68,0.1) !important; }
+
+        /* --- MOBILE NAV --- */
+        .mobile-header { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 70px; 
+            background: #141423; border-bottom: 1px solid var(--glass-border); 
+            z-index: 1100; align-items: center; justify-content: space-between; padding: 0 20px; 
+        }
+        .mobile-logo { font-family: 'Montserrat', sans-serif; font-weight: 900; color: white; font-size: 1.2rem; }
+        .menu-toggle { font-size: 1.5rem; color: var(--primary-color); cursor: pointer; }
+        
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; }
+        .sidebar-overlay.active { display: block; }
+        .close-sidebar-btn { display: none; font-size: 1.2rem; color: white; cursor: pointer; }
+
+        /* --- MAIN CONTENT --- */
+        .main { flex-grow: 1; padding: 2rem; overflow-y: auto; z-index: 1; width: 100%; }
+        
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        h2 { font-family: 'Montserrat', sans-serif; color: var(--primary-color); margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- STATS CARDS --- */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border); display: flex; align-items: center; gap: 15px; }
+        .stat-icon { width: 50px; height: 50px; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; }
+        .stat-info h4 { font-size: 1.8rem; margin: 0; color: white; }
+        .stat-info p { font-size: 0.8rem; color: #aaa; margin: 0; }
+        
+        .card-pending .stat-icon { background: rgba(255, 193, 7, 0.1); color: #ffc107; }
+        .card-approved .stat-icon { background: rgba(0, 255, 136, 0.1); color: #00ff88; }
+        .card-rejected .stat-icon { background: rgba(255, 68, 68, 0.1); color: #ff4444; }
+
+        /* --- APPROVAL LIST --- */
+        .approval-container { display: flex; flex-direction: column; gap: 15px; }
+        
+        .approval-card { 
+            background: rgba(20, 20, 35, 0.6); border: 1px solid var(--glass-border); 
+            border-radius: 12px; padding: 20px; display: flex; flex-wrap: wrap; 
+            align-items: center; justify-content: space-between; gap: 20px;
+            transition: 0.3s;
+        }
+        .approval-card:hover { transform: translateY(-3px); background: rgba(20, 20, 35, 0.9); border-color: var(--primary-color); }
+        
+        .req-info { display: flex; align-items: center; gap: 20px; flex: 1; min-width: 250px; }
+        .req-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary-color), var(--accent-color)); display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.2rem; color: white; }
+        .req-details h4 { margin: 0 0 5px 0; color: white; font-size: 1rem; }
+        .req-details p { margin: 0; color: #aaa; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+        .badge { padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-event { background: rgba(0, 210, 255, 0.1); color: var(--primary-color); border: 1px solid rgba(0, 210, 255, 0.2); }
+
+        .req-proof { text-align: center; }
+        .proof-btn { background: rgba(255,255,255,0.05); color: #ccc; padding: 8px 15px; border-radius: 6px; border: 1px solid #444; cursor: pointer; transition: 0.2s; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+        .proof-btn:hover { background: rgba(255,255,255,0.1); color: white; border-color: white; }
+
+        .req-actions { display: flex; gap: 10px; }
+        .action-btn { width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1rem; transition: 0.2s; }
+        .btn-approve { background: rgba(0, 255, 136, 0.1); color: #00ff88; border: 1px solid rgba(0, 255, 136, 0.3); }
+        .btn-approve:hover { background: #00ff88; color: #000; box-shadow: 0 0 15px #00ff88; }
+        .btn-decline { background: rgba(255, 68, 68, 0.1); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.3); }
+        .btn-decline:hover { background: #ff4444; color: white; box-shadow: 0 0 15px #ff4444; }
+
+        /* --- MODALS --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-box { background: #151520; padding: 2rem; border-radius: 15px; border: 1px solid var(--glass-border); width: 90%; max-width: 600px; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        .modal-close { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 1.5rem; color: #aaa; }
+        
+        .proof-img { width: 100%; max-height: 400px; object-fit: contain; border-radius: 8px; border: 1px solid #333; margin-top: 10px; background: #000; }
+        
+        .decline-textarea { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid #444; color: white; padding: 15px; border-radius: 8px; margin: 15px 0; min-height: 100px; resize: vertical; }
+        .confirm-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .confirm-approve { background: var(--success-color); color: #000; }
+        .confirm-decline { background: var(--danger-color); color: white; }
+
+        /* --- RESPONSIVE --- */
+        @media(max-width: 1024px) { 
+            .sidebar { position: fixed; left: 0; top: 0; height: 100vh; transform: translateX(-100%); box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
+            .sidebar.active { transform: translateX(0); }
+            .mobile-header { display: flex; }
+            .close-sidebar-btn { display: block; }
+            .main { width: 100%; margin-left: 0; padding: 1.5rem; padding-top: 90px; }
+            .approval-card { flex-direction: column; align-items: stretch; text-align: center; }
+            .req-info { flex-direction: column; text-align: center; }
+            .req-actions { justify-content: center; }
+            .proof-btn { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Backgrounds -->
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <div class="mobile-logo">DEPT COORD</div>
+        <i class="fa-solid fa-bars menu-toggle" onclick="toggleSidebar()"></i>
+    </div>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="logo">
+            DEPT COORD 
+            <i class="fa-solid fa-xmark close-sidebar-btn" onclick="toggleSidebar()"></i>
+        </div>
+        <ul class="menu">
+            <li><a href="dashboard"><i class="fa-solid fa-chart-pie"></i> Analytics</a></li>
+            <li><a href="registrations"><i class="fa-solid fa-users"></i> Registrations</a></li>
+            <li><a href="approvals" class="active"><i class="fa-solid fa-check-double"></i> Approvals</a></li>
+            <li><a href="attendance"><i class="fa-solid fa-clipboard-user"></i> Attendance</a></li>
+            <li><a href="payment-status"><i class="fa-solid fa-money-bill-wave"></i> Payments</a></li>
+            <li><a href="assign-score"><i class="fa-solid fa-pen-to-square"></i> Assign Score</a></li>
+            <li><a onclick="logout()" class="logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="page-header">
+            <div>
+                <h2>Approvals</h2>
+                <small style="color:#aaa;">Review pending registrations and payments</small>
+            </div>
+            <div style="font-size:0.9rem; color:#ccc;">Coordinator Panel <i class="fa-solid fa-circle-user" style="margin-left:5px;"></i></div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card card-pending">
+                <div class="stat-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+                <div class="stat-info">
+                    <h4 id="countPending">0</h4>
+                    <p>Pending Review</p>
+                </div>
+            </div>
+            <!-- Note: Approved/Rejected today would ideally need a separate API or local storage tracking for this session, simplifying to just show 0 or placeholder -->
+            <div class="stat-card card-approved">
+                <div class="stat-icon"><i class="fa-solid fa-check"></i></div>
+                <div class="stat-info">
+                    <h4 id="countApproved">0</h4>
+                    <p>Approved Today</p>
+                </div>
+            </div>
+            <div class="stat-card card-rejected">
+                <div class="stat-icon"><i class="fa-solid fa-xmark"></i></div>
+                <div class="stat-info">
+                    <h4 id="countRejected">0</h4>
+                    <p>Declined Today</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter/Search -->
+        <div style="margin-bottom: 20px; display:flex; gap:10px;">
+            <input type="text" id="searchInput" placeholder="Search by Name, Transaction ID..." 
+                   style="padding:12px; background:#151520; border:1px solid #444; color:white; border-radius:6px; flex-grow:1; outline:none;"
+                   onkeyup="filterList()">
+        </div>
+
+        <!-- List -->
+        <div class="approval-container" id="approvalList">
+            <!-- Items injected here by JS -->
+            <div style="text-align:center; padding:40px; color:#666;">
+                <i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>Loading requests...
+            </div>
+        </div>
+
+    </main>
+
+    <!-- PROOF MODAL -->
+    <div class="modal-overlay" id="proofModal">
+        <div class="modal-box">
+            <span class="modal-close" onclick="closeModal('proofModal')"><i class="fa-solid fa-xmark"></i></span>
+            <h3 style="color:var(--primary-color);">Payment Proof</h3>
+            <p style="color:#aaa; font-size:0.9rem;">Transaction ID: <span id="proofTxId" style="color:white;"></span></p>
+            <div style="width:100%; min-height:200px; display:flex; justify-content:center; align-items:center; background:#000; margin-top:10px; border-radius:8px;">
+                 <img id="proofImage" src="" alt="Proof" class="proof-img" onerror="this.src=''; this.alt='No Image Available or Failed to Load'">
+            </div>
+            <div style="margin-top:15px; display:flex; gap:10px;">
+                <button class="confirm-btn confirm-approve" onclick="quickApproveFromModal()">Approve</button>
+                <button class="confirm-btn confirm-decline" onclick="openDeclineModalFromProof()">Decline</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DECLINE REASON MODAL -->
+    <div class="modal-overlay" id="declineModal">
+        <div class="modal-box">
+            <span class="modal-close" onclick="closeModal('declineModal')"><i class="fa-solid fa-xmark"></i></span>
+            <h3 style="color:var(--danger-color);">Decline Request</h3>
+            <p style="color:#ccc; margin-top:5px;">Please provide a reason for the student.</p>
+            <textarea id="declineReason" class="decline-textarea" placeholder="e.g., Transaction ID invalid, Image blurry, Duplicate entry..."></textarea>
+            <button class="confirm-btn confirm-decline" onclick="submitDecline()">Confirm Rejection</button>
+        </div>
+    </div>
+
+    <script>
+        // --- STATE ---
+        let requests = [];
+        let allRequests = [];
+        let currentActionId = null;
+
+        // --- INIT ---
+        async function init() {
+            try {
+                // FETCH FROM REAL BACKEND
+                const res = await fetch('/api/coordinator/approvals');
+                
+                if (res.redirected) {
+                    window.location.href = '../login';
+                    return;
+                }
+
+                if (!res.ok) throw new Error("Failed to fetch approvals");
+
+                allRequests = await res.json();
+                requests = allRequests;
+                
+                renderList(requests);
+                updateStats();
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('approvalList').innerHTML = `<div style="text-align:center; padding:40px; color:#ff4444;">
+                    <i class="fa-solid fa-triangle-exclamation fa-2x"></i><br><br>Error loading data. Please try refreshing.
+                </div>`;
+            }
+        }
+
+        // --- RENDER ---
+        function renderList(data) {
+            const container = document.getElementById('approvalList');
+            container.innerHTML = '';
+
+            if (data.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:40px; color:#666;">
+                    <i class="fa-solid fa-check-circle fa-2x" style="margin-bottom:10px;"></i><br>All caught up! No pending approvals.
+                </div>`;
+                return;
+            }
+
+            data.forEach(req => {
+                const avatarChar = req.name ? req.name.charAt(0).toUpperCase() : '?';
+                const txDisplay = req.txId || 'N/A';
+                const rollDisplay = req.roll || 'N/A';
+                const eventDisplay = req.event || 'Unknown Event';
+
+                container.innerHTML += `
+                    <div class="approval-card" id="card-${req.id}">
+                        <div class="req-info">
+                            <div class="req-avatar">${avatarChar}</div>
+                            <div class="req-details">
+                                <h4>${req.name} <span class="badge badge-event">${eventDisplay}</span></h4>
+                                <p><i class="fa-solid fa-id-card"></i> ${rollDisplay} &nbsp;|&nbsp; <i class="fa-solid fa-money-check"></i> ${txDisplay}</p>
+                            </div>
+                        </div>
+                        <div class="req-proof">
+                            ${req.proofUrl ? 
+                                `<button class="proof-btn" onclick="openProofModal('${req.id}')"><i class="fa-solid fa-image"></i> View Proof</button>` : 
+                                `<span style="color:#666; font-size:0.8rem;">No Proof Uploaded</span>`
+                            }
+                        </div>
+                        <div class="req-actions">
+                            <button class="action-btn btn-approve" onclick="approveRequest('${req.id}')" title="Approve">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                            <button class="action-btn btn-decline" onclick="openDeclineModal('${req.id}')" title="Decline">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- ACTIONS ---
+        async function approveRequest(id) {
+            if(!confirm("Are you sure you want to approve this request?")) return;
+
+            try {
+                const res = await fetch('/api/coordinator/approve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                });
+
+                const result = await res.json();
+                if(result.success) {
+                    removeCard(id);
+                    incrementStat('countApproved');
+                    decreaseStat('countPending');
+                } else {
+                    alert("Failed to approve: " + (result.error || "Unknown error"));
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Network error. Try again.");
+            }
+        }
+
+        function openDeclineModal(id) {
+            currentActionId = id;
+            document.getElementById('declineReason').value = '';
+            document.getElementById('declineModal').style.display = 'flex';
+        }
+
+        async function submitDecline() {
+            const reason = document.getElementById('declineReason').value;
+            if(!reason.trim()) return alert("Please enter a reason for rejection.");
+
+            try {
+                const res = await fetch('/api/coordinator/decline', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: currentActionId, reason: reason })
+                });
+
+                const result = await res.json();
+                if(result.success) {
+                    closeModal('declineModal');
+                    if(document.getElementById('proofModal').style.display === 'flex') closeModal('proofModal');
+
+                    removeCard(currentActionId);
+                    incrementStat('countRejected');
+                    decreaseStat('countPending');
+                } else {
+                    alert("Failed to decline: " + (result.error || "Unknown error"));
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Network error. Try again.");
+            }
+        }
+
+        function removeCard(id) {
+            const card = document.getElementById(`card-${id}`);
+            if(card) {
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    // Remove from local array
+                    allRequests = allRequests.filter(r => r.id !== id);
+                    requests = requests.filter(r => r.id !== id);
+                    renderList(requests);
+                }, 300);
+            }
+        }
+
+        // --- MODALS ---
+        function openProofModal(id) {
+            currentActionId = id; 
+            const req = allRequests.find(r => r.id === id);
+            if(!req) return;
+
+            document.getElementById('proofTxId').innerText = req.txId || 'N/A';
+            const img = document.getElementById('proofImage');
+            
+            // Handle image loading
+            if (req.proofUrl) {
+                img.style.display = 'block';
+                img.src = req.proofUrl;
+            } else {
+                img.style.display = 'none';
+            }
+            
+            document.getElementById('proofModal').style.display = 'flex';
+        }
+
+        function quickApproveFromModal() {
+            approveRequest(currentActionId);
+            closeModal('proofModal');
+        }
+
+        function openDeclineModalFromProof() {
+            closeModal('proofModal');
+            openDeclineModal(currentActionId);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // --- UTILS ---
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '../login';
+        }
+
+        function filterList() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            requests = allRequests.filter(r => 
+                (r.name && r.name.toLowerCase().includes(term)) || 
+                (r.txId && r.txId.toLowerCase().includes(term)) ||
+                (r.roll && r.roll.toLowerCase().includes(term))
+            );
+            renderList(requests);
+        }
+
+        function updateStats() {
+            document.getElementById('countPending').innerText = allRequests.length;
+        }
+
+        function incrementStat(id) {
+            const el = document.getElementById(id);
+            el.innerText = parseInt(el.innerText) + 1;
+        }
+        function decreaseStat(id) {
+            const el = document.getElementById(id);
+            let val = parseInt(el.innerText) - 1;
+            el.innerText = val < 0 ? 0 : val;
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>

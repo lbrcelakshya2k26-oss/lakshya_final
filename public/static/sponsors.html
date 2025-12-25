@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sponsor LAKSHYA | LBRCE National Fest</title>
+    
+    <!-- Tailwind CSS for Layout Utility -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Playfair Display (Luxury/Headings) and Montserrat (Modern/Body) -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- Custom Premium Styles --- */
+        :root {
+            --gold-primary: #D4AF37;
+            --gold-light: #F1DDAA;
+            --gold-dark: #AA8C2C;
+            --dark-bg: #050505;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--dark-bg);
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .serif-font {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Gold Gradient Text */
+        .text-gold {
+            background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 700;
+        }
+
+        /* Unique Glow Effect for Headings */
+        .text-glow-gold {
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.3), 0 0 10px rgba(212, 175, 55, 0.1);
+        }
+
+        /* Gold Border Gradient */
+        .border-gold {
+            border-image: linear-gradient(to right, #BF953F, #FBF5B7, #AA771C) 1;
+        }
+
+        /* Glassmorphism Effect */
+        .glass-panel {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.2);
+        }
+
+        /* Special Pulse for Title Sponsor */
+        @keyframes border-pulse {
+            0% { border-color: rgba(212, 175, 55, 0.3); }
+            50% { border-color: rgba(212, 175, 55, 1); box-shadow: 0 0 20px rgba(212, 175, 55, 0.2); }
+            100% { border-color: rgba(212, 175, 55, 0.3); }
+        }
+        
+        .premium-card {
+            animation: border-pulse 3s infinite;
+        }
+
+        /* Background Image Handling */
+        .hero-bg {
+            /* REPLACE THIS URL WITH YOUR LBRCE COLLEGE IMAGE */
+            background-image: url('../assets/admin-block.jpg'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed; /* Parallax effect */
+        }
+
+        .overlay {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(5,5,5,1));
+        }
+
+        /* Unique Orb Background for Hero */
+        .hero-orb {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, rgba(0,0,0,0) 70%);
+            filter: blur(40px);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Button Styles */
+        .btn-gold {
+            background: linear-gradient(45deg, #AA771C, #D4AF37, #AA771C);
+            background-size: 200% auto;
+            color: #000;
+            transition: 0.5s;
+        }
+        .btn-gold:hover {
+            background-position: right center;
+            color: #fff;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+        }
+
+        /* Animation Classes */
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+            will-change: opacity, visibility;
+        }
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: none;
+        }
+
+        /* Form Styling */
+        .form-input {
+            background: rgba(255,255,255,0.05);
+            border: none;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            color: white;
+            transition: 0.3s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-bottom-color: var(--gold-primary);
+            background: rgba(255,255,255,0.1);
+        }
+        select option {
+            background-color: #000;
+            color: white;
+        }
+        
+        /* Success Message Styling */
+        #form-status {
+            display: none;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        #form-status.success {
+            display: block;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid #D4AF37;
+            color: #D4AF37;
+        }
+        #form-status.error {
+            display: block;
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid #dc2626;
+            color: #f87171;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed w-full z-50 transition-all duration-300 py-4 px-6 lg:px-12 border-b border-transparent">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="text-2xl font-bold tracking-widest uppercase serif-font text-white">
+                Lakshya <span class="text-gold text-3xl">.</span>
+            </div>
+            <div class="hidden md:flex space-x-8 text-sm font-medium tracking-wide">
+                <a href="#about" class="hover:text-[#D4AF37] transition-colors">About</a>
+                <a href="#why-sponsor" class="hover:text-[#D4AF37] transition-colors">Why Sponsor</a>
+                <a href="#packages" class="hover:text-[#D4AF37] transition-colors">Packages</a>
+                <a href="#contact" class="px-5 py-2 border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-all rounded-sm">Contact Us</a>
+            </div>
+            <!-- Mobile Menu Button -->
+            <button class="md:hidden text-white text-2xl" onclick="toggleMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden absolute top-full left-0 w-full bg-black/95 border-b border-[#D4AF37] py-4 flex-col space-y-4 items-center md:hidden">
+            <a href="#about" class="hover:text-[#D4AF37]" onclick="toggleMenu()">About</a>
+            <a href="#why-sponsor" class="hover:text-[#D4AF37]" onclick="toggleMenu()">Why Sponsor</a>
+            <a href="#packages" class="hover:text-[#D4AF37]" onclick="toggleMenu()">Packages</a>
+            <a href="#contact" class="text-[#D4AF37]" onclick="toggleMenu()">Contact Us</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative h-screen w-full hero-bg flex items-center justify-center text-center px-4 overflow-hidden">
+        <div class="absolute inset-0 overlay"></div>
+        
+        <!-- Unique Glowing Orb -->
+        <div class="hero-orb"></div>
+        
+        <div class="relative z-10 max-w-5xl mx-auto fade-in-section is-visible">
+            <div class="inline-block border border-[#D4AF37] px-4 py-1 rounded-full mb-6 backdrop-blur-sm">
+                <p class="text-[#D4AF37] text-xs md:text-sm tracking-[0.2em] uppercase font-bold">LBRCE Mylavaram Presents</p>
+            </div>
+            <h1 class="text-5xl md:text-7xl lg:text-9xl font-bold mb-6 text-white leading-tight">
+                Become a <br /> <span class="text-gold text-glow-gold">Sponsor</span>
+            </h1>
+            <div class="w-24 h-1 bg-[#D4AF37] mx-auto mb-8"></div>
+            <p class="text-gray-200 text-lg md:text-2xl font-light mb-10 max-w-3xl mx-auto drop-shadow-lg">
+                Partner with the <span class="font-medium text-white"> National Level Technical & Cultural Fest</span> of Lakireddy Bali Reddy College of Engineering.
+            </p>
+            <div class="flex flex-col md:flex-row justify-center gap-6">
+                <a href="#packages" class="btn-gold px-10 py-4 rounded font-bold tracking-wider uppercase text-sm shadow-xl transform hover:scale-105 transition-transform">View Packages</a>
+                <a href="#contact" class="px-10 py-4 border border-white/30 hover:border-[#D4AF37] hover:text-[#D4AF37] hover:bg-black/40 transition-all rounded font-bold tracking-wider uppercase text-sm backdrop-blur-md">Enquire Now</a>
+            </div>
+        </div>
+
+        <!-- Scroll Down Indicator -->
+        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
+            <i class="fas fa-chevron-down text-white/50 text-2xl"></i>
+        </div>
+    </header>
+
+    <!-- About Section -->
+    <section id="about" class="py-24 bg-[#050505] relative overflow-hidden">
+        <!-- Decorative bg elements -->
+        <div class="absolute top-0 right-0 w-96 h-96 bg-[#D4AF37] rounded-full filter blur-[150px] opacity-5"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-blue-500 rounded-full filter blur-[150px] opacity-5"></div>
+
+        <div class="container mx-auto px-6 lg:px-12">
+            <div class="grid md:grid-cols-2 gap-16 items-center">
+                <div class="fade-in-section">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-8 text-white"><span class="border-b-4 border-[#D4AF37] pb-2">About</span> LAKSHYA</h2>
+                    <p class="text-gray-400 text-lg leading-relaxed mb-6">
+                        LAKSHYA is the premier National-Level Technical & Cultural Fest of <strong class="text-white">LBRCE (Lakireddy Bali Reddy College of Engineering)</strong>. It is a melting pot of innovation, technology, creativity, and vibrant culture packed into one explosive day.
+                    </p>
+                    <p class="text-gray-400 text-lg leading-relaxed">
+                        LAKSHYA serves as a high-energy platform where young minds compete in technical hackathons during the day and showcase mesmerizing cultural performances by night.
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-6 fade-in-section delay-200">
+                    <div class="glass-card p-8 text-center rounded-lg group">
+                        <i class="fas fa-users text-4xl text-[#D4AF37] mb-4 group-hover:scale-110 transition-transform"></i>
+                        <h3 class="text-3xl font-bold text-white mb-2">4000+</h3>
+                        <p class="text-sm text-gray-400 uppercase tracking-widest">Footfall</p>
+                    </div>
+                    <div class="glass-card p-8 text-center rounded-lg group">
+                        <i class="fas fa-university text-4xl text-[#D4AF37] mb-4 group-hover:scale-110 transition-transform"></i>
+                        <h3 class="text-3xl font-bold text-white mb-2">25+</h3>
+                        <p class="text-sm text-gray-400 uppercase tracking-widest">Colleges</p>
+                    </div>
+                    <div class="glass-card p-8 text-center rounded-lg group">
+                        <i class="fas fa-laptop-code text-4xl text-[#D4AF37] mb-4 group-hover:scale-110 transition-transform"></i>
+                        <h3 class="text-3xl font-bold text-white mb-2">20+</h3>
+                        <p class="text-sm text-gray-400 uppercase tracking-widest">Tech Events</p>
+                    </div>
+                    <div class="glass-card p-8 text-center rounded-lg group">
+                        <i class="fas fa-bolt text-4xl text-[#D4AF37] mb-4 group-hover:scale-110 transition-transform"></i>
+                        <h3 class="text-3xl font-bold text-white mb-2">1 Day</h3>
+                        <p class="text-sm text-gray-400 uppercase tracking-widest">Of Power</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Sponsor Section -->
+    <section id="why-sponsor" class="py-24 bg-black relative">
+        <div class="container mx-auto px-6 lg:px-12">
+            <div class="text-center mb-16 fade-in-section">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4">Why <span class="text-gold text-glow-gold">Sponsor Us?</span></h2>
+                <p class="text-gray-400 max-w-2xl mx-auto">Connect with the future leaders of technology and engineering.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Benefit 1 -->
+                <div class="glass-card p-8 rounded-xl fade-in-section border-t border-white/5 hover:border-t-[#D4AF37]">
+                    <div class="w-14 h-14 bg-[#D4AF37]/20 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-bullhorn text-[#D4AF37] text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Brand Visibility</h3>
+                    <p class="text-gray-400 text-sm">Gain massive exposure through banners, social media, and on-stage mentions to thousands of attendees.</p>
+                </div>
+                
+                <!-- Benefit 2 -->
+                <div class="glass-card p-8 rounded-xl fade-in-section delay-100 border-t border-white/5 hover:border-t-[#D4AF37]">
+                    <div class="w-14 h-14 bg-[#D4AF37]/20 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-user-graduate text-[#D4AF37] text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Youth Engagement</h3>
+                    <p class="text-gray-400 text-sm">Directly interact with energetic, tech-savvy students from LBRCE and surrounding top institutions.</p>
+                </div>
+
+                <!-- Benefit 3 -->
+                <div class="glass-card p-8 rounded-xl fade-in-section delay-200 border-t border-white/5 hover:border-t-[#D4AF37]">
+                    <div class="w-14 h-14 bg-[#D4AF37]/20 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-handshake text-[#D4AF37] text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Networking</h3>
+                    <p class="text-gray-400 text-sm">Build relationships with faculty, industry professionals, and upcoming engineers.</p>
+                </div>
+
+                <!-- Benefit 4 -->
+                <div class="glass-card p-8 rounded-xl fade-in-section delay-300 border-t border-white/5 hover:border-t-[#D4AF37]">
+                    <div class="w-14 h-14 bg-[#D4AF37]/20 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-rocket text-[#D4AF37] text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">CSR & Innovation</h3>
+                    <p class="text-gray-400 text-sm">Align your brand with education, innovation, and cultural development.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sponsorship Categories -->
+    <section id="packages" class="py-24 bg-[#080808] relative">
+        <div class="container mx-auto px-6 lg:px-12">
+            <div class="text-center mb-16 fade-in-section">
+                <p class="text-[#D4AF37] uppercase tracking-widest text-sm font-bold mb-2">Partnership Tiers</p>
+                <h2 class="text-4xl md:text-5xl font-bold">Sponsorship <span class="text-white">Categories</span></h2>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 mb-12">
+                <!-- Associate Sponsor -->
+                <div class="glass-card p-8 rounded-2xl relative fade-in-section order-2 md:order-1 flex flex-col">
+                    <h3 class="text-2xl font-bold text-white mb-2">Associate Sponsor</h3>
+                    <div class="text-3xl font-bold text-[#D4AF37] mb-6">₹25,000</div>
+                    <ul class="space-y-4 text-gray-400 text-sm mb-8 flex-grow">
+                        <li class="flex items-start"><i class="fas fa-check text-[#D4AF37] mt-1 mr-3"></i> Logo on Website & Posters</li>
+                        <li class="flex items-start"><i class="fas fa-check text-[#D4AF37] mt-1 mr-3"></i> Certificate Branding</li>
+                        <li class="flex items-start"><i class="fas fa-check text-[#D4AF37] mt-1 mr-3"></i> Social Media Mention</li>
+                        <li class="flex items-start"><i class="fas fa-check text-[#D4AF37] mt-1 mr-3"></i> Stage Acknowledgement</li>
+                    </ul>
+                    <a href="#contact" onclick="selectCategory('Associate Sponsor')" class="block w-full py-3 border border-white/20 text-center text-white hover:bg-white hover:text-black transition uppercase text-xs font-bold tracking-widest rounded">Select Plan</a>
+                </div>
+
+                <!-- Title Sponsor (Highlighted) -->
+                <div class="glass-card premium-card p-8 rounded-2xl relative fade-in-section transform md:-translate-y-6 border-t-4 border-[#D4AF37] bg-white/5 order-1 md:order-2 flex flex-col shadow-2xl shadow-[#D4AF37]/10">
+                    <div class="absolute top-0 right-0 bg-[#D4AF37] text-black text-xs font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">Most Popular</div>
+                    <h3 class="text-3xl font-bold text-white mb-2">Title Sponsor</h3>
+                    <div class="text-4xl font-bold text-gold mb-6">₹75,000</div>
+                    <ul class="space-y-4 text-gray-300 text-sm mb-8 flex-grow">
+                        <li class="flex items-start"><i class="fas fa-check text-[#D4AF37] mt-1 mr-3"></i> <strong>Prime Logo</strong> on Main Stage Backdrop</li>
+                        <li class="flex items-start"><i class="fas fa-check text-[#D4AF37] mt-1 mr-3"></i> Exclusive Co-branding Rights</li>
+                        <li class="flex items-start"><i class="fas fa-check text-[#D4AF37] mt-1 mr-3"></i> <strong>Free Prime Stall</strong> (10x10)</li>
+                        <li class="flex items-start"><i class="fas fa-check text-[#D4AF37] mt-1 mr-3"></i> VIP Guest Pass & Falicitation</li>
+                        <li class="flex items-start"><i class="fas fa-check text-[#D4AF37] mt-1 mr-3"></i> Logo on all Certificates & Banners</li>
+                        <li class="flex items-start"><i class="fas fa-check text-[#D4AF37] mt-1 mr-3"></i> Dedicated Social Media Campaign</li>
+                    </ul>
+                    <a href="#contact" onclick="selectCategory('Title Sponsor')" class="block w-full py-4 btn-gold text-center text-black font-bold uppercase text-sm tracking-widest rounded shadow-lg">Become Title Sponsor</a>
+                </div>
+
+                <!-- Co-Sponsor -->
+                <div class="glass-card p-8 rounded-2xl relative fade-in-section order-3 flex flex-col">
+                    <h3 class="text-2xl font-bold text-white mb-2">Co-Sponsor</h3>
+                    <div class="text-3xl font-bold text-[#D4AF37] mb-6">₹50,000</div>
+                    <ul class="space-y-4 text-gray-400 text-sm mb-8 flex-grow">
+                        <li class="flex items-start"><i class="fas fa-check text-[#D4AF37] mt-1 mr-3"></i> Logo on Stage Wings</li>
+                        <li class="flex items-start"><i class="fas fa-check text-[#D4AF37] mt-1 mr-3"></i> Free Stall Space</li>
+                        <li class="flex items-start"><i class="fas fa-check text-[#D4AF37] mt-1 mr-3"></i> Banner Display in Campus</li>
+                        <li class="flex items-start"><i class="fas fa-check text-[#D4AF37] mt-1 mr-3"></i> Frequent Announcements</li>
+                        <li class="flex items-start"><i class="fas fa-check text-[#D4AF37] mt-1 mr-3"></i> Certificate Branding</li>
+                    </ul>
+                    <a href="#contact" onclick="selectCategory('Co-Sponsor')" class="block w-full py-3 border border-white/20 text-center text-white hover:bg-white hover:text-black transition uppercase text-xs font-bold tracking-widest rounded">Select Plan</a>
+                </div>
+            </div>
+
+            <!-- Smaller Packages -->
+            <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto fade-in-section">
+                <div class="glass-card p-6 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl">
+                    <div class="text-center sm:text-left">
+                        <h4 class="text-xl font-bold text-white">Stall Partner</h4>
+                        <div class="text-gold font-bold text-lg">₹10,000</div>
+                        <p class="text-xs text-gray-400 mt-2">On-campus stall, brand display & direct interaction.</p>
+                    </div>
+                    <a href="#contact" onclick="selectCategory('Stall Partner')" class="px-6 py-2 border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black rounded text-xs font-bold uppercase tracking-wider transition">Select</a>
+                </div>
+
+                <div class="glass-card p-6 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl">
+                    <div class="text-center sm:text-left">
+                        <h4 class="text-xl font-bold text-white">In-Kind Sponsor</h4>
+                        <div class="text-gold font-bold text-lg">Custom</div>
+                        <p class="text-xs text-gray-400 mt-2">Food, Gifts, Printing, Merchandise or Services.</p>
+                    </div>
+                    <a href="#contact" onclick="selectCategory('In-Kind Sponsor')" class="px-6 py-2 border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black rounded text-xs font-bold uppercase tracking-wider transition">Contact</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact / Form Section -->
+    <section id="contact" class="py-24 relative overflow-hidden flex items-center justify-center">
+        <!-- Background Overlay Image -->
+        <div class="absolute inset-0 z-0">
+             <div class="absolute inset-0 bg-gradient-to-t from-black via-black/90 to-black/80 z-10"></div>
+             <!-- Using the same bg or a different texture -->
+             <img src="../assets/admin-block.jpg" class="w-full h-full object-cover grayscale opacity-20" alt="Background">
+        </div>
+
+        <div class="container relative z-20 px-6 lg:px-12 max-w-3xl mx-auto">
+            <div class="glass-panel p-8 md:p-12 rounded-2xl fade-in-section">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-3">Become a Partner</h2>
+                    <p class="text-gray-400 text-sm">Fill in the details below and the LAKSHYA Team will get back to you immediately.</p>
+                </div>
+
+                <!-- Formspree Integration -->
+                <!-- ADDED id="sponsorForm" to handle JS submission -->
+                <form id="sponsorForm" action="https://formspree.io/f/mldzydpd" method="POST" class="space-y-6">
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="group">
+                            <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Company / Org Name</label>
+                            <input type="text" name="company" required class="w-full form-input py-3 px-2">
+                        </div>
+                        <div class="group">
+                            <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Contact Person</label>
+                            <input type="text" name="name" required class="w-full form-input py-3 px-2">
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="group">
+                            <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Phone Number</label>
+                            <input type="tel" name="phone" required class="w-full form-input py-3 px-2">
+                        </div>
+                        <div class="group">
+                            <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Email Address</label>
+                            <input type="email" name="email" required class="w-full form-input py-3 px-2">
+                        </div>
+                    </div>
+
+                    <div class="group">
+                        <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Sponsorship Category</label>
+                        <select id="categorySelect" name="category" class="w-full form-input py-3 px-2 cursor-pointer">
+                            <option value="Title Sponsor">Title Sponsor (₹75,000)</option>
+                            <option value="Co-Sponsor">Co-Sponsor (₹50,000)</option>
+                            <option value="Associate Sponsor">Associate Sponsor (₹25,000)</option>
+                            <option value="Stall Partner">Stall Partner (₹10,000)</option>
+                            <option value="In-Kind Sponsor">In-Kind / Other</option>
+                        </select>
+                    </div>
+
+                    <div class="group">
+                        <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Message (Optional)</label>
+                        <textarea name="message" rows="3" class="w-full form-input py-3 px-2"></textarea>
+                    </div>
+
+                    <div class="pt-4">
+                        <button id="form-submit-btn" type="submit" class="w-full btn-gold py-4 rounded font-bold uppercase tracking-widest shadow-lg hover:shadow-[#D4AF37]/40 transition-shadow">
+                            Submit Proposal
+                        </button>
+                    </div>
+                    
+                    <!-- New Status Message Container -->
+                    <div id="form-status"></div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black border-t border-white/10 pt-16 pb-8">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-3xl serif-font font-bold text-white mb-2">LAKSHYA</h2>
+            <p class="text-gray-500 text-sm uppercase tracking-widest mb-8">National Level Technical & Cultural Fest</p>
+            
+            <div class="flex flex-col md:flex-row justify-center items-center gap-8 mb-12">
+                <div class="text-center">
+                    <p class="text-[#D4AF37] font-bold text-sm mb-1">STUDENT COORDINATOR</p>
+                    <p class="text-gray-300">MIDHUN KOTAGIRI</p>
+                    <a href="tel:+919876543210" class="text-gray-400 text-sm hover:text-white transition">+91 9010408899</a>
+                </div>
+                <div class="hidden md:block w-px h-12 bg-white/20"></div>
+                <div class="text-center">
+                    <p class="text-[#D4AF37] font-bold text-sm mb-1">EMAIL US</p>
+                    <a href="mailto:sponsors@lbrce.ac.in" class="text-gray-400 text-sm hover:text-white transition">sponsors@lbrce.ac.in</a>
+                </div>
+                <div class="hidden md:block w-px h-12 bg-white/20"></div>
+                <div class="text-center">
+                    <p class="text-[#D4AF37] font-bold text-sm mb-1">LOCATION</p>
+                    <p class="text-gray-400 text-sm">LBRCE, Mylavaram, Andhra Pradesh</p>
+                </div>
+            </div>
+
+            <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-600">
+                <p>&copy; 2026 LAKSHYA - Lakireddy Bali Reddy College of Engineering. All Rights Reserved.</p>
+                <div class="flex space-x-4 mt-4 md:mt-0">
+                    <a href="https://www.instagram.com/lakshya2k25/#" class="hover:text-[#D4AF37]"><i class="fab fa-instagram text-lg"></i></a>
+                    <a href="https://www.linkedin.com/school/lbrce" class="hover:text-[#D4AF37]"><i class="fab fa-linkedin text-lg"></i></a>
+                    <a href="https://www.youtube.com/c/lbrceautonomous" class="hover:text-[#D4AF37]"><i class="fab fa-youtube text-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // 1. Navigation Background on Scroll
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('bg-black/90', 'backdrop-blur-md', 'border-b', 'border-[#D4AF37]/30');
+            } else {
+                navbar.classList.remove('bg-black/90', 'backdrop-blur-md', 'border-b', 'border-[#D4AF37]/30');
+            }
+        });
+
+        // 2. Mobile Menu Toggle
+        function toggleMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+            menu.classList.toggle('flex');
+        }
+
+        // 3. Auto-Select Category in Form when clicking "Select Plan"
+        function selectCategory(categoryName) {
+            const select = document.getElementById('categorySelect');
+            select.value = categoryName;
+        }
+
+        // 4. Intersection Observer for Scroll Animations
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target); // Only animate once
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in-section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // 5. AJAX Form Submission (Prevent Redirect)
+        const form = document.getElementById("sponsorForm");
+        
+        async function handleSubmit(event) {
+            event.preventDefault();
+            const status = document.getElementById("form-status");
+            const btn = document.getElementById("form-submit-btn");
+            const data = new FormData(event.target);
+            
+            // UI Loading State
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+            fetch(event.target.action, {
+                method: form.method,
+                body: data,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    status.innerHTML = "Thank you! Your proposal has been received. We will contact you soon.";
+                    status.classList.remove('error');
+                    status.classList.add('success');
+                    form.reset();
+                    // Optional: Restore button text after success
+                    btn.innerHTML = 'Sent Successfully';
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = 'Submit Another';
+                    }, 3000);
+                } else {
+                    response.json().then(data => {
+                        if (Object.hasOwn(data, 'errors')) {
+                            status.innerHTML = data["errors"].map(error => error["message"]).join(", ");
+                        } else {
+                            status.innerHTML = "Oops! There was a problem submitting your form";
+                        }
+                        status.classList.remove('success');
+                        status.classList.add('error');
+                        btn.disabled = false;
+                        btn.innerHTML = 'Submit Proposal';
+                    })
+                }
+            }).catch(error => {
+                status.innerHTML = "Oops! There was a problem submitting your form";
+                status.classList.remove('success');
+                status.classList.add('error');
+                btn.disabled = false;
+                btn.innerHTML = 'Submit Proposal';
+            });
+        }
+        form.addEventListener("submit", handleSubmit);
+    </script>
+</body>
+</html>

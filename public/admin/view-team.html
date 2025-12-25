@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Team | LAKSHYA 2K26 Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="\assets\logo.png">
+
+    <!-- Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <!-- Excel Export Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        /* --- COSMIC ADMIN THEME --- */
+        :root {
+            --primary-color: #00d2ff;
+            --accent-color: #ff00cc;
+            --bg-color: #050510;
+            --card-bg: #151520;
+            --text-color: #ffffff;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --sidebar-width: 260px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); display: flex; min-height: 100vh; overflow-x: hidden; }
+
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('../assets/admin-block.jpg') no-repeat center/cover; z-index: -2; opacity: 0.4; }
+        .overlay-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,15,0.9); z-index: -1; }
+
+        /* --- SIDEBAR --- */
+        .sidebar { 
+            width: var(--sidebar-width); background: var(--card-bg); border-right: 1px solid var(--border-color); 
+            padding: 2rem; display: flex; flex-direction: column; z-index: 1000; height: 100vh; position: sticky; top: 0; 
+            transition: transform 0.3s ease-in-out;
+        }
+        .logo { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--primary-color); margin-bottom: 3rem; text-align: center; display: flex; justify-content: space-between; align-items: center; }
+        .menu { list-style: none; flex-grow: 1; } .menu li { margin-bottom: 1rem; }
+        .menu a { text-decoration: none; color: #ccc; display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 8px; transition: 0.3s; border: 1px solid transparent; }
+        .menu a:hover, .menu a.active { background: rgba(0, 210, 255, 0.1); color: var(--primary-color); border-color: rgba(0, 210, 255, 0.2); }
+        .logout { color: #ff4444; cursor: pointer; margin-top: auto; }
+
+        /* --- STATS SUMMARY --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stat-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .stat-box .count { font-size: 1.5rem; font-weight: 900; color: var(--primary-color); display: block; }
+        .stat-box .label { font-size: 0.75rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- MOBILE HEADER --- */
+        .mobile-header {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 70px;
+            background: var(--card-bg); border-bottom: 1px solid var(--border-color);
+            z-index: 1100; align-items: center; justify-content: space-between; padding: 0 20px;
+        }
+        .mobile-logo { font-family: 'Montserrat', sans-serif; font-weight: 900; color: white; font-size: 1.2rem; }
+        .menu-toggle { font-size: 1.5rem; color: var(--primary-color); cursor: pointer; }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; }
+        .sidebar-overlay.active { display: block; }
+
+        /* --- MAIN CONTENT --- */
+        .main { flex-grow: 1; padding: 2rem; overflow-y: auto; z-index: 1; width: 100%; }
+        
+        .header { display: flex; justify-content: space-between; margin-bottom: 2rem; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .header h2 { font-family: 'Montserrat', sans-serif; font-size: 1.8rem; margin: 0; color: var(--primary-color); }
+
+        /* --- FILTERS --- */
+        .filters-container {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+        
+        .filter-group label { display: block; font-size: 0.8rem; color: #aaa; margin-bottom: 5px; }
+        .filter-group select {
+            width: 100%; padding: 10px; background: #0a0a12; color: white; border: 1px solid #444;
+            border-radius: 6px; outline: none; cursor: pointer;
+        }
+        
+        .actions-group { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .btn-export {
+            color: white; border: none; padding: 10px 20px;
+            border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: 0.3s; height: 42px; font-size: 0.9rem;
+        }
+        .btn-pdf { background: var(--accent-color); }
+        .btn-pdf:hover { background: #d600ab; transform: translateY(-2px); }
+        .btn-excel { background: #1D6F42; }
+        .btn-excel:hover { background: #155231; transform: translateY(-2px); }
+        .btn-export:disabled { background: #444 !important; cursor: not-allowed; }
+
+        /* --- TEAM GRID (Cards) --- */
+        .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        
+        .team-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: 0.3s;
+            position: relative;
+        }
+        .team-card:hover { transform: translateY(-5px); border-color: var(--primary-color); background: rgba(255,255,255,0.06); }
+        
+        .card-header { height: 80px; background: linear-gradient(135deg, rgba(0, 210, 255, 0.1), rgba(255, 0, 204, 0.1)); position: relative;}
+        
+        .card-profile {
+            width: 80px; height: 80px; border-radius: 50%; 
+            border: 3px solid #151520; 
+            object-fit: cover;
+            position: absolute; top: 40px; left: 20px;
+            background: #000;
+        }
+        
+        .card-body { padding: 50px 20px 20px 20px; }
+        .card-body h3 { font-size: 1.1rem; margin-bottom: 2px; color: white; }
+        .card-body p.role { color: var(--primary-color); font-size: 0.85rem; font-weight: bold; margin-bottom: 10px; }
+        
+        .info-row { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #aaa; margin-bottom: 5px; }
+        .info-row i { width: 15px; color: #666; }
+        
+        .card-footer { padding: 15px 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; background: rgba(0,0,0,0.2); }
+        .badge { padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+        .badge-student { background: rgba(255, 193, 7, 0.15); color: #ffc107; }
+        .badge-faculty { background: rgba(255, 0, 204, 0.15); color: #ff00cc; }
+
+        @media (max-width: 1024px) {
+            .sidebar { position: fixed; left: -100%; width: 280px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
+            .sidebar.active { left: 0; transform: translateX(0); }
+            .mobile-header { display: flex; }
+            .main { padding: 1.5rem; padding-top: 90px; width: 100%; margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <div class="mobile-header">
+        <div class="mobile-logo">ADMIN PANEL</div>
+        <i class="fa-solid fa-bars menu-toggle" onclick="toggleSidebar()"></i>
+    </div>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="logo">LAKSHYA ADMIN <i class="fa-solid fa-xmark" style="font-size:1.2rem; cursor:pointer; display:none;" onclick="toggleSidebar()"></i></div>
+        <ul class="menu">
+            <li><a href="dashboard"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+            <li><a href="registrations"><i class="fa-solid fa-clipboard-list"></i> Registrations</a></li>
+            <li><a href="view-team" class="active"><i class="fa-solid fa-people-group"></i> View Team</a></li>
+            <li><a href="add-event"><i class="fa-solid fa-calendar-plus"></i> Add Event</a></li>
+            <li><a href="departments"><i class="fa-solid fa-building-columns"></i> Departments</a></li>
+            <li><a href="manage-users"><i class="fa-solid fa-users"></i> Users</a></li>
+            <li><a href="committee"><i class="fa-solid fa-user-tie"></i> Committee</a></li>
+            <li><a onclick="logout()" class="logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="main">
+        <div class="header">
+            <h2>Team Directory</h2>
+        </div>
+
+        <!-- STATISTICS SUMMARY -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-box">
+                <span class="count" id="countFaculty">0</span>
+                <span class="label">Faculty</span>
+            </div>
+            <div class="stat-box">
+                <span class="count" id="countStudent">0</span>
+                <span class="label">Students</span>
+            </div>
+            <div class="stat-box">
+                <span class="count" id="countCentral">0</span>
+                <span class="label">Central Coords</span>
+            </div>
+            <div class="stat-box">
+                <span class="count" id="countEvent">0</span>
+                <span class="label">Event Coords</span>
+            </div>
+            <div class="stat-box">
+                <span class="count" id="countVol">0</span>
+                <span class="label">Volunteers</span>
+            </div>
+        </div>
+
+        <!-- FILTERS -->
+        <div class="filters-container">
+            <div class="filter-group">
+                <label>Department</label>
+                <select id="filterDept" onchange="applyFilters()">
+                    <option value="all">All Departments</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Type</label>
+                <select id="filterType" onchange="applyFilters()">
+                    <option value="all">All Types</option>
+                    <option value="student">Student</option>
+                    <option value="faculty">Faculty</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Event</label>
+                <select id="filterEvent" onchange="applyFilters()">
+                    <option value="all">All Events</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Position / Role</label>
+                <select id="filterRole" onchange="applyFilters()">
+                    <option value="all">All Roles</option>
+                    <option value="Central Coordinator">Central Coordinator</option>
+                    <option value="Event Coordinator">Event Coordinator</option>
+                    <option value="Event Volunteer">Event Volunteer</option>
+                    <option value="Decoration Volunteer">Decoration Volunteer</option>
+                    <option value="Promotion Coordinator">Promotion Coordinator</option>
+                </select>
+            </div>
+
+            <div class="actions-group">
+                <button class="btn-export btn-pdf" onclick="downloadPDF()">
+                    <i class="fa-solid fa-file-pdf"></i> PDF
+                </button>
+                <button class="btn-export btn-excel" onclick="downloadExcel()">
+                    <i class="fa-solid fa-file-excel"></i> Excel
+                </button>
+            </div>
+        </div>
+
+        <!-- GRID -->
+        <div id="teamGrid" class="team-grid">
+            <p style="color: #666; grid-column: 1/-1;">Loading team data...</p>
+        </div>
+    </main>
+
+    <script>
+        let allMembers = [];
+        
+        async function init() {
+            try {
+                const res = await fetch('/api/admin/all-team-members');
+                allMembers = await res.json();
+                
+                populateFilters();
+                updateStats(allMembers);
+                applyFilters();
+
+            } catch (e) {
+                console.error("Init Error:", e);
+                document.getElementById('teamGrid').innerHTML = '<p style="color:red">Failed to load data.</p>';
+            }
+        }
+
+        function updateStats(members) {
+            const facultyCount = members.filter(m => m.roleType === 'faculty').length;
+            const studentCount = members.filter(m => m.roleType === 'student').length;
+            const centralCount = members.filter(m => m.position === 'Central Coordinator').length;
+            const eventCoordCount = members.filter(m => m.position === 'Event Coordinator').length;
+            const volunteerCount = members.filter(m => m.position.toLowerCase().includes('volunteer')).length;
+
+            document.getElementById('countFaculty').innerText = facultyCount;
+            document.getElementById('countStudent').innerText = studentCount;
+            document.getElementById('countCentral').innerText = centralCount;
+            document.getElementById('countEvent').innerText = eventCoordCount;
+            document.getElementById('countVol').innerText = volunteerCount;
+        }
+
+        function populateFilters() {
+            const depts = [...new Set(allMembers.map(m => m.deptName))].sort();
+            const deptSel = document.getElementById('filterDept');
+            depts.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d;
+                opt.innerText = d;
+                deptSel.appendChild(opt);
+            });
+
+            const events = [...new Set(allMembers.map(m => m.eventName))].sort();
+            const eventSel = document.getElementById('filterEvent');
+            events.forEach(e => {
+                if(e) {
+                    const opt = document.createElement('option');
+                    opt.value = e;
+                    opt.innerText = e;
+                    eventSel.appendChild(opt);
+                }
+            });
+        }
+
+        function getFilteredData() {
+            const fDept = document.getElementById('filterDept').value;
+            const fType = document.getElementById('filterType').value;
+            const fEvent = document.getElementById('filterEvent').value;
+            const fRole = document.getElementById('filterRole').value;
+
+            return allMembers.filter(m => {
+                const matchDept = fDept === 'all' || m.deptName === fDept;
+                const matchType = fType === 'all' || m.roleType === fType;
+                const matchEvent = fEvent === 'all' || m.eventName === fEvent;
+                const matchRole = fRole === 'all' || m.position === fRole;
+                return matchDept && matchType && matchEvent && matchRole;
+            });
+        }
+
+        function applyFilters() {
+            const filtered = getFilteredData();
+            updateStats(filtered); // Update counts based on visible results
+            renderGrid(filtered);
+        }
+
+        function renderGrid(members) {
+            const grid = document.getElementById('teamGrid');
+            if(members.length === 0) {
+                grid.innerHTML = '<p style="color:#666; grid-column: 1/-1;">No members found matching filters.</p>';
+                return;
+            }
+
+            grid.innerHTML = members.map(m => `
+                <div class="team-card">
+                    <div class="card-header"></div>
+                    <img src="${m.imageUrl || 'assets/default-user.png'}" class="card-profile" alt="Profile" onerror="this.src='assets/default-user.png'">
+                    <div class="card-body">
+                        <h3>${m.fullName}</h3>
+                        <p class="role">${m.position}</p>
+                        
+                        <div class="info-row"><i class="fa-solid fa-building"></i> ${m.deptName}</div>
+                        <div class="info-row"><i class="fa-solid fa-envelope"></i> ${m.email}</div>
+                        <div class="info-row"><i class="fa-solid fa-phone"></i> ${m.mobile}</div>
+                        ${m.roleType === 'student' ? `<div class="info-row"><i class="fa-solid fa-graduation-cap"></i> ${m.year} Year</div>` : ''}
+                    </div>
+                    <div class="card-footer">
+                        <span>${m.eventName || 'N/A'}</span>
+                        <span class="badge ${m.roleType === 'student' ? 'badge-student' : 'badge-faculty'}">
+                            ${m.roleType ? m.roleType.toUpperCase() : 'UNKNOWN'}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- EXCEL DOWNLOADER ---
+        function downloadExcel() {
+            const dataToPrint = getFilteredData();
+            if(dataToPrint.length === 0) return alert("No data to export.");
+
+            const excelData = dataToPrint.map((m, i) => ({
+                'S.No': i + 1,
+                'Full Name': m.fullName,
+                'Role/Position': m.position,
+                'Department': m.deptName,
+                'Type': m.roleType ? m.roleType.toUpperCase() : '',
+                'Event': m.eventName || 'N/A',
+                'Email': m.email,
+                'Mobile': m.mobile,
+                'Year': m.year || ''
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Team Directory");
+            
+            XLSX.writeFile(workbook, `Lakshya_Team_List_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`);
+        }
+
+        // --- PDF DOWNLOADER ---
+        async function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l'); 
+            
+            const btn = document.querySelector('.btn-pdf');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>...';
+            btn.disabled = true;
+
+            try {
+                const dataToPrint = getFilteredData();
+                if(dataToPrint.length === 0) return alert("No members to print.");
+
+                doc.setFontSize(18);
+                doc.setTextColor(0, 210, 255);
+                doc.text(`Team List - Admin Report`, 14, 20);
+                
+                doc.setFontSize(10);
+                doc.setTextColor(100);
+                doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 28);
+                
+                const toDataURL = url => {
+                    const corsUrl = url + (url.includes('?') ? '&' : '?') + 'v=' + new Date().getTime();
+                    return fetch(corsUrl)
+                        .then(response => response.blob())
+                        .then(blob => new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => resolve(reader.result);
+                            reader.onerror = reject;
+                            reader.readAsDataURL(blob);
+                        }))
+                        .catch(() => null);
+                };
+
+                const processedRows = await Promise.all(dataToPrint.map(async (m, i) => {
+                    let imgData = null;
+                    if(m.imageUrl && !m.imageUrl.includes('default-user')) {
+                        imgData = await toDataURL(m.imageUrl);
+                    }
+                    return { ...m, index: i + 1, imgData: imgData };
+                }));
+
+                doc.autoTable({
+                    head: [['#', 'Photo', 'Dept', 'Name', 'Position', 'Event', 'Type', 'Mobile']],
+                    body: processedRows.map(row => [
+                        row.index, '', row.deptName, row.fullName, row.position, row.eventName || 'N/A', row.roleType ? row.roleType.toUpperCase() : '', row.mobile
+                    ]),
+                    startY: 35,
+                    bodyStyles: { minCellHeight: 15, valign: 'middle', fontSize: 9 },
+                    columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 15 }, 2: { cellWidth: 50 }, 3: { cellWidth: 40 }, 4: { cellWidth: 40 }, 5: { cellWidth: 40 }, 6: { cellWidth: 20 }, 7: { cellWidth: 30 } },
+                    didDrawCell: (data) => {
+                        if (data.section === 'body' && data.column.index === 1) {
+                            const row = processedRows[data.index];
+                            if (row && row.imgData) {
+                                try {
+                                    const format = row.imgData.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+                                    doc.addImage(row.imgData, format, data.cell.x + 2, data.cell.y + 2, 11, 11);
+                                } catch(e) {}
+                            }
+                        }
+                    }
+                });
+
+                doc.save(`Admin_Team_List.pdf`);
+
+            } catch(e) {
+                console.error(e);
+                alert("Error generating PDF.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+        function logout() { localStorage.clear(); window.location.href = '../login'; }
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

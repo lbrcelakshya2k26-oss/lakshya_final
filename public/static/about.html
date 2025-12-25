@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | LAKSHYA 2K26 – LBRCE</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="\assets\logo.png">
+
+    <style>
+        /* --- GLOBAL VARIABLES --- */
+        :root {
+            --primary-color: #00d2ff;
+            --secondary-color: #3a7bd5;
+            --accent-color: #ff00cc;
+            --text-color: #ffffff;
+            --success-color: #00ff88;
+            --error-color: #ff4d4d;
+            --glass-bg: rgba(15, 15, 30, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --card-hover: rgba(0, 210, 255, 0.15);
+            --dark-overlay: linear-gradient(to bottom, rgba(5, 5, 15, 0.6), rgba(5, 5, 15, 0.95));
+            --mobile-glass: rgba(5, 5, 12, 0.95);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body { 
+            background-color: #0a0a0a; 
+            color: var(--text-color); 
+            overflow-x: hidden; 
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .bg-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('../assets/admin-block.jpg') no-repeat center top/cover; z-index: -2;
+            filter: brightness(0.8);
+        }
+        .overlay-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--dark-overlay); z-index: -1;
+        }
+
+        /* --- NAVIGATION (Synced with Home) --- */
+        nav {
+            position: fixed; top: 0; left: 0; width: 100%;
+            height: 80px; padding: 0 4%;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 1000; transition: 0.4s;
+            background: rgba(5, 5, 10, 0.6); 
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .logo {
+            cursor: pointer; z-index: 1002; display: flex; align-items: center; gap: 12px;
+        }
+        
+        /* Logo text matches Home */
+        .logo-text {
+            font-family: 'Montserrat', sans-serif; font-size: 1.4rem; font-weight: 900;
+            background: linear-gradient(45deg, var(--primary-color), #ffffff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: 1px; text-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+        }
+
+        .nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; transition: 0.4s; }
+
+        .nav-links a {
+            text-decoration: none; color: var(--text-color); font-weight: 500;
+            font-size: 0.8rem;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            transition: 0.3s; position: relative; white-space: nowrap;
+        }
+
+        .nav-links a:hover, .nav-links a.active { color: var(--primary-color); text-shadow: 0 0 10px var(--primary-color); }
+        .nav-links a::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0%; height: 2px; background: var(--primary-color); transition: 0.3s; }
+        .nav-links a:hover::after { width: 100%; }
+
+        .btn-login { padding: 0.5rem 1.2rem; border: 1px solid var(--primary-color); border-radius: 50px; color: var(--primary-color) !important; font-size: 0.8rem !important; }
+        .btn-register { padding: 0.5rem 1.2rem; background: linear-gradient(45deg, var(--secondary-color), var(--primary-color)); border-radius: 50px; color: white !important; font-size: 0.8rem !important; }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle { display: none; flex-direction: column; justify-content: space-between; width: 28px; height: 20px; cursor: pointer; z-index: 1003; }
+        .bar { width: 100%; height: 3px; background-color: white; border-radius: 3px; transition: 0.4s; }
+        
+        .menu-toggle.is-active .bar:nth-child(1) { transform: translateY(8.5px) rotate(45deg); background-color: var(--primary-color); }
+        .menu-toggle.is-active .bar:nth-child(2) { opacity: 0; }
+        .menu-toggle.is-active .bar:nth-child(3) { transform: translateY(-8.5px) rotate(-45deg); background-color: var(--primary-color); }
+
+        @media (max-width: 1100px) {
+            nav { padding: 0 2rem; }
+            .menu-toggle { display: flex; }
+            
+            .nav-links {
+                position: fixed; top: 0; right: -100%;
+                height: 100vh; width: 70%; max-width: 300px;
+                background: var(--mobile-glass); backdrop-filter: blur(20px);
+                flex-direction: column; justify-content: flex-start;
+                align-items: center; gap: 1.8rem;
+                padding-top: 90px; padding-bottom: 50px;
+                border-left: 1px solid var(--glass-border);
+                transition: right 0.4s ease-in-out;
+                z-index: 1001; overflow-y: auto;
+                box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+            }
+            .nav-links.active { right: 0; }
+        }
+
+        /* --- CONTENT STYLES --- */
+        .page-header { text-align: center; padding-top: 130px; padding-bottom: 30px; animation: fadeDown 1s ease-out; }
+        .section-title { font-family: 'Montserrat', sans-serif; font-size: 3rem; font-weight: 800; background: linear-gradient(to right, #fff, var(--primary-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .section-subtitle { font-size: 0.9rem; color: var(--primary-color); letter-spacing: 3px; text-transform: uppercase; margin-top: 10px; }
+        
+        .container { 
+            max-width: 1200px; margin: 0 auto; padding: 0 20px 80px 20px; 
+            flex: 1; /* Pushes footer down */
+        }
+
+        /* Grid */
+        .about-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; margin-top: 30px; align-items: start; }
+        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 40px; position: relative; overflow: hidden; animation: fadeUp 0.8s ease-out forwards; }
+        .glass-panel::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: linear-gradient(to bottom, var(--primary-color), var(--accent-color)); }
+        
+        .text-content h3 { font-family: 'Montserrat'; font-size: 1.8rem; margin-bottom: 18px; color: white; }
+        .text-content p { color: #ccc; line-height: 1.8; margin-bottom: 20px; font-size: 0.95rem; text-align: justify; }
+        .text-content p:last-child { margin-bottom: 0; }
+        
+        .tag-pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: rgba(0, 210, 255, 0.08); border: 1px solid rgba(0, 210, 255, 0.4); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 14px; }
+        .tag-pill i { color: var(--primary-color); }
+
+        .image-box { width: 100%; height: 500px; border-radius: 20px; overflow: hidden; border: 1px solid var(--glass-border); position: relative; animation: fadeUp 1s ease-out forwards; }
+        .image-box img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .image-box:hover img { transform: scale(1.05); }
+        .image-tag { position: absolute; bottom: 15px; left: 15px; padding: 6px 12px; border-radius: 999px; background: rgba(0, 0, 0, 0.6); font-size: 0.75rem; text-transform: uppercase; }
+
+        /* Stats */
+        .stats-row { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px; margin: 70px 0 50px 0; background: rgba(255,255,255,0.03); padding: 30px; border-radius: 20px; border: 1px solid var(--glass-border); }
+        .stat-item { text-align: center; min-width: 140px; }
+        .stat-number { font-size: 2.6rem; font-weight: 900; color: var(--primary-color); font-family: 'Montserrat'; }
+        .stat-label { color: #aaa; font-size: 0.85rem; text-transform: uppercase; margin-top: 6px; display: block;}
+
+        /* Features */
+        .features-section { margin-top: 80px; text-align: center; }
+        .features-section h2 { font-family: 'Montserrat'; font-size: 2.2rem; margin-bottom: 10px; background: linear-gradient(to right, #fff, var(--accent-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 30px; margin-top: 40px; }
+        .feature-card { background: var(--glass-bg); padding: 28px 22px; border-radius: 15px; border: 1px solid var(--glass-border); transition: 0.3s; text-align: left; }
+        .feature-card:hover { transform: translateY(-10px); }
+        .feature-icon { width: 54px; height: 54px; background: rgba(0, 210, 255, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; color: var(--primary-color); font-size: 1.4rem; }
+        .feature-card h4 { color: white; margin-bottom: 6px; font-size: 1.08rem; }
+        .feature-tag { font-size: 0.75rem; text-transform: uppercase; color: var(--accent-color); margin-bottom: 8px; }
+        .feature-card p { color: #a7a7a7; font-size: 0.9rem; line-height: 1.6; }
+
+        /* Offer Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 9999; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.4s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .offer-card { position: relative; background: rgba(20, 20, 35, 0.95); border: 1px solid var(--primary-color); width: 90%; max-width: 450px; padding: 30px; border-radius: 20px; text-align: center; transform: scale(0.8); transition: transform 0.4s; box-shadow: 0 0 30px rgba(0, 210, 255, 0.2); }
+        .modal-overlay.active .offer-card { transform: scale(1); }
+        
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: #888; cursor: pointer; transition: 0.3s; }
+        .close-btn:hover { color: white; transform: rotate(90deg); }
+        
+        .offer-icon { font-size: 2.5rem; margin-bottom: 10px; color: var(--primary-color); }
+        .offer-title { font-family: 'Montserrat'; font-size: 1.6rem; font-weight: 800; color: white; margin-bottom: 15px; }
+        
+        /* New Discount Box Style */
+        .discount-box { 
+            background: rgba(255, 255, 255, 0.05); 
+            border: 1px dashed var(--primary-color); 
+            padding: 20px 15px; 
+            border-radius: 12px; 
+            margin: 15px 0 25px 0; 
+        }
+
+        .offer-highlight {
+            font-size: 1.1rem; color: #fff; line-height: 1.5; font-weight: 500;
+        }
+        .offer-highlight span {
+            color: var(--success-color); font-weight: 700; font-size: 1.3rem; display: block; margin: 5px 0;
+        }
+        .terms-text {
+            font-size: 0.7rem; color: #aaa; margin-top: 10px; line-height: 1.4;
+        }
+
+        .modal-register-btn { 
+            display: inline-block; width: 100%; padding: 12px 0; 
+            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color)); 
+            color: white; font-weight: 700; border-radius: 50px; text-decoration: none; 
+            transition: 0.3s;
+        }
+        .modal-register-btn:hover { box-shadow: 0 0 15px var(--primary-color); transform: translateY(-2px); }
+
+        /* --- FOOTER (Synced with Home) --- */
+        footer {
+            width: 100%;
+            padding: 8px 4%;
+            background: rgba(5, 5, 10, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 999;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            margin-top: auto; /* Pushes to bottom */
+        }
+
+        .footer-left { text-align: left; }
+        .footer-right { text-align: right; display: flex; flex-direction: column; gap: 2px; }
+
+        footer a { color: var(--primary-color); text-decoration: none; transition: color 0.3s; }
+        footer a:hover { color: var(--accent-color); }
+        
+        .footer-text { margin: 0; color: rgba(255, 255, 255, 0.8); line-height: 1.4; }
+        .sub-text { font-size: 0.7rem; opacity: 0.6; }
+
+        @keyframes fadeDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 1024px) {
+            .section-title { font-size: 2.2rem; }
+            .about-grid { grid-template-columns: 1fr; }
+            .image-box { height: 260px; }
+        }
+
+        @media (max-width: 768px) {
+            footer {
+                flex-direction: column; text-align: center; gap: 8px; padding: 10px; padding-bottom: 15px;
+            }
+            .footer-left, .footer-right { text-align: center; align-items: center; }
+            .page-header { padding-top: 100px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <!-- NAVIGATION -->
+    <nav>
+        <div class="logo" onclick="window.location.href='home'">
+            <!-- Text Logo matching Home -->
+            <span class="logo-text">LAKSHYA 2K26</span>
+        </div>
+        
+        <ul class="nav-links" id="navLinks">
+            <li><a href="home" onclick="closeMenu()">Home</a></li>
+            <li><a href="about" class="active" onclick="closeMenu()">About Us</a></li>
+            <li><a href="brochure" onclick="closeMenu()">Brochure</a></li>
+            <li><a href="events" onclick="closeMenu()">Events</a></li>
+            <li><a href="culturals" onclick="closeMenu()">Rangamarthanda</a></li>
+            <li><a href="committee" onclick="closeMenu()">Committee</a></li>
+            <li><a href="contact" onclick="closeMenu()">Contact</a></li>
+            <li><a href="register" class="btn-register" onclick="closeMenu()">Register</a></li>
+            <li><a href="login" class="btn-login" onclick="closeMenu()">Login</a></li>
+        </ul>
+
+        <div class="menu-toggle" id="mobile-menu" onclick="toggleMenu()">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+    </nav>
+
+    <!-- OFFER POPUP (UPDATED) -->
+    <div class="modal-overlay" id="offerModal">
+        <div class="offer-card">
+            <div class="close-btn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></div>
+            <div class="offer-icon"><i class="fa-solid fa-tags"></i></div>
+            <h2 class="offer-title">EXCLUSIVE OFFER!</h2>
+            
+            <div class="discount-box">
+                <p class="offer-highlight">
+                    First Registration: No Discount<br>
+                    <span>50% OFF</span>
+                    On 2nd Event Onwards!
+                </p>
+                <p class="terms-text">
+                    (Applicable only for Major, MBA & Cultural Events)<br>
+                    *Terms & Conditions Apply
+                </p>
+            </div>
+            
+            <a href="register" class="modal-register-btn">Register Now & Save</a>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="page-header">
+        <h1 class="section-title">ABOUT LAKSHYA</h1>
+        <p class="section-subtitle">LBRCE’s National Level Techno–Cultural Fest</p>
+    </div>
+
+    <div class="container">
+        <div class="about-grid">
+            <div class="glass-panel text-content">
+                <div class="tag-pill"><i class="fa-solid fa-location-dot"></i> LBRCE, Mylavaram</div>
+                <h3>The Flagship Fest</h3>
+                
+                <p>
+                    <strong>LAKSHYA</strong> is the National Level Technical & Cultural Fest of <strong>Lakireddy Bali Reddy College of Engineering (LBRCE), Mylavaram</strong>. As the college’s flagship annual event, it serves as a vibrant platform that brings together innovation, creativity, and celebration.
+                </p>
+
+                <p>
+                    Organized by the students of LBRCE with strong academic and institutional support, LAKSHYA offers a diverse range of <strong>technical competitions, cultural showcases, and special events</strong>. The fest provides a unique opportunity for students to explore emerging technologies, present innovative ideas, and demonstrate their creative talents on a grand stage.
+                </p>
+
+                <p>
+                    With participation from students across various engineering institutions, LAKSHYA aims to encourage <strong>learning beyond classrooms</strong>, collaboration, leadership, and holistic development. Over the years, it has grown into a recognized national-level fest that truly reflects the energetic spirit and technical excellence of LBRCE.
+                </p>
+            </div>
+            <div class="image-box">
+                <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=2070" alt="Lakshya Fest Crowd">
+                <div class="image-tag">Tech • Culture • Celebration</div>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-item"><span class="stat-number" data-target="19">0</span><span class="stat-label">Years of Legacy</span></div>
+            <div class="stat-item"><span class="stat-number" data-target="20">0</span><span class="stat-label">Technical Events</span></div>
+            <div class="stat-item"><span class="stat-number" data-target="10">0</span><span class="stat-label">Cultural &amp; Fun Events</span></div>
+            <div class="stat-item"><span class="stat-number" data-target="3000">0</span><span class="stat-label">Participants Expected</span></div>
+        </div>
+
+        <div class="features-section">
+            <h2>FEST PILLARS</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-microchip"></i></div>
+                    <div class="feature-tag">Technical Arena</div>
+                    <h4>Paper &amp; Poster Presentations</h4>
+                    <p>Showcase cutting–edge research and innovative prototypes in front of industry experts.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-lightbulb"></i></div>
+                    <div class="feature-tag">Innovation Hub</div>
+                    <h4>Ideathons &amp; Hackathons</h4>
+                    <p>Tackle real–time challenges, pitch bold ideas, and solve complex problems under pressure.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-music"></i></div>
+                    <div class="feature-tag">Cultural Stage</div>
+                    <h4>Spotlights &amp; Performances</h4>
+                    <p>From classical dance to modern music, explore the rhythm and colour of our cultural events.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-left">
+            <p class="footer-text">&copy; Designed & Developed by <a href="https://xetasolutions.in" target="_blank">Xeta</a></p>
+            <p class="footer-text sub-text">A start up from AI&DS, LBRCE</p>
+        </div>
+        <div class="footer-right">
+            <p class="footer-text">Support: <a href="mailto:lakshya@lbrce.ac.in">lakshya@lbrce.ac.in</a></p>
+            <p class="footer-text"><a href="privacy">Privacy Policy</a></p>
+        </div>
+    </footer>
+
+    <script src="/js/chatbot.js"></script>
+    <script>
+        const nav = document.getElementById('navLinks');
+        const menuToggle = document.getElementById('mobile-menu');
+
+        function toggleMenu() {
+            nav.classList.toggle('active');
+            menuToggle.classList.toggle('is-active');
+        }
+
+        function closeMenu() {
+            nav.classList.remove('active');
+            menuToggle.classList.remove('is-active');
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!nav.contains(e.target) && !menuToggle.contains(e.target) && nav.classList.contains('active')) {
+                closeMenu();
+            }
+        });
+
+        // Modal Auto Show
+        const modal = document.getElementById('offerModal');
+        window.onload = function() { setTimeout(() => { modal.classList.add('active'); }, 1500); };
+        function closeModal() { modal.classList.remove('active'); }
+
+        // Stats Animation
+        const counters = document.querySelectorAll('.stat-number');
+        const speed = 200;
+        let animated = false;
+
+        const animateCounters = () => {
+            counters.forEach(counter => {
+                const updateCount = () => {
+                    const target = +counter.getAttribute('data-target');
+                    const count = +counter.innerText;
+                    const inc = target / speed;
+                    if (count < target) {
+                        counter.innerText = Math.ceil(count + inc);
+                        setTimeout(updateCount, 20);
+                    } else { counter.innerText = target + "+"; }
+                };
+                updateCount();
+            });
+        };
+
+        window.addEventListener('scroll', () => {
+            const statsSection = document.querySelector('.stats-row');
+            if (statsSection && !animated) {
+                const position = statsSection.getBoundingClientRect().top;
+                if (position < window.innerHeight / 1.3) {
+                    animateCounters();
+                    animated = true;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

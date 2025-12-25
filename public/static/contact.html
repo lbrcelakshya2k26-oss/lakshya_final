@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us | LAKSHYA 2K26</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="\assets\logo.png">
+    <style>
+        /* --- GLOBAL VARIABLES (Synced) --- */
+        :root {
+            --primary-color: #00d2ff;
+            --secondary-color: #3a7bd5;
+            --accent-color: #ff00cc;
+            --text-color: #ffffff;
+            --glass-bg: rgba(10, 10, 20, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --card-hover: rgba(0, 210, 255, 0.15);
+            --dark-overlay: linear-gradient(to bottom, rgba(5, 5, 15, 0.4), rgba(5, 5, 15, 0.95));
+            --mobile-glass: rgba(5, 5, 12, 0.95);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body { 
+            background-color: #0a0a0a; 
+            color: var(--text-color); 
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- BACKGROUND --- */
+        .bg-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('../assets/admin-block.jpg') no-repeat center top/cover;
+            z-index: -2;
+        }
+        .overlay-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--dark-overlay); z-index: -1;
+        }
+
+        /* --- NAVIGATION (Synced) --- */
+        nav {
+            position: fixed; top: 0; left: 0; width: 100%;
+            height: 80px; padding: 0 4%;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 1000; transition: 0.4s;
+            background: rgba(5, 5, 10, 0.6); 
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .logo {
+            cursor: pointer; z-index: 1002; display: flex; align-items: center; gap: 12px;
+        }
+
+        .logo-text {
+            font-family: 'Montserrat', sans-serif; font-size: 1.4rem; font-weight: 900;
+            background: linear-gradient(45deg, var(--primary-color), #ffffff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: 1px; text-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+        }
+        
+        .nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; transition: 0.4s; }
+
+        .nav-links li a {
+            text-decoration: none; color: var(--text-color); font-weight: 500;
+            font-size: 0.8rem;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            transition: 0.3s; position: relative; white-space: nowrap;
+        }
+
+        .nav-links li a:hover, .nav-links li a.active { color: var(--primary-color); text-shadow: 0 0 10px var(--primary-color); }
+        .nav-links li a::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0%; height: 2px; background: var(--primary-color); transition: 0.3s; }
+        .nav-links li a:hover::after { width: 100%; }
+
+        .btn-login { padding: 0.5rem 1.2rem; border: 1px solid var(--primary-color); border-radius: 50px; color: var(--primary-color) !important; font-size: 0.8rem !important; }
+        .btn-register { padding: 0.5rem 1.2rem; background: linear-gradient(45deg, var(--secondary-color), var(--primary-color)); border-radius: 50px; color: white !important; font-size: 0.8rem !important; }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle { display: none; flex-direction: column; justify-content: space-between; width: 28px; height: 20px; cursor: pointer; z-index: 1003; }
+        .bar { width: 100%; height: 3px; background-color: white; border-radius: 3px; transition: 0.4s; }
+        
+        .menu-toggle.is-active .bar:nth-child(1) { transform: translateY(8.5px) rotate(45deg); background-color: var(--primary-color); }
+        .menu-toggle.is-active .bar:nth-child(2) { opacity: 0; }
+        .menu-toggle.is-active .bar:nth-child(3) { transform: translateY(-8.5px) rotate(-45deg); background-color: var(--primary-color); }
+
+        /* --- CONTACT SECTION --- */
+        .container {
+            padding: 130px 5% 80px 5%;
+            min-height: 100vh;
+            flex: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .section-title {
+            text-align: center; margin-bottom: 3rem;
+            font-family: 'Montserrat', sans-serif; font-size: 3rem; font-weight: 800;
+            background: linear-gradient(to right, #fff, var(--primary-color));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 210, 255, 0.3);
+            animation: fadeDown 1s ease-out;
+            letter-spacing: 1px;
+        }
+
+        .contact-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            width: 100%;
+            max-width: 1200px;
+            animation: fadeUp 0.8s ease-out forwards;
+            opacity: 0;
+        }
+
+        /* Info Box */
+        .contact-info {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact-info::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color));
+        }
+
+        .info-item { display: flex; align-items: flex-start; margin-bottom: 2rem; }
+        .info-icon { font-size: 1.5rem; color: var(--primary-color); margin-right: 1.2rem; margin-top: 5px; }
+        .info-text h4 { font-size: 1.2rem; color: white; margin-bottom: 5px; font-family: 'Montserrat', sans-serif; }
+        .info-text p { color: #aaa; font-size: 0.95rem; line-height: 1.6; }
+
+        .map-container { width: 100%; height: 220px; border-radius: 15px; overflow: hidden; border: 1px solid var(--glass-border); margin-top: 1rem; margin-bottom: 2rem; filter: grayscale(100%) invert(92%) contrast(83%); transition: 0.3s; }
+        .map-container:hover { filter: none; border-color: var(--primary-color); }
+
+        /* Social Media Icons */
+        .social-section h4 { color: white; font-family: 'Montserrat', sans-serif; margin-bottom: 1rem; font-size: 1.1rem; }
+        .social-icons { display: flex; gap: 15px; }
+        .social-link { width: 45px; height: 45px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: 0.3s; font-size: 1.2rem; }
+        .social-link:hover { background: var(--primary-color); color: black; transform: translateY(-5px); box-shadow: 0 0 20px rgba(0, 210, 255, 0.5); }
+
+        /* Form Box */
+        .contact-form { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 2.5rem; position: relative; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; color: #ccc; margin-bottom: 8px; font-size: 0.9rem; font-weight: 500; }
+        
+        .form-group input, .form-group textarea {
+            width: 100%; padding: 12px 15px; background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border); border-radius: 10px; color: white;
+            font-size: 1rem; outline: none; transition: 0.3s; font-family: 'Poppins', sans-serif;
+        }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--primary-color); box-shadow: 0 0 15px rgba(0, 210, 255, 0.15); background: rgba(0, 0, 0, 0.5); }
+
+        .btn-submit {
+            width: 100%; padding: 14px; background: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
+            border: none; border-radius: 50px; color: white; font-size: 1rem; font-weight: 700;
+            cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 5px 20px rgba(0, 210, 255, 0.2);
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0, 210, 255, 0.4); }
+        .btn-submit:disabled { background: #555; cursor: not-allowed; box-shadow: none; }
+
+        .success-msg { color: #00ff88; background: rgba(0, 255, 136, 0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid rgba(0, 255, 136, 0.3); display: flex; align-items: center; gap: 10px; font-size: 0.95rem; animation: fadeDown 0.5s ease-out; }
+        .error-msg { color: #ff4d4d; background: rgba(255, 77, 77, 0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid rgba(255, 77, 77, 0.3); display: flex; align-items: center; gap: 10px; font-size: 0.95rem; animation: fadeDown 0.5s ease-out; }
+
+        /* --- FOOTER (Synced) --- */
+        footer {
+            width: 100%;
+            padding: 8px 4%;
+            background: rgba(5, 5, 10, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 999;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            margin-top: auto;
+        }
+
+        .footer-left { text-align: left; }
+        .footer-right { text-align: right; display: flex; flex-direction: column; gap: 2px; }
+
+        footer a { color: var(--primary-color); text-decoration: none; transition: color 0.3s; }
+        footer a:hover { color: var(--accent-color); }
+        
+        .footer-text { margin: 0; color: rgba(255, 255, 255, 0.8); line-height: 1.4; }
+        .sub-text { font-size: 0.7rem; opacity: 0.6; }
+
+        @keyframes fadeDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- RESPONSIVE BREAKPOINTS --- */
+        @media (max-width: 1100px) {
+            nav { padding: 0 2rem; }
+            .menu-toggle { display: flex; }
+            
+            .nav-links {
+                position: fixed; top: 0; right: -100%;
+                height: 100vh; width: 70%; max-width: 300px;
+                background: var(--mobile-glass); backdrop-filter: blur(20px);
+                flex-direction: column; justify-content: flex-start;
+                align-items: center; gap: 1.8rem;
+                padding-top: 90px; padding-bottom: 50px;
+                border-left: 1px solid var(--glass-border);
+                transition: right 0.4s ease-in-out;
+                z-index: 1001; overflow-y: auto;
+                box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+            }
+            .nav-links.active { right: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 100px 5% 50px 5%; }
+            .section-title { font-size: 2.2rem; }
+            .contact-wrapper { grid-template-columns: 1fr; gap: 2rem; }
+            .contact-info, .contact-form { padding: 1.5rem; }
+            
+            footer {
+                flex-direction: column; text-align: center; gap: 8px; padding: 10px; padding-bottom: 15px;
+            }
+            .footer-left, .footer-right { text-align: center; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <!-- NAVBAR -->
+    <nav>
+        <div class="logo" onclick="window.location.href='home'">
+            <span class="logo-text">LAKSHYA 2K26</span>
+        </div>
+        
+        <ul class="nav-links" id="navLinks">
+            <li><a href="home" onclick="closeMenu()">Home</a></li>
+            <li><a href="about" onclick="closeMenu()">About Us</a></li>
+            <li><a href="brochure" onclick="closeMenu()">Brochure</a></li>
+            <li><a href="events" onclick="closeMenu()">Events</a></li>
+            <li><a href="culturals" onclick="closeMenu()">Rangamarthanda</a></li>
+            <li><a href="committee" onclick="closeMenu()">Committee</a></li>
+            <!-- Removed Privacy Policy -->
+            <li><a href="contact" class="active" onclick="closeMenu()">Contact</a></li>
+            <li><a href="register" class="btn-register" onclick="closeMenu()">Register</a></li>
+            <li><a href="login" class="btn-login" onclick="closeMenu()">Login</a></li>
+        </ul>
+
+        <div class="menu-toggle" id="mobile-menu" onclick="toggleMenu()">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+    </nav>
+
+    <!-- CONTACT SECTION -->
+    <div class="container">
+        <h1 class="section-title">GET IN TOUCH</h1>
+
+        <div class="contact-wrapper">
+            <!-- Left: Contact Info -->
+            <div class="contact-info">
+                <div>
+                    <div class="info-item">
+                        <i class="fa-solid fa-location-dot info-icon"></i>
+                        <div class="info-text">
+                            <h4>Location</h4>
+                            <p>Lakireddy Bali Reddy College of Engineering<br>Mylavaram, Andhra Pradesh, 521230</p>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <i class="fa-solid fa-envelope info-icon"></i>
+                        <div class="info-text">
+                            <h4>Email</h4>
+                            <p>lakshya2k26@lbrce.ac.in<br>support@lakshya.com</p>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <i class="fa-solid fa-phone info-icon"></i>
+                        <div class="info-text">
+                            <h4>Phone</h4>
+                            <p>+91 98765 43210<br>+91 12345 67890</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Embedded Google Map -->
+                <div class="map-container">
+                    <iframe 
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3824.3649818308695!2d80.6366876148656!3d16.758483288458176!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a3665c5e123333d%3A0x951d722b61e99560!2sLakireddy%20Bali%20Reddy%20College%20of%20Engineering!5e0!3m2!1sen!2sin!4v1620000000000!5m2!1sen!2sin" 
+                        width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy">
+                    </iframe>
+                </div>
+
+                <!-- Social Media Section -->
+                <div class="social-section">
+                    <h4>Follow Us</h4>
+                    <div class="social-icons">
+                        <a href="#" class="social-link"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fa-brands fa-linkedin-in"></i></a>
+                        <a href="#" class="social-link"><i class="fa-brands fa-youtube"></i></a>
+                        <a href="#" class="social-link"><i class="fa-brands fa-twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Contact Form -->
+            <div class="contact-form">
+                <div id="formStatus"></div>
+                <!-- Action URL is placeholder -->
+                <form id="contactForm" action="https://formspree.io/f/YOUR_ID_HERE" method="POST">
+                    <div class="form-group">
+                        <label>Your Name</label>
+                        <input type="text" name="name" placeholder="Enter Full Name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" name="email" placeholder="Enter Email Address" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <input type="text" name="subject" placeholder="Query regarding..." required>
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea name="message" rows="5" placeholder="How can we help you?" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit" id="submitBtn">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-left">
+            <p class="footer-text">&copy; Designed & Developed by <a href="https://xetasolutions.in" target="_blank">Xeta</a></p>
+            <p class="footer-text sub-text">A start up from AI&DS, LBRCE</p>
+        </div>
+        <div class="footer-right">
+            <p class="footer-text">Support: <a href="mailto:lakshya@lbrce.ac.in">lakshya@lbrce.ac.in</a></p>
+            <p class="footer-text"><a href="privacy">Privacy Policy</a></p>
+        </div>
+    </footer>
+
+    <script src="/js/chatbot.js"></script>
+    <script>
+        // --- MOBILE MENU LOGIC ---
+        const nav = document.getElementById('navLinks');
+        const menuToggle = document.getElementById('mobile-menu');
+
+        function toggleMenu() {
+            nav.classList.toggle('active');
+            menuToggle.classList.toggle('is-active');
+        }
+
+        function closeMenu() {
+            nav.classList.remove('active');
+            menuToggle.classList.remove('is-active');
+        }
+
+        document.addEventListener('click', function(event) {
+            if (!nav.contains(event.target) && !menuToggle.contains(event.target) && nav.classList.contains('active')) {
+                closeMenu();
+            }
+        });
+
+        // Formspree AJAX
+        const form = document.getElementById('contactForm');
+        const formStatus = document.getElementById('formStatus');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Basic validation visual feedback
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Sending...";
+            formStatus.innerHTML = '';
+
+            const data = new FormData(form);
+            
+            try {
+                // To make this work, replace YOUR_ID_HERE in the form action with a real ID
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: data,
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    formStatus.innerHTML = '<div class="success-msg"><i class="fa-solid fa-circle-check"></i> Thank you! Our team will reach you shortly.</div>';
+                    form.reset();
+                } else {
+                    const jsonData = await response.json();
+                    const errorMessages = jsonData.errors ? jsonData.errors.map(error => error.message).join(", ") : "Oops! There was a problem submitting your form.";
+                    formStatus.innerHTML = `<div class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> ${errorMessages}</div>`;
+                }
+            } catch (error) {
+                // Fallback for demo purposes if Formspree ID is invalid
+                setTimeout(() => {
+                    formStatus.innerHTML = '<div class="success-msg"><i class="fa-solid fa-circle-check"></i> (Demo) Message Sent Successfully!</div>';
+                    form.reset();
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Send Message";
+                }, 1000);
+                // In production, uncomment the line below:
+                // formStatus.innerHTML = '<div class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> Network error. Please try again later.</div>';
+            } finally {
+                if(form.action.includes('YOUR_ID_HERE')) {
+                   // Keep disabled logic inside catch block for demo
+                } else {
+                   submitBtn.disabled = false;
+                   submitBtn.innerText = "Send Message";
+                }
+            }
+        });
+    </script>
+</body>
+</html>

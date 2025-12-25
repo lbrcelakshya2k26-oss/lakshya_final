@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Committee | Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- COSMIC ADMIN THEME --- */
+        :root {
+            --primary-color: #00d2ff;
+            --secondary-color: #3a7bd5;
+            --accent-color: #ff00cc;
+            --bg-color: #050510;
+            --card-bg: #151520;
+            --text-color: #ffffff;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --sidebar-width: 260px;
+            --glass-bg: rgba(15, 15, 25, 0.9);
+            --input-bg: rgba(0, 0, 0, 0.4);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            display: flex; min-height: 100vh; 
+            overflow-x: hidden; 
+        }
+
+        /* Background Layers */
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('../assets/admin-block.jpg') center/cover; z-index: -2; opacity: 0.4; }
+        .overlay-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,15,0.9); z-index: -1; }
+
+        /* --- SIDEBAR --- */
+        .sidebar { 
+            width: var(--sidebar-width); background: var(--glass-bg); border-right: 1px solid var(--border-color); 
+            padding: 2rem; display: flex; flex-direction: column; z-index: 1000; height: 100vh; position: fixed; top: 0; 
+            transition: transform 0.3s ease-in-out;
+        }
+        .logo { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--primary-color); margin-bottom: 3rem; text-align: center; display: flex; justify-content: space-between; align-items: center; }
+        .menu { list-style: none; flex-grow: 1; } .menu li { margin-bottom: 1rem; }
+        .menu a { text-decoration: none; color: #ccc; display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 8px; transition: 0.3s; border: 1px solid transparent; }
+        .menu a:hover, .menu a.active { background: rgba(0, 210, 255, 0.1); color: var(--primary-color); border-color: rgba(0, 210, 255, 0.2); }
+        .logout { color: #ff4444; cursor: pointer; margin-top: auto; }
+
+        /* --- MOBILE NAV --- */
+        .mobile-header {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 70px;
+            background: var(--glass-bg); border-bottom: 1px solid var(--border-color);
+            z-index: 1100; align-items: center; justify-content: space-between; padding: 0 20px;
+            backdrop-filter: blur(10px);
+        }
+        .mobile-logo { font-family: 'Montserrat', sans-serif; font-weight: 900; color: white; font-size: 1.2rem; }
+        .menu-toggle { font-size: 1.5rem; color: var(--primary-color); cursor: pointer; }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; }
+        .sidebar-overlay.active { display: block; }
+        .close-sidebar-btn { display: none; font-size: 1.2rem; color: white; cursor: pointer; }
+
+        /* --- MAIN CONTENT --- */
+        .main { flex-grow: 1; padding: 2rem; margin-left: var(--sidebar-width); overflow-y: auto; width: 100%; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        .page-header { margin-bottom: 2rem; }
+        .page-header h2 { font-family: 'Montserrat', sans-serif; font-size: 1.8rem; color: var(--primary-color); }
+
+        /* Form */
+        .glass-card { background: rgba(30,30,40,0.6); border: 1px solid var(--border-color); padding: 2rem; border-radius: 15px; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #ccc; font-weight: 500; }
+        input { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid #444; color: white; border-radius: 6px; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--primary-color); }
+        
+        .btn-add { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--primary-color), #0088cc); border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn-add:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3); }
+
+        /* Members Grid */
+        .members-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .member-card { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; text-align: center; border: 1px solid transparent; position: relative; transition: 0.3s; }
+        .member-card:hover { border-color: var(--primary-color); transform: translateY(-5px); }
+        
+        .m-img { width: 100%; height: 200px; object-fit: contain; margin-bottom: 10px; border-radius: 8px; background: rgba(0,0,0,0.2); }
+        .m-cat { position: absolute; top: 10px; left: 10px; font-size: 0.8rem; background: rgba(0,0,0,0.7); padding: 4px 8px; border-radius: 4px; color: white; }
+        
+        .btn-del { 
+            position: absolute; top: 10px; right: 10px; 
+            background: rgba(255,0,0,0.2); color: #ff4444; 
+            width: 30px; height: 30px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; transition: 0.2s;
+        }
+        .btn-del:hover { background: #ff4444; color: white; }
+
+        /* --- RESPONSIVE --- */
+        @media(max-width: 1024px) { 
+            .sidebar { position: fixed; left: 0; top: 0; height: 100vh; transform: translateX(-100%); box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
+            .sidebar.active { transform: translateX(0); }
+            .mobile-header { display: flex; }
+            .close-sidebar-btn { display: block; }
+            .main { width: 100%; margin-left: 0; padding: 1.5rem; padding-top: 90px; }
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <div class="mobile-logo">LAKSHYA ADMIN</div>
+        <i class="fa-solid fa-bars menu-toggle" onclick="toggleSidebar()"></i>
+    </div>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="logo">
+            LAKSHYA ADMIN 
+            <i class="fa-solid fa-xmark close-sidebar-btn" onclick="toggleSidebar()"></i>
+        </div>
+        <ul class="menu">
+            <li><a href="dashboard"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+            <li><a href="registrations"><i class="fa-solid fa-clipboard-list"></i> Registrations</a></li>
+            <li><a href="add-event"><i class="fa-solid fa-calendar-plus"></i> Add Event</a></li>
+            <li><a href="departments"><i class="fa-solid fa-building-columns"></i> Departments</a></li>
+            <li><a href="manage-users"><i class="fa-solid fa-users"></i> Users</a></li>
+            <li><a href="committee" class="active"><i class="fa-solid fa-user-tie"></i> Committee</a></li>
+            <li><a href="setup-scoring"><i class="fa-solid fa-sliders"></i> Setup Scoring</a></li>
+            <li><a href="view-scores"><i class="fa-solid fa-square-poll-vertical"></i> View Scores</a></li>
+            <li><a onclick="logout()" class="logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="main">
+        <div class="container">
+            <div class="page-header">
+                <h2>Manage Committee Images</h2>
+            </div>
+            
+            <div class="glass-card">
+                <form onsubmit="event.preventDefault(); addMember();">
+                    <div class="form-row">
+                        <div>
+                            <label>Category Name (e.g. Chief Patrons, CSE)</label>
+                            <input type="text" id="mCategory" required placeholder="Type category name here...">
+                        </div>
+                        <div>
+                            <label>Upload Image</label>
+                            <input type="file" id="mImage" accept="image/*" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-add" id="submitBtn">Upload Image to Category</button>
+                </form>
+            </div>
+
+            <h3>Current Uploads</h3>
+            <div class="members-grid" id="membersContainer">
+                <p>Loading...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const PLACEHOLDER_IMG = "https://placehold.co/400x400?text=No+Image";
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '../login';
+        }
+
+        async function loadMembers() {
+            const grid = document.getElementById('membersContainer');
+            grid.innerHTML = 'Loading...';
+            try {
+                const res = await fetch('/api/committee');
+                const members = await res.json();
+                
+                grid.innerHTML = '';
+                if(members.length === 0) { grid.innerHTML = '<p>No images found.</p>'; return; }
+
+                members.sort((a,b) => (a.category || "").localeCompare(b.category || ""));
+
+                members.forEach(m => {
+                    let catDisplay = (m.category && m.category !== 'undefined') ? m.category : 'Uncategorized';
+                    let imgDisplay = (m.imageUrl && m.imageUrl !== 'undefined') ? m.imageUrl : PLACEHOLDER_IMG;
+
+                    grid.innerHTML += `
+                        <div class="member-card">
+                            <span class="m-cat">${catDisplay}</span>
+                            <div class="btn-del" onclick="deleteMember('${m.memberId}')" title="Delete"><i class="fa-solid fa-trash"></i></div>
+                            <img src="${imgDisplay}" class="m-img" alt="Image" onerror="this.src='${PLACEHOLDER_IMG}'">
+                        </div>
+                    `;
+                });
+            } catch(e) { grid.innerHTML = 'Error loading data.'; }
+        }
+
+        async function addMember() {
+            const btn = document.getElementById('submitBtn');
+            btn.innerText = "Uploading..."; btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('name', 'Committee Member');
+            formData.append('role', 'Member');
+            formData.append('category', document.getElementById('mCategory').value);
+            formData.append('image', document.getElementById('mImage').files[0]);
+
+            try {
+                const res = await fetch('/api/admin/add-committee-member', { method: 'POST', body: formData });
+                if(res.ok) { 
+                    alert("Image Added!"); 
+                    document.querySelector('form').reset();
+                    loadMembers();
+                } else alert("Failed");
+            } catch(e) { alert("Error"); }
+            finally { btn.innerText = "Upload Image to Category"; btn.disabled = false; }
+        }
+
+        async function deleteMember(id) {
+            if(!confirm("Delete this image?")) return;
+            try {
+                const res = await fetch('/api/admin/delete-committee-member', {
+                    method: 'POST', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({memberId: id})
+                });
+                if (res.ok) loadMembers();
+                else alert("Failed to delete.");
+            } catch (e) { console.error(e); }
+        }
+
+        loadMembers();
+    </script>
+</body>
+</html>

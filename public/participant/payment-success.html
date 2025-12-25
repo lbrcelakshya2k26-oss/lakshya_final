@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Status | LAKSHYA 2K26</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary-color: #00d2ff; --text-color: #ffffff; }
+        body { background-color: #050510; color: white; font-family: 'Poppins', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: rgba(30, 30, 40, 0.9); padding: 40px; border-radius: 20px; text-align: center; max-width: 500px; width: 90%; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        .icon { font-size: 4rem; margin-bottom: 20px; }
+        h2 { margin-bottom: 10px; font-family: 'Montserrat'; }
+        p { color: #aaa; margin-bottom: 30px; }
+        .btn { padding: 12px 30px; background: var(--primary-color); color: black; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; }
+        .spinner { animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="card" id="statusCard">
+        <div class="icon spinner" id="icon"><i class="fa-solid fa-circle-notch"></i></div>
+        <h2 id="title">Verifying Payment...</h2>
+        <p id="message">Please wait while we confirm your transaction with the bank.</p>
+        <a href="dashboard" class="btn" id="actionBtn" style="display:none;">Go to Dashboard</a>
+    </div>
+
+    <script>
+        window.onload = async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paymentId = urlParams.get('razorpay_payment_id');
+
+            const title = document.getElementById('title');
+            const message = document.getElementById('message');
+            const icon = document.getElementById('icon');
+            const btn = document.getElementById('actionBtn');
+
+            if (!paymentId) {
+                icon.classList.remove('spinner');
+                icon.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:#ff4444;"></i>';
+                title.innerText = "Payment Failed or Cancelled";
+                message.innerText = "We could not find a valid payment ID. If you paid, please contact support.";
+                btn.style.display = 'inline-block';
+                return;
+            }
+
+            // Retrieve data
+            const cartItems = JSON.parse(localStorage.getItem('LAKSHYA_PENDING_CART')); // NEW
+            const coupon = localStorage.getItem('LAKSHYA_PENDING_COUPON');
+            const itemAmounts = JSON.parse(localStorage.getItem('LAKSHYA_ITEM_AMOUNTS'));
+
+            try {
+                const response = await fetch('/api/payment/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        razorpay_payment_id: paymentId,
+                        cartItems: cartItems, // Pass Cart Items
+                        couponCode: coupon,
+                        itemAmounts: itemAmounts
+                    })
+                });
+
+                const result = await response.json();
+
+                icon.classList.remove('spinner');
+                if (result.status === 'success') {
+                    icon.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#00ff88;"></i>';
+                    title.innerText = "Payment Successful!";
+                    message.innerText = "Your registration is confirmed. You can now download your receipt.";
+                    btn.innerText = "View My Registrations";
+                    btn.href = "my-registrations";
+                    
+                    // Clean up
+                    localStorage.removeItem('LAKSHYA_PENDING_CART');
+                    localStorage.removeItem('LAKSHYA_PENDING_COUPON');
+                    localStorage.removeItem('LAKSHYA_ITEM_AMOUNTS');
+                } else {
+                    throw new Error(result.error || "Verification failed");
+                }
+            } catch (error) {
+                icon.classList.remove('spinner');
+                icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:#ffcc00;"></i>';
+                title.innerText = "Payment Recorded";
+                message.innerText = "We received the payment ID but couldn't instantly verify it. It will be updated automatically in a few minutes.";
+                btn.innerText = "Check Dashboard";
+                btn.href = "dashboard";
+            }
+            btn.style.display = 'inline-block';
+        };
+    </script>
+</body>
+</html>

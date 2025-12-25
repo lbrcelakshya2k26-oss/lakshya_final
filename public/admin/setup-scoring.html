@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Scoring | Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- COSMIC ADMIN THEME --- */
+        :root {
+            --primary-color: #00d2ff;
+            --glass-bg: rgba(15, 15, 25, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(0, 0, 0, 0.4);
+            --text-color: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #050510; color: var(--text-color); display: flex; min-height: 100vh; overflow-x: hidden; }
+
+        /* Background */
+        .bg-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('../assets/admin-block.jpg') no-repeat center center/cover;
+            z-index: -2;
+        }
+        .overlay-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 12, 0.92); 
+            z-index: -1;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--glass-bg);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem;
+            display: flex; flex-direction: column;
+            flex-shrink: 0;
+            position: fixed; height: 100vh;
+        }
+        .logo { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--primary-color); margin-bottom: 3rem; text-align: center; }
+        .menu { list-style: none; flex-grow: 1; }
+        .menu li { margin-bottom: 1rem; }
+        .menu a {
+            text-decoration: none; color: #ccc; display: flex; align-items: center; gap: 10px;
+            padding: 12px 15px; border-radius: 8px; transition: 0.3s; font-weight: 500;
+        }
+        .menu a:hover, .menu a.active { background: rgba(0, 210, 255, 0.15); color: var(--primary-color); border: 1px solid rgba(0, 210, 255, 0.2); }
+
+        /* Main Content */
+        .main { flex-grow: 1; padding: 2rem; margin-left: 260px; overflow-y: auto; }
+        .container { max-width: 900px; margin: 0 auto; }
+
+        .glass-card {
+            background: rgba(30, 30, 40, 0.6);
+            border: 1px solid var(--glass-border);
+            padding: 2rem; border-radius: 15px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+        }
+
+        .form-header { margin-bottom: 20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; }
+        .form-header h2 { color: white; font-family: 'Montserrat', sans-serif; }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        
+        label { display: block; margin-bottom: 8px; color: #ccc; font-size: 0.9rem; }
+        select, input {
+            width: 100%; padding: 12px;
+            background: var(--input-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px; color: white;
+            outline: none;
+        }
+
+        /* Criteria Table */
+        .criteria-list { margin-top: 20px; }
+        .criteria-item {
+            display: flex; gap: 10px; align-items: center; margin-bottom: 10px;
+            background: rgba(255,255,255,0.03); padding: 10px; border-radius: 6px;
+        }
+        .criteria-item input { margin: 0; }
+        .remove-btn { color: #ff4444; cursor: pointer; padding: 5px; }
+
+        .add-btn {
+            background: transparent; border: 1px dashed var(--primary-color); color: var(--primary-color);
+            width: 100%; padding: 10px; border-radius: 6px; cursor: pointer; margin-top: 10px; transition: 0.3s;
+        }
+        .add-btn:hover { background: rgba(0, 210, 255, 0.1); }
+
+        .submit-btn {
+            background: var(--primary-color); color: black; border: none; padding: 14px;
+            width: 100%; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 20px;
+            text-transform: uppercase;
+        }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,210,255,0.3); }
+
+    </style>
+</head>
+<body>
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">LAKSHYA ADMIN</div>
+        <ul class="menu">
+            <li><a href="dashboard" class="active">
+    <i class="fa-solid fa-gauge-high"></i> Dashboard
+</a></li>
+
+<li><a href="registrations">
+    <i class="fa-solid fa-clipboard-list"></i> Registrations
+</a></li>
+
+<li><a href="add-event">
+    <i class="fa-solid fa-calendar-plus"></i> Add Event
+</a></li>
+
+<li><a href="departments">
+    <i class="fa-solid fa-building-columns"></i> Departments
+</a></li>
+
+<li><a href="manage-users">
+    <i class="fa-solid fa-users"></i> Users
+</a></li>
+
+<li><a href="committee">
+    <i class="fa-solid fa-user-tie"></i> Committee
+</a></li>
+
+<li><a href="setup-scoring" class="active">
+    <i class="fa-solid fa-sliders"></i> Setup Scoring
+</a></li>
+
+<li><a href="view-scores">
+    <i class="fa-solid fa-square-poll-vertical"></i> View Scores
+</a></li>
+ <li><a onclick="logout()" class="logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="main">
+        <div class="container">
+            <div class="glass-card">
+                <div class="form-header">
+                    <h2>Configure Marking Scheme</h2>
+                    <p style="color:#aaa; font-size:0.9rem;">Enable scoring for specific departments and events.</p>
+                </div>
+
+                <form onsubmit="event.preventDefault(); saveScheme();">
+                    <div class="form-row">
+                        <div>
+                            <label>Select Event</label>
+                            <select id="eventSelect" required onchange="checkExistingScheme()">
+                                <option value="">-- Choose Event --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Select Department</label>
+                            <select id="deptSelect" required onchange="checkExistingScheme()">
+                                <option value="">-- Choose Department --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="criteria-container">
+                        <label>Scoring Criteria (Rubric)</label>
+                        <div id="criteriaList">
+                            <!-- Dynamic Inputs -->
+                            <div class="criteria-item">
+                                <input type="text" placeholder="Criteria Name (e.g., Logic)" class="c-name" required>
+                                <input type="number" placeholder="Max Marks" class="c-max" required style="width: 120px;">
+                                <i class="fa-solid fa-lock" style="color:#666; padding:0 10px;" title="Default Row"></i>
+                            </div>
+                        </div>
+                        <button type="button" class="add-btn" onclick="addCriteriaRow()">+ Add Criteria</button>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="saveBtn">Enable & Save Scheme</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        async function loadOptions() {
+            // Load Events & Departments
+            try {
+                const [eventsRes, deptsRes] = await Promise.all([
+                    fetch('/api/events'),
+                    fetch('/api/admin/departments')
+                ]);
+                
+                const events = await eventsRes.json();
+                const depts = await deptsRes.json();
+
+                const eventSel = document.getElementById('eventSelect');
+                events.forEach(e => {
+                    const opt = document.createElement('option');
+                    opt.value = e.eventId;
+                    opt.textContent = e.title;
+                    eventSel.appendChild(opt);
+                });
+
+                const deptSel = document.getElementById('deptSelect');
+                depts.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.name;
+                    opt.textContent = d.name;
+                    deptSel.appendChild(opt);
+                });
+
+            } catch(e) { console.error(e); }
+        }
+
+        function addCriteriaRow() {
+            const div = document.createElement('div');
+            div.className = 'criteria-item';
+            div.innerHTML = `
+                <input type="text" placeholder="Criteria Name" class="c-name" required>
+                <input type="number" placeholder="Max Marks" class="c-max" required style="width: 120px;">
+                <i class="fa-solid fa-trash remove-btn" onclick="this.parentElement.remove()"></i>
+            `;
+            document.getElementById('criteriaList').appendChild(div);
+        }
+
+        async function saveScheme() {
+            const eventId = document.getElementById('eventSelect').value;
+            const deptName = document.getElementById('deptSelect').value;
+            const btn = document.getElementById('saveBtn');
+
+            if(!eventId || !deptName) return alert("Please select both Event and Department");
+
+            const criteria = [];
+            let totalMax = 0;
+            document.querySelectorAll('.criteria-item').forEach(item => {
+                const name = item.querySelector('.c-name').value;
+                const max = parseInt(item.querySelector('.c-max').value);
+                if(name && max) {
+                    criteria.push({ name, max });
+                    totalMax += max;
+                }
+            });
+
+            if(criteria.length === 0) return alert("Add at least one criteria.");
+
+            btn.innerText = "Saving...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/admin/save-scheme', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        eventId,
+                        deptName,
+                        criteria: JSON.stringify(criteria)
+                    })
+                });
+
+                if(res.ok) {
+                    alert(`Scheme Saved! Total Marks: ${totalMax}`);
+                    // Optional: Clear form or keep it
+                } else {
+                    alert("Failed to save scheme.");
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Error connecting to server");
+            } finally {
+                btn.innerText = "Enable & Save Scheme";
+                btn.disabled = false;
+            }
+        }
+
+        function checkExistingScheme() {
+            // Optional: Fetch existing scheme to pre-fill if needed
+            // For now, just keeping it simple for new entries
+        }
+
+        loadOptions();
+    </script>
+</body>
+</html>

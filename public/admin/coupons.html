@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Coupons | Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- COSMIC THEME --- */
+        :root {
+            --primary-color: #00d2ff;
+            --secondary-color: #3a7bd5;
+            --accent-color: #ff00cc;
+            --glass-bg: rgba(20, 20, 35, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+            --sidebar-width: 260px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #050510; color: var(--text-color); display: flex; min-height: 100vh; overflow-x: hidden; }
+
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('/assets/admin-block.jpg') no-repeat center center/cover; z-index: -2; opacity: 0.6; }
+        .overlay-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 12, 0.92); z-index: -1; }
+
+        /* Sidebar & Layout */
+        .sidebar { width: var(--sidebar-width); background: var(--glass-bg); border-right: 1px solid var(--glass-border); backdrop-filter: blur(10px); padding: 2rem; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 1000; left: 0; top: 0; }
+        .logo { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--primary-color); margin-bottom: 3rem; text-align: center; }
+        .menu { list-style: none; flex-grow: 1; }
+        .menu li { margin-bottom: 1rem; }
+        .menu a { text-decoration: none; color: #ccc; display: flex; align-items: center; gap: 15px; padding: 12px 15px; border-radius: 8px; transition: 0.3s; font-weight: 500; }
+        .menu a:hover, .menu a.active { background: rgba(0, 210, 255, 0.15); color: var(--primary-color); border: 1px solid rgba(0, 210, 255, 0.2); }
+        .main { flex-grow: 1; padding: 2.5rem; margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .page-header { margin-bottom: 2rem; }
+        .page-header h2 { font-family: 'Montserrat', sans-serif; font-size: 2rem; color: white; }
+
+        /* Form */
+        .form-card { background: rgba(30, 30, 40, 0.6); border: 1px solid var(--glass-border); border-radius: 15px; padding: 2rem; margin-bottom: 2rem; }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; color: #ccc; }
+        input { width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 8px; color: white; font-size: 1rem; }
+        input:focus { outline: none; border-color: var(--primary-color); }
+        .btn-submit { background: var(--primary-color); color: black; border: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,210,255,0.3); }
+
+        /* Table */
+        .coupon-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .coupon-table th, .coupon-table td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .coupon-table th { color: var(--primary-color); font-weight: 600; text-transform: uppercase; font-size: 0.9rem; }
+        .coupon-table tr:hover { background: rgba(255,255,255,0.05); }
+        
+        .code-badge { background: rgba(255, 0, 204, 0.2); color: #ff88dd; border: 1px dashed var(--accent-color); padding: 5px 10px; border-radius: 5px; font-family: monospace; font-size: 1.1rem; letter-spacing: 1px; }
+        .btn-delete { background: rgba(255, 68, 68, 0.2); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.3); padding: 5px 12px; border-radius: 5px; cursor: pointer; transition: 0.2s; }
+        .btn-delete:hover { background: #ff4444; color: white; }
+
+        /* Progress Bar */
+        .progress-bar { width: 100px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; display: inline-block; margin-right: 10px; vertical-align: middle; }
+        .progress-fill { height: 100%; background: var(--primary-color); width: 0%; transition: width 0.3s; }
+        .usage-text { font-size: 0.85rem; color: #aaa; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <aside class="sidebar">
+        <div class="logo">LAKSHYA ADMIN</div>
+        <ul class="menu">
+            <li><a href="dashboard"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+            <li><a href="add-event"><i class="fa-solid fa-plus-circle"></i> Add Event</a></li>
+            <li><a href="manage-events"><i class="fa-solid fa-list-check"></i> Manage Events</a></li>
+            <li><a href="coupons" class="active"><i class="fa-solid fa-tags"></i> Coupons</a></li>
+            <li><a href="../login"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="main">
+        <div class="container">
+            <div class="page-header">
+                <h2><i class="fa-solid fa-ticket"></i> Manage Coupons</h2>
+            </div>
+
+            <!-- Add Coupon Form -->
+            <div class="form-card">
+                <h3 style="margin-bottom:20px; color:var(--primary-color);">Create New Coupon</h3>
+                <form id="couponForm" onsubmit="createCoupon(event)">
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label>Coupon Code</label>
+                            <input type="text" id="code" placeholder="e.g., EARLYBIRD10" required style="text-transform: uppercase;">
+                        </div>
+                        <div class="form-group">
+                            <label>Discount (%)</label>
+                            <input type="number" id="percentage" min="1" max="100" placeholder="10" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Usage Limit</label>
+                            <input type="number" id="limit" min="1" placeholder="50" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit" id="saveBtn">Create Coupon</button>
+                </form>
+            </div>
+
+            <!-- Coupon List -->
+            <div class="form-card">
+                <h3 style="margin-bottom:20px; color:white;">Active Coupons</h3>
+                <table class="coupon-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Discount</th>
+                            <th>Usage (Used / Limit)</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="couponList">
+                        <!-- Coupons injected here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        async function loadCoupons() {
+            try {
+                const res = await fetch('/api/admin/coupons');
+                const coupons = await res.json();
+                const tbody = document.getElementById('couponList');
+                tbody.innerHTML = '';
+
+                coupons.forEach(c => {
+                    const used = c.usedCount || 0;
+                    const limit = c.usageLimit || 100;
+                    const percentUsed = Math.min((used / limit) * 100, 100);
+                    const isFull = used >= limit;
+                    const statusColor = isFull ? '#ff4444' : '#00d2ff';
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><span class="code-badge">${c.code}</span></td>
+                        <td style="color:#00ff88; font-weight:bold;">${c.percentage}%</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width:${percentUsed}%; background:${statusColor};"></div>
+                            </div>
+                            <span class="usage-text" style="${isFull ? 'color:red; font-weight:bold' : ''}">
+                                ${used} / ${limit} ${isFull ? '(Full)' : ''}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn-delete" onclick="deleteCoupon('${c.code}')">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error("Failed to load coupons", e);
+            }
+        }
+
+        async function createCoupon(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveBtn');
+            btn.innerText = "Creating...";
+            btn.disabled = true;
+
+            const code = document.getElementById('code').value.toUpperCase();
+            const percentage = document.getElementById('percentage').value;
+            const limit = document.getElementById('limit').value;
+
+            try {
+                const res = await fetch('/api/admin/create-coupon', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, percentage, limit })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    alert("Coupon created successfully!");
+                    document.getElementById('couponForm').reset();
+                    loadCoupons();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (e) {
+                alert("Failed to create coupon.");
+            } finally {
+                btn.innerText = "Create Coupon";
+                btn.disabled = false;
+            }
+        }
+
+        async function deleteCoupon(code) {
+            if(!confirm(`Delete coupon ${code}? This cannot be undone.`)) return;
+
+            try {
+                await fetch('/api/admin/delete-coupon', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                });
+                loadCoupons();
+            } catch(e) {
+                alert("Failed to delete coupon");
+            }
+        }
+
+        loadCoupons();
+    </script>
+</body>
+</html>

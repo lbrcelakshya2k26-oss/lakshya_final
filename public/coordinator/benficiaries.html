@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kit Distribution & Coupons | Coordinator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="/assets/logo.png">
+    
+    <style>
+        :root { 
+            --primary-color: #00d2ff; 
+            --secondary-color: #3a7bd5; 
+            --success-color: #00ff88;
+            --glass-bg: rgba(20, 20, 35, 0.95); 
+            --glass-border: rgba(255, 255, 255, 0.1); 
+            --text-color: #ffffff; 
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body { 
+            background-color: #0a0a0a; 
+            color: var(--text-color); 
+            min-height: 100vh; 
+            background-image: url('../assets/admin-block.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+        }
+
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 12, 0.9); z-index: -1;
+        }
+
+        .main-container {
+            max-width: 1200px; margin: 0 auto; padding: 40px 20px;
+        }
+
+        .header-section {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;
+            background: var(--glass-bg); padding: 20px 30px; border-radius: 15px;
+            border: 1px solid var(--glass-border); box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .header-title h2 {
+            font-family: 'Montserrat', sans-serif; font-size: 1.8rem;
+            background: linear-gradient(45deg, #fff, var(--primary-color));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .stats-summary { display: flex; gap: 20px; }
+        .stat-card {
+            background: rgba(255,255,255,0.05); padding: 10px 20px; border-radius: 10px;
+            border: 1px solid var(--glass-border); text-align: center;
+        }
+        .stat-number { font-size: 1.2rem; font-weight: bold; color: var(--primary-color); }
+        .stat-label { font-size: 0.8rem; color: #aaa; text-transform: uppercase; }
+
+        .search-bar {
+            width: 100%; padding: 15px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
+            border-radius: 10px; color: white; margin-bottom: 20px; font-size: 1rem;
+        }
+        .search-bar:focus { outline: none; border-color: var(--primary-color); }
+
+        .table-container {
+            background: var(--glass-bg); border-radius: 15px; border: 1px solid var(--glass-border);
+            overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            background: rgba(0, 210, 255, 0.1); padding: 18px; text-align: left; font-weight: 600;
+            color: var(--primary-color); text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;
+        }
+        td {
+            padding: 15px 18px; border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.95rem; vertical-align: middle;
+        }
+        tr:hover { background: rgba(255,255,255,0.02); }
+
+        .btn-toggle {
+            padding: 8px 16px; border-radius: 50px; border: none; cursor: pointer;
+            font-weight: 600; font-size: 0.85rem; transition: 0.3s;
+            display: flex; align-items: center; gap: 8px; width: fit-content;
+        }
+        .btn-toggle:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
+
+        .status-pending { background: rgba(255, 255, 255, 0.1); color: #aaa; border: 1px solid #555; }
+        .status-collected {
+            background: rgba(0, 255, 136, 0.15); color: var(--success-color);
+            border: 1px solid var(--success-color);
+        }
+        
+        .coupon-badge {
+            display: inline-block; background: #ff00cc22; color: #ff00cc; padding: 2px 8px;
+            border-radius: 4px; font-size: 0.7rem; margin-top: 5px; border: 1px solid #ff00cc44;
+        }
+        
+        .student-meta { display: flex; flex-direction: column; }
+        .student-roll { font-size: 0.8rem; color: #888; margin-top: 2px; }
+        .loading-state { text-align: center; padding: 40px; color: #888; }
+        
+        /* Toast Notification */
+        #toast {
+            visibility: hidden; min-width: 250px; background-color: #333; color: #fff;
+            text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 1000;
+            left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 1rem;
+            border-left: 5px solid var(--primary-color); box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+
+        @media (max-width: 768px) {
+            .header-section { flex-direction: column; gap: 20px; align-items: flex-start; }
+            .btn-toggle span { display: none; } 
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+
+    <div class="main-container">
+        <div style="margin-bottom: 20px;">
+            <a href="/coordinator/dashboard" style="color: #aaa; text-decoration: none; font-size: 0.9rem;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <div class="header-section">
+            <div class="header-title">
+                <h2>Kit & Coupon Distribution</h2>
+                <p style="color: #888; font-size: 0.9rem; margin-top: 5px;">
+                    Mark kit collected to auto-generate <strong>2 Food Coupons</strong>.
+                </p>
+            </div>
+            <div class="stats-summary">
+                <div class="stat-card">
+                    <div class="stat-number" id="statEligible">0</div>
+                    <div class="stat-label">Total Eligible</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="statCollected" style="color: var(--success-color);">0</div>
+                    <div class="stat-label">Kits Issued</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="statCoupons" style="color: #ff00cc;">0</div>
+                    <div class="stat-label">Coupons Active</div>
+                </div>
+            </div>
+        </div>
+
+        <input type="text" id="searchInput" class="search-bar" placeholder="Search by Name, Roll Number or Ticket ID..." onkeyup="filterTable()">
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student Details</th>
+                        <th>Event</th>
+                        <th>Kit Status</th>
+                        <th>Coupon Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="5" class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading Data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast"><i class="fa-solid fa-check-circle"></i> Kit Issued & Coupons Generated!</div>
+
+    <script>
+        let beneficiaries = [];
+
+        async function loadData() {
+            try {
+                const response = await fetch('/api/coordinator/kit-beneficiaries');
+                beneficiaries = await response.json();
+                renderTable(beneficiaries);
+                updateStats();
+            } catch (error) {
+                console.error("Error loading kit data:", error);
+                document.getElementById('tableBody').innerHTML = `<tr><td colspan="5" class="loading-state" style="color:#ff4444;">Failed to load data.</td></tr>`;
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="loading-state">No eligible students found.</td></tr>`;
+                return;
+            }
+
+            data.forEach(student => {
+                const isCollected = student.kitCollected === true;
+                const isPresent = student.attendance === true;
+                
+                const row = document.createElement('tr');
+                const isDisabled = !isPresent;
+                
+                row.innerHTML = `
+                    <td>
+                        <div class="student-meta">
+                            <span style="font-weight:600;">${student.studentName}</span>
+                            <span class="student-roll">${student.rollNo}</span>
+                            ${!isPresent ? '<span style="color:red; font-size:0.7rem; font-weight:bold;">ABSENT</span>' : ''}
+                        </div>
+                    </td>
+                    <td>${student.eventTitle}</td>
+                    <td>
+                        <span style="color: ${isCollected ? 'var(--success-color)' : '#ffc107'}; font-weight:600;">
+                            ${isCollected ? 'Collected' : 'Pending'}
+                        </span>
+                    </td>
+                    <td>
+                        ${isCollected 
+                            ? '<span class="coupon-badge"><i class="fa-solid fa-ticket"></i> 2 Generated</span>' 
+                            : '<span style="color:#666; font-size:0.8rem;">-</span>'}
+                    </td>
+                    <td>
+                        <button onclick="toggleKit('${student.registrationId}', ${!isCollected})" 
+                            class="btn-toggle ${isCollected ? 'status-collected' : 'status-pending'}"
+                            ${isDisabled ? 'disabled' : ''}>
+                            <i class="fa-solid ${isCollected ? 'fa-check-circle' : 'fa-box-open'}"></i>
+                            <span>${isCollected ? 'Undo' : 'Issue Kit'}</span>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function toggleKit(regId, newStatus) {
+            // Optimistic UI
+            const student = beneficiaries.find(s => s.registrationId === regId);
+            if(student) student.kitCollected = newStatus;
+            filterTable();
+            updateStats();
+
+            try {
+                const res = await fetch('/api/coordinator/toggle-kit-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ registrationId: regId, status: newStatus })
+                });
+                
+                if (!res.ok) throw new Error("Failed");
+                
+                if(newStatus) showToast();
+
+            } catch (e) {
+                alert("Error updating status");
+                if(student) student.kitCollected = !newStatus; // Revert
+                filterTable();
+            }
+        }
+
+        function showToast() {
+            const x = document.getElementById("toast");
+            x.className = "show";
+            setTimeout(() => { x.className = x.className.replace("show", ""); }, 3000);
+        }
+
+        function updateStats() {
+            const total = beneficiaries.length;
+            const collected = beneficiaries.filter(b => b.kitCollected === true).length;
+            
+            document.getElementById('statEligible').innerText = total;
+            document.getElementById('statCollected').innerText = collected;
+            document.getElementById('statCoupons').innerText = collected * 2; // 2 Coupons per kit
+        }
+
+        function filterTable() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = beneficiaries.filter(s => 
+                s.studentName.toLowerCase().includes(query) || 
+                s.rollNo.toLowerCase().includes(query)
+            );
+            renderTable(filtered);
+        }
+
+        window.onload = loadData;
+    </script>
+</body>
+</html>

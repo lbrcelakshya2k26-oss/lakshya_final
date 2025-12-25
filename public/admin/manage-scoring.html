@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Scoring | Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- COSMIC ADMIN THEME --- */
+        :root {
+            --primary-color: #00d2ff;
+            --accent-color: #ff00cc;
+            --glass-bg: rgba(15, 15, 25, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(0, 0, 0, 0.4);
+            --text-color: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #050510; color: var(--text-color); display: flex; min-height: 100vh; overflow-x: hidden; }
+
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('../assets/admin-block.jpg') no-repeat center center/cover; z-index: -2; opacity: 0.4; }
+        .overlay-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 12, 0.92); z-index: -1; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px; background: var(--glass-bg); border-right: 1px solid var(--glass-border);
+            padding: 2rem; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 1000;
+        }
+        .logo { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--primary-color); margin-bottom: 3rem; text-align: center; }
+        .menu { list-style: none; flex-grow: 1; } .menu li { margin-bottom: 1rem; }
+        .menu a { text-decoration: none; color: #ccc; display: flex; align-items: center; gap: 10px; padding: 12px 15px; border-radius: 8px; transition: 0.3s; }
+        .menu a:hover, .menu a.active { background: rgba(0, 210, 255, 0.15); color: var(--primary-color); border: 1px solid rgba(0, 210, 255, 0.2); }
+        .logout { color: #ff4444; cursor: pointer; margin-top: auto; }
+
+        /* Main Content */
+        .main { flex-grow: 1; padding: 2rem; margin-left: 260px; overflow-y: auto; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .page-header h2 { color: white; font-family: 'Montserrat', sans-serif; font-size: 2rem; }
+        
+        .btn-add { background: var(--primary-color); color: black; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-add:hover { transform: translateY(-2px); box-shadow: 0 0 15px rgba(0,210,255,0.4); }
+
+        /* Schemes Grid/Table */
+        .scheme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .scheme-card {
+            background: rgba(30, 30, 40, 0.6); border: 1px solid var(--glass-border);
+            border-radius: 12px; padding: 20px; transition: 0.3s; position: relative;
+            display: flex; flex-direction: column;
+        }
+        .scheme-card:hover { transform: translateY(-5px); border-color: var(--primary-color); }
+        
+        .sc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+        .sc-title { font-weight: 700; font-size: 1.1rem; color: white; margin-bottom: 5px; }
+        .sc-dept { font-size: 0.9rem; color: var(--primary-color); }
+        
+        .status-badge { padding: 4px 10px; border-radius: 50px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+        .status-locked { background: rgba(255, 68, 68, 0.15); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.3); }
+        .status-open { background: rgba(0, 210, 255, 0.15); color: #00d2ff; border: 1px solid rgba(0, 210, 255, 0.3); }
+
+        .sc-criteria { margin-bottom: 20px; flex-grow: 1; }
+        .criteria-tag { display: inline-block; background: rgba(255,255,255,0.05); padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; color: #ccc; margin: 2px; }
+
+        .sc-actions { display: flex; gap: 10px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .btn-action { flex: 1; padding: 8px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 5px; }
+        .btn-edit { background: rgba(255, 255, 255, 0.1); color: white; }
+        .btn-edit:hover { background: white; color: black; }
+        .btn-delete { background: rgba(255, 68, 68, 0.15); color: #ff4444; }
+        .btn-delete:hover { background: #ff4444; color: white; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-box { background: #151520; width: 90%; max-width: 600px; padding: 2rem; border-radius: 15px; border: 1px solid var(--glass-border); position: relative; max-height: 85vh; overflow-y: auto; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        .modal-close { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 1.5rem; color: #aaa; }
+
+        .criteria-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .criteria-row input { width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: white; outline: none; }
+        .criteria-row input:focus { border-color: var(--primary-color); }
+        .remove-row { color: #ff4444; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; }
+
+        .lock-toggle { display: flex; align-items: center; gap: 10px; margin-top: 20px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; cursor: pointer; }
+        .lock-toggle input { width: 20px; height: 20px; accent-color: var(--primary-color); }
+
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <aside class="sidebar">
+        <div class="logo">LAKSHYA ADMIN</div>
+        <ul class="menu">
+            <li><a href="dashboard"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+            <li><a href="registrations"><i class="fa-solid fa-clipboard-list"></i> Registrations</a></li>
+            <li><a href="add-event"><i class="fa-solid fa-calendar-plus"></i> Add Event</a></li>
+            <li><a href="manage-events"><i class="fa-solid fa-list-check"></i> Manage Events</a></li>
+            <li><a href="departments"><i class="fa-solid fa-building-columns"></i> Departments</a></li>
+            <li><a href="setup-scoring"><i class="fa-solid fa-sliders"></i> Setup Scoring</a></li>
+            <li><a href="manage-scoring" class="active"><i class="fa-solid fa-pen-ruler"></i> Manage Scoring</a></li>
+            <li><a href="view-scores"><i class="fa-solid fa-square-poll-vertical"></i> View Scores</a></li>
+            <li><a onclick="localStorage.clear(); window.location.href='../login'" class="logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="main">
+        <div class="page-header">
+            <h2>Manage Scoring Schemes</h2>
+            <a href="setup-scoring" class="btn-add"><i class="fa-solid fa-plus"></i> Create New</a>
+        </div>
+
+        <div class="scheme-grid" id="schemeGrid">
+            <p style="color:#aaa;">Loading schemes...</p>
+        </div>
+    </main>
+
+    <!-- EDIT MODAL -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-box">
+            <span class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></span>
+            <h3 style="color:var(--primary-color); margin-bottom:5px;" id="modalTitle">Edit Scheme</h3>
+            <p style="color:#aaa; margin-bottom:20px; font-size:0.9rem;" id="modalSub">Event Name - Dept</p>
+            
+            <form onsubmit="event.preventDefault(); updateScheme();">
+                <input type="hidden" id="editSchemeId">
+                
+                <div id="criteriaContainer">
+                    <!-- Dynamic inputs -->
+                </div>
+                
+                <button type="button" onclick="addCriteriaInput()" style="width:100%; padding:10px; background:transparent; border:1px dashed #555; color:#aaa; cursor:pointer; border-radius:6px; margin-bottom:15px;">+ Add Criteria</button>
+
+                <label class="lock-toggle">
+                    <input type="checkbox" id="isLocked">
+                    <span><strong>Lock Scores?</strong> (Uncheck to allow editing by Coordinators)</span>
+                </label>
+
+                <button type="submit" class="btn-add" style="width:100%; justify-content:center; margin-top:20px;">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let eventsMap = {};
+
+        async function init() {
+            // 1. Load Events for Mapping Names
+            const eRes = await fetch('/api/events');
+            const events = await eRes.json();
+            events.forEach(e => eventsMap[e.eventId] = e.title);
+
+            // 2. Load Schemes
+            loadSchemes();
+        }
+
+        async function loadSchemes() {
+            const grid = document.getElementById('schemeGrid');
+            grid.innerHTML = '<p style="color:#aaa;">Loading...</p>';
+
+            try {
+                const res = await fetch('/api/admin/all-schemes');
+                const schemes = await res.json();
+
+                if(schemes.length === 0) {
+                    grid.innerHTML = '<p style="color:#aaa;">No scoring schemes found.</p>';
+                    return;
+                }
+
+                grid.innerHTML = '';
+                schemes.forEach(s => {
+                    const eventTitle = eventsMap[s.eventId] || s.eventId;
+                    const statusBadge = s.isLocked 
+                        ? '<span class="status-badge status-locked"><i class="fa-solid fa-lock"></i> Locked</span>' 
+                        : '<span class="status-badge status-open"><i class="fa-solid fa-lock-open"></i> Open</span>';
+
+                    let criteriaHtml = '';
+                    s.criteria.forEach(c => {
+                        criteriaHtml += `<span class="criteria-tag">${c.name} (${c.max})</span>`;
+                    });
+
+                    const card = document.createElement('div');
+                    card.className = 'scheme-card';
+                    card.innerHTML = `
+                        <div class="sc-header">
+                            <div>
+                                <div class="sc-title">${eventTitle}</div>
+                                <div class="sc-dept">${s.deptName}</div>
+                            </div>
+                            ${statusBadge}
+                        </div>
+                        <div class="sc-criteria">
+                            ${criteriaHtml}
+                        </div>
+                        <div class="sc-actions">
+                            <button class="btn-action btn-edit" onclick='openEditModal(${JSON.stringify(s).replace(/'/g, "&apos;")})'>
+                                <i class="fa-solid fa-pen"></i> Edit
+                            </button>
+                            <button class="btn-action btn-delete" onclick="deleteScheme('${s.schemeId}')">
+                                <i class="fa-solid fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+
+            } catch(e) { console.error(e); }
+        }
+
+        // --- EDIT LOGIC ---
+        function openEditModal(scheme) {
+            document.getElementById('editSchemeId').value = scheme.schemeId;
+            document.getElementById('modalTitle').innerText = eventsMap[scheme.eventId] || scheme.eventId;
+            document.getElementById('modalSub').innerText = scheme.deptName;
+            document.getElementById('isLocked').checked = scheme.isLocked;
+
+            const container = document.getElementById('criteriaContainer');
+            container.innerHTML = '';
+            scheme.criteria.forEach(c => addCriteriaInput(c.name, c.max));
+
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function addCriteriaInput(name = '', max = '') {
+            const div = document.createElement('div');
+            div.className = 'criteria-row';
+            div.innerHTML = `
+                <input type="text" placeholder="Name" class="c-name" value="${name}" required>
+                <input type="number" placeholder="Max" class="c-max" value="${max}" required style="width:100px;">
+                <span class="remove-row" onclick="this.parentElement.remove()"><i class="fa-solid fa-times"></i></span>
+            `;
+            document.getElementById('criteriaContainer').appendChild(div);
+        }
+
+        function closeModal() { document.getElementById('editModal').style.display = 'none'; }
+
+        async function updateScheme() {
+            const schemeId = document.getElementById('editSchemeId').value;
+            const isLocked = document.getElementById('isLocked').checked;
+            
+            const criteria = [];
+            document.querySelectorAll('.criteria-row').forEach(row => {
+                criteria.push({
+                    name: row.querySelector('.c-name').value,
+                    max: parseInt(row.querySelector('.c-max').value)
+                });
+            });
+
+            try {
+                const res = await fetch('/api/admin/update-scheme', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ schemeId, criteria: JSON.stringify(criteria), isLocked })
+                });
+                
+                if(res.ok) { alert("Scheme updated!"); closeModal(); loadSchemes(); }
+                else alert("Update failed");
+            } catch(e) { alert("Error updating"); }
+        }
+
+        // --- DELETE LOGIC ---
+        async function deleteScheme(id) {
+            if(!confirm("Delete this scoring scheme? Coordinators will no longer see the rubric.")) return;
+            try {
+                const res = await fetch('/api/admin/delete-scheme', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ schemeId: id })
+                });
+                if(res.ok) { alert("Deleted!"); loadSchemes(); }
+                else alert("Failed to delete");
+            } catch(e) { alert("Error deleting"); }
+        }
+
+        init();
+    </script>
+</body>
+</html>

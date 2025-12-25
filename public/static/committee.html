@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Committee | LAKSHYA 2K26</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="/assets/logo.png">
+
+    <style>
+        /* --- THEME CONFIGURATION --- */
+        :root {
+            --bg-dark: #030508;
+            --bg-panel: #0b101a;
+            --primary: #00f2ff;
+            --secondary: #7000ff;
+            --accent: #ff0055;
+            --text-main: #ffffff;
+            --text-muted: #8892b0;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-surface: rgba(255, 255, 255, 0.03);
+            --card-gradient: linear-gradient(145deg, rgba(11, 16, 26, 0.9) 0%, rgba(5, 8, 14, 0.95) 100%);
+        }
+
+        /* --- RESET & BASE --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(112, 0, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(0, 242, 255, 0.08) 0%, transparent 20%);
+            background-attachment: fixed;
+        }
+
+        /* --- BACKGROUND ELEMENTS --- */
+        .grid-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(var(--glass-border) 1px, transparent 1px),
+            linear-gradient(90deg, var(--glass-border) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.15;
+            z-index: -1;
+            mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            position: fixed; top: 0; left: 0; width: 100%;
+            padding: 1rem 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 1000;
+            background: rgba(3, 5, 8, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        .logo {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            display: flex; align-items: center; gap: 10px;
+        }
+        
+        .logo span { color: var(--primary); text-shadow: 0 0 15px rgba(0, 242, 255, 0.4); }
+
+        .nav-links {
+            display: flex; gap: 2rem; list-style: none; align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none; color: var(--text-muted);
+            font-size: 0.9rem; font-weight: 500; text-transform: uppercase;
+            letter-spacing: 1px; transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover, .nav-links a.active { color: var(--primary); }
+        .nav-links a::after {
+            content: ''; position: absolute; bottom: -4px; left: 0;
+            width: 0; height: 2px; background: var(--primary);
+            transition: width 0.3s ease;
+            box-shadow: 0 0 8px var(--primary);
+        }
+        .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+
+        .btn-action {
+            padding: 0.6rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: 0.3s;
+            text-decoration: none;
+        }
+        
+        .btn-login { 
+            border: 1px solid var(--glass-border); color: var(--text-main);
+            background: rgba(255,255,255,0.05); 
+        }
+        .btn-login:hover { border-color: var(--primary); color: var(--primary); }
+
+        .btn-register {
+            background: var(--primary); color: #000;
+            border: 1px solid var(--primary);
+            font-weight: 700;
+        }
+        .btn-register:hover {
+            background: transparent; color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+        }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle { display: none; font-size: 1.5rem; color: var(--text-main); cursor: pointer; }
+
+        /* --- HERO HEADER --- */
+        .page-header {
+            padding: 160px 20px 60px;
+            text-align: center;
+            position: relative;
+        }
+
+        .page-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 4rem;
+            font-weight: 700;
+            line-height: 1;
+            text-transform: uppercase;
+            background: linear-gradient(180deg, #fff 0%, #8892b0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            letter-spacing: 4px;
+        }
+
+        .page-subtitle {
+            color: var(--primary);
+            font-size: 1rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            opacity: 0.8;
+            margin-bottom: 2rem;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .page-subtitle::before, .page-subtitle::after {
+            content: ''; position: absolute; top: 50%; width: 40px; height: 1px;
+            background: var(--primary); opacity: 0.5;
+        }
+        .page-subtitle::before { left: -60px; }
+        .page-subtitle::after { right: -60px; }
+
+        /* --- COMMITTEE CONTENT --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 100px;
+            width: 100%;
+            flex: 1;
+        }
+
+        /* Accordion Style */
+        .accordion-item {
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            background: rgba(11, 16, 26, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .accordion-item:hover {
+            border-color: rgba(0, 242, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .accordion-header {
+            padding: 1.5rem 2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+            transition: background 0.3s;
+        }
+
+        .accordion-header:hover {
+            background: rgba(0, 242, 255, 0.05);
+        }
+
+        .accordion-header h3 {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.5rem;
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .accordion-header h3::before {
+            content: ''; display: block; width: 6px; height: 6px; background: var(--primary);
+            box-shadow: 0 0 8px var(--primary); transform: rotate(45deg);
+        }
+
+        .accordion-header i {
+            color: var(--text-muted);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .accordion-content.open { max-height: 5000px; }
+
+        /* Members Grid */
+        .members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 2rem;
+            padding: 2.5rem;
+        }
+
+        /* Member Card */
+        .member-card {
+            position: relative;
+            height: 360px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--bg-panel);
+            border: 1px solid var(--glass-border);
+            transition: 0.4s ease;
+        }
+
+        .member-card::before {
+            content: ''; position: absolute; inset: 0;
+            border-radius: 12px; padding: 1px;
+            background: linear-gradient(180deg, transparent, var(--primary));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0; transition: 0.4s; pointer-events: none; z-index: 2;
+        }
+
+        .member-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        .member-card:hover::before { opacity: 1; }
+
+        .member-img-wrapper {
+            width: 100%; height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .member-img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+            filter: grayscale(20%) contrast(1.1);
+        }
+
+        .member-card:hover .member-img {
+            transform: scale(1.08);
+            filter: grayscale(0%) contrast(1.1);
+        }
+
+        /* Card Overlay */
+        .member-info {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            padding: 80px 20px 20px;
+            background: linear-gradient(to top, rgba(3,5,8,0.95) 10%, rgba(3,5,8,0.8) 40%, transparent 100%);
+            z-index: 1;
+            transform: translateY(10px);
+            transition: 0.4s;
+        }
+
+        .member-card:hover .member-info { transform: translateY(0); }
+
+        .member-role-badge {
+            display: inline-block;
+            font-size: 0.7rem; font-weight: 700;
+            color: #000; background: var(--primary);
+            padding: 4px 10px; border-radius: 20px;
+            text-transform: uppercase; margin-bottom: 8px;
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+        }
+
+        .member-name {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.4rem; font-weight: 700;
+            color: #fff; line-height: 1.2;
+            margin-bottom: 4px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .member-designation {
+            font-size: 0.9rem; color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        /* --- LOADING STATE --- */
+        .loader-container {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 300px; color: var(--primary); gap: 1rem;
+        }
+        .spinner {
+            width: 40px; height: 40px; border: 3px solid rgba(0, 242, 255, 0.3);
+            border-top: 3px solid var(--primary); border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* --- OFFER MODAL --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: 0.3s;
+        }
+        
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+
+        .offer-card {
+            background: rgba(11, 16, 26, 0.95);
+            border: 1px solid var(--primary);
+            width: 90%; max-width: 400px;
+            padding: 30px; border-radius: 16px;
+            text-align: center; position: relative;
+            box-shadow: 0 0 40px rgba(0, 242, 255, 0.15);
+            transform: scale(0.9); transition: 0.3s;
+        }
+        
+        .modal-overlay.active .offer-card { transform: scale(1); }
+
+        .close-offer-btn {
+            position: absolute; top: 15px; right: 15px;
+            color: var(--text-muted); cursor: pointer;
+            transition: 0.3s; width: 30px; height: 30px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; border: 1px solid transparent;
+        }
+        
+        .close-offer-btn:hover {
+            color: var(--primary); border-color: var(--primary);
+            transform: rotate(90deg);
+        }
+
+        .offer-badge {
+            display: inline-block; padding: 6px 12px;
+            background: rgba(0, 242, 255, 0.1); border: 1px solid var(--primary);
+            color: var(--primary); font-size: 0.8rem; font-weight: 700;
+            border-radius: 30px; margin-bottom: 1rem;
+        }
+
+        .offer-title {
+            font-family: 'Rajdhani', sans-serif; font-size: 2rem;
+            color: white; margin-bottom: 1rem; line-height: 1.1;
+        }
+
+        .offer-details {
+            background: rgba(255,255,255,0.03); border-radius: 8px;
+            padding: 1.5rem; margin-bottom: 1.5rem;
+            border: 1px dashed var(--glass-border);
+        }
+        
+        .highlight-text {
+            color: #fff; font-size: 1.1rem; line-height: 1.6;
+        }
+        
+        .highlight-text span {
+            color: var(--primary); font-size: 1.4rem; font-weight: 800;
+            display: block; margin: 5px 0; text-shadow: 0 0 10px rgba(0, 242, 255, 0.4);
+        }
+        
+        .offer-btn {
+            display: block; width: 100%; padding: 14px;
+            background: var(--primary); color: #000;
+            text-decoration: none; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 1px;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: 0.3s;
+        }
+        
+        .offer-btn:hover {
+            background: #fff; box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            margin-top: auto;
+            border-top: 1px solid var(--glass-border);
+            background: rgba(3, 5, 8, 0.9);
+            padding: 1.5rem 5%;
+        }
+
+        .footer-content {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.85rem; color: var(--text-muted);
+        }
+
+        .footer-content a { color: var(--primary); text-decoration: none; }
+        .footer-content a:hover { text-decoration: underline; }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 900px) {
+            .page-title { font-size: 3rem; }
+            .nav-links {
+                position: fixed; top: 0; right: -100%;
+                width: 75%; height: 100vh;
+                flex-direction: column; background: #05080f;
+                padding-top: 100px; transition: 0.4s;
+                border-left: 1px solid var(--glass-border);
+            }
+            .nav-links.active { right: 0; }
+            .menu-toggle { display: block; z-index: 1001; }
+            .container { padding: 0 15px 80px; }
+        }
+
+        @media (max-width: 600px) {
+            .page-title { font-size: 2.5rem; }
+            .footer-content { flex-direction: column; gap: 1rem; text-align: center; }
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="grid-bg"></div>
+
+    <!-- NAVBAR -->
+    <nav>
+        <div class="logo" onclick="window.location.href='home'">
+            LAKSHYA <span>2K26</span>
+        </div>
+        
+        <div class="menu-toggle" id="mobileMenuBtn">
+            <i class="fa-solid fa-bars-staggered"></i>
+        </div>
+
+        <ul class="nav-links" id="navLinks">
+            <li><a href="home">Home</a></li>
+            <li><a href="about">About</a></li>
+            <li><a href="events">Events</a></li>
+            <li><a href="culturals">Rangamarthanda</a></li>
+            <li><a href="committee" class="active">Committee</a></li>
+            <li><a href="contact">Contact</a></li>
+            <li><a href="register" class="btn-action btn-register">Register</a></li>
+            <li><a href="login" class="btn-action btn-login">Login</a></li>
+        </ul>
+    </nav>
+
+    <!-- OFFER MODAL -->
+    <div class="modal-overlay" id="offerModal">
+        <div class="offer-card">
+            <div class="close-offer-btn" onclick="closeOfferModal()"><i class="fa-solid fa-xmark"></i></div>
+            
+            <div class="offer-badge">LAKSHYA SPECIAL</div>
+            <h2 class="offer-title">EVENT PASS</h2>
+            
+            <div class="offer-details">
+                <p class="highlight-text">
+                    Register for one event & get<br>
+                    <span>50% OFF</span>
+                    on all subsequent events!
+                </p>
+                <div style="font-size: 0.75rem; color: #666; margin-top: 10px;">
+                    *Valid for Major, MBA & Cultural Events
+                </div>
+            </div>
+            
+            <a href="register" class="offer-btn">Claim Offer Now</a>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="page-header">
+        <h1 class="page-title">Organizing Committee</h1>
+        <div class="page-subtitle">The Architects of Innovation</div>
+    </header>
+
+    <!-- COMMITTEE CONTAINER -->
+    <main class="container">
+        <div id="committeeContainer">
+            <div class="loader-container">
+                <div class="spinner"></div>
+                <p>Accessing Database...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-content">
+            <div class="left">
+                &copy; 2026 LAKSHYA. Designed by <a href="https://xetasolutions.in" target="_blank">Xeta Solutions</a>.
+            </div>
+            <div class="right">
+                <a href="mailto:lakshya@lbrce.ac.in">Support</a> &nbsp;|&nbsp; <a href="privacy">Privacy</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="/js/chatbot.js"></script>
+    <script>
+        // --- NAVIGATION INTERACTION ---
+        const nav = document.getElementById('navLinks');
+        const menuBtn = document.getElementById('mobileMenuBtn');
+        
+        menuBtn.addEventListener('click', () => {
+            nav.classList.toggle('active');
+            const icon = menuBtn.querySelector('i');
+            if(nav.classList.contains('active')) {
+                icon.classList.remove('fa-bars-staggered');
+                icon.classList.add('fa-xmark');
+            } else {
+                icon.classList.add('fa-bars-staggered');
+                icon.classList.remove('fa-xmark');
+            }
+        });
+
+        // Close menu when clicking links
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                nav.classList.remove('active');
+                menuBtn.querySelector('i').className = 'fa-solid fa-bars-staggered';
+            });
+        });
+
+        // --- OFFER MODAL LOGIC ---
+        const offerModal = document.getElementById('offerModal');
+        
+        // Auto-show modal after delay
+        window.onload = function() {
+            setTimeout(() => {
+                offerModal.classList.add('active');
+            }, 2000);
+            
+            // Initiate data fetch
+            loadCommittee();
+        };
+
+        function closeOfferModal() {
+            offerModal.classList.remove('active');
+        }
+
+        window.onclick = function(event) {
+            if (event.target == offerModal) closeOfferModal();
+        }
+
+        // --- BACKEND INTEGRATION (Preserved Logic) ---
+        const priorityCategories = ["Chief Patrons", "Patrons", "Conveners", "Co-Conveners"];
+
+        async function loadCommittee() {
+            const container = document.getElementById('committeeContainer');
+            
+            try {
+                // Preserved API endpoint
+                const res = await fetch('/api/committee'); 
+                const members = await res.json();
+
+                if(members.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align:center; color: var(--text-muted); padding: 40px;">
+                            <i class="fa-solid fa-folder-open" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
+                            No committee members found in database.
+                        </div>`;
+                    return;
+                }
+                
+                // Group By Category logic
+                const grouped = {};
+                members.forEach(m => {
+                    if (!m.category || m.category === 'undefined' || m.category === 'null') return;
+                    if(!grouped[m.category]) grouped[m.category] = [];
+                    grouped[m.category].push(m);
+                });
+
+                // Sorting Categories logic
+                let categories = Object.keys(grouped);
+                categories.sort((a, b) => {
+                    const idxA = priorityCategories.indexOf(a);
+                    const idxB = priorityCategories.indexOf(b);
+                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                    if (idxA !== -1) return -1; 
+                    if (idxB !== -1) return 1; 
+                    return a.localeCompare(b);
+                });
+
+                // Generate HTML
+                container.innerHTML = '';
+                
+                categories.forEach((cat, index) => {
+                    const sectionMembers = grouped[cat];
+                    // Default open first category
+                    const isOpen = index === 0 ? 'open' : ''; 
+                    const rotate = index === 0 ? 'style="transform: rotate(180deg)"' : '';
+                    const colorClass = index % 2 === 0 ? 'text-primary' : 'text-accent';
+                    
+                    let cardsHtml = '';
+                    sectionMembers.forEach(m => {
+                        // Fallback image handling
+                        const imgUrl = m.imageUrl || 'assets/default-user.png';
+                        const role = m.role || 'Committee Member';
+                        
+                        cardsHtml += `
+                            <div class="member-card" style="animation: fadeIn 0.6s ease forwards; animation-delay: ${Math.random() * 0.5}s">
+                                <div class="member-img-wrapper">
+                                    <img src="${imgUrl}" class="member-img" alt="${m.name}" onerror="this.src='assets/default-user.png'">
+                                </div>
+                                <div class="member-info">
+                                    <span class="member-role-badge">${cat}</span>
+                                    <h4 class="member-name">${m.name}</h4>
+                                    <p class="member-designation">${role}</p>
+                                </div>
+                            </div>`;
+                    });
+
+                    // Updated Accordion HTML Structure
+                    const sectionHtml = `
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <h3>${cat}</h3>
+                                <i class="fa-solid fa-chevron-down" ${rotate}></i>
+                            </div>
+                            <div class="accordion-content ${isOpen}">
+                                <div class="members-grid">${cardsHtml}</div>
+                            </div>
+                        </div>`;
+                    container.innerHTML += sectionHtml;
+                });
+
+            } catch(e) {
+                console.error("Error loading committee:", e);
+                container.innerHTML = `
+                    <div style="text-align:center; color: var(--accent); padding: 50px; border: 1px dashed var(--accent); border-radius: 12px; background: rgba(255, 0, 85, 0.05);">
+                         <i class="fa-solid fa-triangle-exclamation" style="font-size: 2rem; margin-bottom: 1rem;"></i><br>
+                         <h3 style="margin-bottom: 0.5rem">System Error</h3>
+                         <p style="font-size: 0.9rem; opacity: 0.8">Failed to retrieve committee data from server.</p>
+                    </div>`; 
+            }
+        }
+
+        // Accordion Toggle Logic
+        function toggleAccordion(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('i');
+            
+            // Close others (Optional: Remove if you want multiple open)
+            /* document.querySelectorAll('.accordion-content').forEach(c => {
+                if(c !== content) {
+                    c.classList.remove('open');
+                    c.previousElementSibling.querySelector('i').style.transform = 'rotate(0deg)';
+                }
+            });
+            */
+
+            content.classList.toggle('open');
+            icon.style.transform = content.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+    </script>
+</body>
+</html>

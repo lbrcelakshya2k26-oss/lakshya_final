@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Culturals | LAKSHYA 2K26</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="/assets/logo.png">
+
+    <style>
+        /* --- GLOBAL VARIABLES --- */
+        :root {
+            --primary-color: #00d2ff;
+            --secondary-color: #3a7bd5;
+            --accent-color: #ff00cc;
+            --text-color: #ffffff;
+            --success-color: #00ff88;
+            --error-color: #ff4d4d;
+            --glass-bg: rgba(15, 15, 30, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --card-hover: rgba(0, 210, 255, 0.15);
+            --dark-overlay: linear-gradient(to bottom, rgba(5, 5, 15, 0.6), rgba(5, 5, 15, 0.95));
+            --mobile-glass: rgba(5, 5, 12, 0.95);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body { 
+            background-color: #0a0a0a; 
+            color: var(--text-color); 
+            overflow-x: hidden; 
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .bg-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('../assets/admin-block.jpg') no-repeat center top/cover; z-index: -2;
+            filter: brightness(0.8);
+        }
+        .overlay-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--dark-overlay); z-index: -1;
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            position: fixed; top: 0; left: 0; width: 100%;
+            height: 80px; padding: 0 4%;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 1000; transition: 0.4s;
+            background: rgba(5, 5, 10, 0.6); 
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .logo {
+            cursor: pointer; z-index: 1002; display: flex; align-items: center; gap: 12px;
+        }
+        
+        .logo-text {
+            font-family: 'Montserrat', sans-serif; font-size: 1.4rem; font-weight: 900;
+            background: linear-gradient(45deg, var(--primary-color), #ffffff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: 1px; text-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+        }
+
+        .nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; transition: 0.4s; }
+
+        .nav-links a {
+            text-decoration: none; color: var(--text-color); font-weight: 500;
+            font-size: 0.8rem;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            transition: 0.3s; position: relative; white-space: nowrap;
+        }
+
+        .nav-links a:hover, .nav-links a.active { color: var(--primary-color); text-shadow: 0 0 10px var(--primary-color); }
+        .nav-links a::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0%; height: 2px; background: var(--primary-color); transition: 0.3s; }
+        .nav-links a:hover::after { width: 100%; }
+
+        .btn-login { padding: 0.5rem 1.2rem; border: 1px solid var(--primary-color); border-radius: 50px; color: var(--primary-color) !important; font-size: 0.8rem !important; }
+        .btn-register { padding: 0.5rem 1.2rem; background: linear-gradient(45deg, var(--secondary-color), var(--primary-color)); border-radius: 50px; color: white !important; font-size: 0.8rem !important; }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle { display: none; flex-direction: column; justify-content: space-between; width: 28px; height: 20px; cursor: pointer; z-index: 1003; }
+        .bar { width: 100%; height: 3px; background-color: white; border-radius: 3px; transition: 0.4s; }
+        
+        .menu-toggle.is-active .bar:nth-child(1) { transform: translateY(8.5px) rotate(45deg); background-color: var(--primary-color); }
+        .menu-toggle.is-active .bar:nth-child(2) { opacity: 0; }
+        .menu-toggle.is-active .bar:nth-child(3) { transform: translateY(-8.5px) rotate(-45deg); background-color: var(--primary-color); }
+
+        @media (max-width: 1100px) {
+            nav { padding: 0 2rem; }
+            .menu-toggle { display: flex; }
+            
+            .nav-links {
+                position: fixed; top: 0; right: -100%;
+                height: 100vh; width: 70%; max-width: 300px;
+                background: var(--mobile-glass); backdrop-filter: blur(20px);
+                flex-direction: column; justify-content: flex-start;
+                align-items: center; gap: 1.8rem;
+                padding-top: 90px; padding-bottom: 50px;
+                border-left: 1px solid var(--glass-border);
+                transition: right 0.4s ease-in-out;
+                z-index: 1001; overflow-y: auto;
+                box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+            }
+            .nav-links.active { right: 0; }
+        }
+
+        /* --- PAGE HEADER --- */
+        .page-header { text-align: center; padding-top: 130px; padding-bottom: 30px; animation: fadeDown 1s ease-out; }
+        .section-title { font-family: 'Montserrat', sans-serif; font-size: 3rem; font-weight: 800; background: linear-gradient(to right, #fff, var(--primary-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .section-subtitle { font-size: 0.9rem; color: var(--primary-color); letter-spacing: 3px; text-transform: uppercase; margin-top: 10px; }
+        
+        .container { 
+            max-width: 1200px; margin: 0 auto; padding: 0 20px 80px 20px; 
+            flex: 1;
+        }
+
+        /* --- EVENTS GRID (SINGLE) --- */
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        /* --- EVENT CARD --- */
+        .event-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: 0.4s;
+            position: relative;
+            overflow: hidden;
+            animation: fadeUp 0.8s ease-out forwards;
+            opacity: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .event-card:hover {
+            transform: translateY(-10px);
+            background: var(--card-hover);
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.2);
+            border-color: var(--primary-color);
+        }
+
+        .event-icon { font-size: 3.5rem; color: var(--primary-color); margin-bottom: 1rem; transition: 0.4s; }
+        .event-img-display { width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 2px solid var(--primary-color); margin-bottom: 1rem; transition: 0.4s; box-shadow: 0 0 15px rgba(0, 210, 255, 0.3); }
+
+        .event-card:hover .event-icon { transform: scale(1.1) rotate(5deg); color: white; text-shadow: 0 0 15px var(--primary-color); }
+        .event-card:hover .event-img-display { transform: scale(1.1); box-shadow: 0 0 25px rgba(0, 210, 255, 0.6); }
+
+        .event-title { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; color: white; line-height: 1.3; }
+        .event-subtitle { font-size: 0.9rem; color: var(--primary-color); letter-spacing: 1px; margin-bottom: 1rem; text-transform: uppercase; }
+        .event-desc { font-size: 0.9rem; color: #ccc; margin-bottom: 1.5rem; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
+
+        .card-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: auto; }
+
+        .btn-read-more { padding: 0.6rem 1.2rem; border: 1px solid rgba(255, 255, 255, 0.3); background: transparent; color: white; border-radius: 50px; cursor: pointer; font-size: 0.85rem; transition: 0.3s; }
+        .btn-read-more:hover { background: white; color: black; }
+
+        .btn-card-register { padding: 0.6rem 1.2rem; background: var(--primary-color); border: none; color: black; border-radius: 50px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: 0.3s; text-decoration: none; }
+        .btn-card-register:hover { box-shadow: 0 0 15px var(--primary-color); }
+
+        /* --- OFFER MODAL STYLES --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 9999; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.4s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .offer-card { position: relative; background: rgba(20, 20, 35, 0.95); border: 1px solid var(--primary-color); width: 90%; max-width: 450px; padding: 30px; border-radius: 20px; text-align: center; transform: scale(0.8); transition: transform 0.4s; box-shadow: 0 0 30px rgba(0, 210, 255, 0.2); }
+        .modal-overlay.active .offer-card { transform: scale(1); }
+        
+        .close-offer-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: #888; cursor: pointer; transition: 0.3s; }
+        .close-offer-btn:hover { color: white; transform: rotate(90deg); }
+        
+        .offer-icon { font-size: 2.5rem; margin-bottom: 10px; color: var(--primary-color); }
+        .offer-title { font-family: 'Montserrat'; font-size: 1.6rem; font-weight: 800; color: white; margin-bottom: 15px; }
+        
+        .discount-box { background: rgba(255, 255, 255, 0.05); border: 1px dashed var(--primary-color); padding: 20px 15px; border-radius: 12px; margin: 15px 0 25px 0; }
+        .offer-highlight { font-size: 1.1rem; color: #fff; line-height: 1.5; font-weight: 500; }
+        .offer-highlight span { color: var(--success-color); font-weight: 700; font-size: 1.3rem; display: block; margin: 5px 0; }
+        .terms-text { font-size: 0.7rem; color: #aaa; margin-top: 10px; line-height: 1.4; }
+        .modal-register-btn { display: inline-block; width: 100%; padding: 12px 0; background: linear-gradient(90deg, var(--secondary-color), var(--primary-color)); color: white; font-weight: 700; border-radius: 50px; text-decoration: none; transition: 0.3s; }
+        .modal-register-btn:hover { box-shadow: 0 0 15px var(--primary-color); transform: translateY(-2px); }
+
+        /* --- READ MORE MODAL (Enhanced) --- */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); z-index: 2000;
+            justify-content: center; align-items: center;
+            backdrop-filter: blur(15px); padding: 20px;
+        }
+
+        .modal-content {
+            background: #15151e; border: 1px solid var(--glass-border);
+            padding: 2.5rem; width: 100%; max-width: 700px; border-radius: 24px;
+            position: relative; box-shadow: 0 0 50px rgba(0, 210, 255, 0.2);
+            animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            max-height: 90vh; overflow-y: auto;
+        }
+
+        .close-btn { position: absolute; top: 20px; right: 25px; font-size: 1.5rem; color: #aaa; cursor: pointer; transition: 0.3s; }
+        .close-btn:hover { color: #ff4d4d; transform: rotate(90deg); }
+        
+        .info-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        .info-chip {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
+            padding: 5px 15px; border-radius: 50px; font-size: 0.85rem; color: #ccc;
+            text-transform: uppercase; letter-spacing: 1px; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .info-chip i { color: var(--primary-color); }
+
+        /* Formatting Styles */
+        .fmt-list-item { display: flex; align-items: flex-start; margin-bottom: 6px; line-height: 1.5; }
+        .fmt-bullet { color: var(--primary-color); font-weight: bold; margin-right: 8px; flex-shrink: 0; margin-top: 2px; }
+        .fmt-line { margin-bottom: 8px; line-height: 1.5; color: #ddd; }
+        .formatted-content { color: #ddd; }
+
+        /* --- ANIMATIONS --- */
+        @keyframes fadeDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scaleUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* --- FOOTER --- */
+        footer {
+            width: 100%;
+            padding: 8px 4%;
+            background: rgba(5, 5, 10, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 999;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            margin-top: auto; 
+        }
+
+        .footer-left { text-align: left; }
+        .footer-right { text-align: right; display: flex; flex-direction: column; gap: 2px; }
+
+        footer a { color: var(--primary-color); text-decoration: none; transition: color 0.3s; }
+        footer a:hover { color: var(--accent-color); }
+        
+        .footer-text { margin: 0; color: rgba(255, 255, 255, 0.8); line-height: 1.4; }
+        .sub-text { font-size: 0.7rem; opacity: 0.6; }
+
+        @media (max-width: 768px) {
+            footer { flex-direction: column; text-align: center; gap: 8px; padding: 10px; padding-bottom: 15px; }
+            .footer-left, .footer-right { text-align: center; align-items: center; }
+            .page-header { padding-top: 100px; }
+            .modal-content { padding: 1.5rem; width: 95%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <!-- NAVIGATION -->
+    <nav>
+        <div class="logo" onclick="window.location.href='home'">
+            <span class="logo-text">LAKSHYA 2K26</span>
+        </div>
+        
+        <ul class="nav-links" id="navLinks">
+            <li><a href="home" onclick="closeMenu()">Home</a></li>
+            <li><a href="about" onclick="closeMenu()">About Us</a></li>
+            <li><a href="brochure" onclick="closeMenu()">Brochure</a></li>
+            <li><a href="events" onclick="closeMenu()">Events</a></li>
+            <li><a href="culturals" class="active" onclick="closeMenu()">Rangamarthanda</a></li>
+            <li><a href="committee" onclick="closeMenu()">Committee</a></li>
+            <li><a href="contact" onclick="closeMenu()">Contact</a></li>
+            <li><a href="register" class="btn-register" onclick="closeMenu()">Register</a></li>
+            <li><a href="login" class="btn-login" onclick="closeMenu()">Login</a></li>
+        </ul>
+
+        <div class="menu-toggle" id="mobile-menu" onclick="toggleMenu()">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+    </nav>
+
+    <!-- OFFER POPUP -->
+    <div class="modal-overlay" id="offerModal">
+        <div class="offer-card">
+            <div class="close-offer-btn" onclick="closeOfferModal()"><i class="fa-solid fa-xmark"></i></div>
+            <div class="offer-icon"><i class="fa-solid fa-tags"></i></div>
+            <h2 class="offer-title">EXCLUSIVE OFFER!</h2>
+            
+            <div class="discount-box">
+                <p class="offer-highlight">
+                    First Registration: No Discount<br>
+                    <span>50% OFF</span>
+                    On 2nd Event Onwards!
+                </p>
+                <p class="terms-text">
+                    (Applicable only for Major, MBA & Cultural Events)<br>
+                    *Terms & Conditions Apply
+                </p>
+            </div>
+            
+            <a href="register" class="modal-register-btn">Register Now & Save</a>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="page-header">
+        <h1 class="section-title">RANGAMARTHANDA</h1>
+        <p class="section-subtitle">Culturals • Performances • Arts</p>
+    </div>
+
+    <div class="container">
+        
+        <!-- SINGLE CONTAINER FOR ALL CULTURAL EVENTS -->
+        <div class="events-grid" id="culturalEventsContainer">
+             <div style="color:#aaa; text-align:center;">Loading Cultural Events...</div>
+        </div>
+
+    </div>
+
+    <!-- EVENT READ MORE MODAL -->
+    <div class="modal" id="eventModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeEventModal()"><i class="fa-solid fa-xmark"></i></span>
+            
+            <h2 id="modalTitle" style="font-family:'Montserrat'; font-size:2rem; color:var(--primary-color); margin-bottom:10px;">Event Title</h2>
+            
+            <div class="info-row">
+                <span class="info-chip" id="modalType">Category</span>
+                <span class="info-chip"><i class="fa-solid fa-indian-rupee-sign"></i> <span id="modalFee">0</span></span>
+                <span class="info-chip"><i class="fa-solid fa-users"></i> <span id="modalTeam">1</span></span>
+            </div>
+
+            <hr style="border:0; border-top:1px solid var(--glass-border); margin: 1.5rem 0;">
+            
+            <div id="modalContent" class="formatted-content"></div>
+            
+            <div style="margin-top: 2rem;">
+                <a href="register" class="btn-card-register" style="display: block; width: 100%; text-align: center; padding: 15px; font-size: 1.1rem; border-radius: 12px;">Register Now <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-left">
+            <p class="footer-text">&copy; Designed & Developed by <a href="https://xetasolutions.in" target="_blank">Xeta</a></p>
+            <p class="footer-text sub-text">A start up from AI&DS, LBRCE</p>
+        </div>
+        <div class="footer-right">
+            <p class="footer-text">Support: <a href="mailto:lakshya@lbrce.ac.in">lakshya@lbrce.ac.in</a></p>
+            <p class="footer-text"><a href="privacy">Privacy Policy</a></p>
+        </div>
+    </footer>
+
+    <script src="/js/chatbot.js"></script>
+    <script>
+        // --- NAVIGATION LOGIC ---
+        const nav = document.getElementById('navLinks');
+        const menuToggle = document.getElementById('mobile-menu');
+
+        function toggleMenu() {
+            nav.classList.toggle('active');
+            menuToggle.classList.toggle('is-active');
+        }
+
+        function closeMenu() {
+            nav.classList.remove('active');
+            menuToggle.classList.remove('is-active');
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!nav.contains(e.target) && !menuToggle.contains(e.target) && nav.classList.contains('active')) {
+                closeMenu();
+            }
+        });
+
+        // --- OFFER MODAL LOGIC ---
+        const offerModal = document.getElementById('offerModal');
+        window.onload = function() { 
+            setTimeout(() => { offerModal.classList.add('active'); }, 1500);
+            fetchEvents(); 
+        };
+        function closeOfferModal() { offerModal.classList.remove('active'); }
+
+        // --- EVENTS FETCH LOGIC ---
+        let allEvents = [];
+
+        async function fetchEvents() {
+            try {
+                const response = await fetch('/api/events');
+                if (!response.ok) throw new Error("Failed to fetch");
+                const fullList = await response.json();
+                
+                // 1. FILTERING LOGIC
+                allEvents = fullList.filter(event => {
+                    // Step A: Exclude "Special", "Major", "MBA" types (Safety Check)
+                    const safeTypes = ['Special', 'Major', 'MBA', 'Technical'];
+                    const eType = (event.type || '').toLowerCase();
+                    if (safeTypes.some(safe => eType === safe.toLowerCase())) {
+                        return false; 
+                    }
+
+                    // Step B: Check for Cultural Keywords
+                    const culturalKeywords = ['cultural', 'music', 'dance', 'singing', 'drama', 'skit', 'fashion', 'rangamarthanda',  'literary', 'acting', 'art', 'paint'];
+                    const t = eType;
+                    const title = (event.title || '').toLowerCase();
+                    return culturalKeywords.some(key => t.includes(key) || title.includes(key));
+                });
+
+                renderEvents(allEvents);
+            } catch (error) {
+                console.error("Error loading events:", error);
+                document.getElementById('culturalEventsContainer').innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; color: #ff4444;">
+                        Failed to load events.
+                    </div>`;
+            }
+        }
+
+        function getCulturalIcon(title, type) {
+            const t = (title + ' ' + type).toLowerCase();
+            if (t.includes('dance') || t.includes('nritya')) return 'fa-solid fa-person-running'; 
+            if (t.includes('sing') || t.includes('gaana') || t.includes('voice') || t.includes('music')) return 'fa-solid fa-microphone-lines';
+            if (t.includes('fashion') || t.includes('alankara') || t.includes('ramp')) return 'fa-solid fa-person-rays';
+            if (t.includes('skit') || t.includes('drama') || t.includes('abhinaya') || t.includes('acting')) return 'fa-solid fa-masks-theater';
+            if (t.includes('art') || t.includes('paint') || t.includes('rangoli')) return 'fa-solid fa-palette';
+            if (t.includes('literary') || t.includes('quiz') || t.includes('writing')) return 'fa-solid fa-pen-nib';
+            return 'fa-solid fa-music'; 
+        }
+
+        function renderEvents(events) {
+            const container = document.getElementById('culturalEventsContainer');
+            container.innerHTML = '';
+
+            if (events.length === 0) {
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center;">No cultural events found yet.</div>';
+                return;
+            }
+
+            events.forEach((event, index) => {
+                const delay = (index % 5) * 0.1; 
+                let iconClass = getCulturalIcon(event.title, event.type);
+
+                let visualElement = `<i class="${iconClass} event-icon"></i>`;
+                if (event.imageUrl && !event.imageUrl.includes('default')) {
+                    visualElement = `<img src="${event.imageUrl}" class="event-img-display" alt="Event Icon" onerror="this.style.display='none'">`;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'event-card';
+                card.style.animationDelay = `${delay}s`;
+                card.innerHTML = `
+                    ${visualElement}
+                    <h3 class="event-title">${event.title}</h3>
+                    <p class="event-subtitle">${event.type}</p>
+                    <p class="event-desc">${event.description || 'Join us for this amazing cultural event!'}</p>
+                    <div class="card-actions">
+                        <button class="btn-read-more" onclick="openEventModal('${event.eventId}')">Read More</button>
+                        <a href="register" class="btn-card-register">Register</a>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- TEXT FORMATTER ---
+        function formatText(text) {
+            if (!text) return '';
+            const lines = text.split(/\r\n|\n|\r/);
+            let html = '';
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                if (!trimmed) return; 
+                if (trimmed.startsWith('->') || trimmed.startsWith('=>')) {
+                    const cleanText = trimmed.replace(/^(-?>|=>)\s*/, '');
+                    html += `
+                        <div class="fmt-list-item">
+                            <span class="fmt-bullet">•</span>
+                            <span>${cleanText}</span>
+                        </div>`;
+                } else {
+                    html += `<div class="fmt-line">${trimmed}</div>`;
+                }
+            });
+            return html;
+        }
+
+        // --- EVENT READ MORE MODAL LOGIC ---
+        const eventModal = document.getElementById('eventModal');
+
+        function openEventModal(eventId) {
+            const event = allEvents.find(e => e.eventId === eventId);
+            if (!event) return;
+
+            document.getElementById('modalTitle').innerText = event.title;
+            document.getElementById('modalFee').innerText = event.fee;
+            document.getElementById('modalTeam').innerText = event.teamSize || '1';
+            document.getElementById('modalType').innerText = event.type || 'General';
+            
+            let content = '';
+            if (event.description) {
+                content += `<div style="margin-bottom:15px; font-size:1rem;">${formatText(event.description)}</div>`;
+            }
+            if (event.sections && event.sections.length > 0) {
+                event.sections.forEach(sec => {
+                    content += `
+                    <div style="margin-top:20px;">
+                        <strong style="color:var(--primary-color); display:block; margin-bottom:8px; font-size:1rem; text-transform:uppercase; letter-spacing:1px;">
+                            ${sec.heading}
+                        </strong>
+                        <div class="formatted-content" style="font-size:0.95rem;">${formatText(sec.content)}</div>
+                    </div>`;
+                });
+            }
+
+            document.getElementById('modalContent').innerHTML = content;
+            eventModal.style.display = 'flex';
+        }
+
+        function closeEventModal() { eventModal.style.display = 'none'; }
+
+        window.onclick = function(event) {
+            if (event.target == eventModal) closeEventModal();
+            if (event.target == offerModal) closeOfferModal();
+        }
+    </script>
+</body>
+</html>

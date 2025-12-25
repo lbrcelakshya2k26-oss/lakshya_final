@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal Policies | LAKSHYA 2K26</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- COSMIC THEME VARIABLES --- */
+        :root {
+            --primary-color: #00d2ff;
+            --secondary-color: #3a7bd5;
+            --accent-color: #d53a9d;
+            --success-color: #00ff88;
+            --dark-bg: #050510;
+            --card-bg: rgba(20, 20, 35, 0.6);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff;
+            --text-muted: #a0a0b0;
+            --section-gap: 80px;
+            --glow-shadow: 0 0 20px rgba(0, 210, 255, 0.15);
+        }
+
+        /* --- RESET & BASE --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
+        
+        body { 
+            background-color: var(--dark-bg); 
+            color: var(--text-main); 
+            font-family: 'Poppins', sans-serif; 
+            line-height: 1.6;
+            overflow-x: hidden; 
+        }
+
+        /* --- BACKGROUND ANIMATION --- */
+        .cosmic-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(58, 123, 213, 0.15) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(213, 58, 157, 0.1) 0%, transparent 25%);
+            z-index: -1;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40px 60px, 130px 270px;
+            opacity: 0.3;
+            z-index: -1;
+            animation: starMove 200s linear infinite;
+        }
+
+        @keyframes starMove {
+            from { background-position: 0 0, 40px 60px, 130px 270px; }
+            to { background-position: 550px 550px, 390px 410px, 680px 820px; }
+        }
+
+        /* --- HEADER --- */
+        header {
+            background: rgba(5, 5, 16, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 1rem 0;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 1.8rem;
+            background: linear-gradient(90deg, #fff, var(--primary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+            letter-spacing: -1px;
+        }
+
+        .college-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Navigation */
+        .nav-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 8px 16px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--card-border);
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.1);
+        }
+        
+        .nav-link.contact-btn {
+            background: var(--primary-color);
+            color: #000;
+            font-weight: 600;
+        }
+        .nav-link.contact-btn:hover {
+            background: #fff;
+            box-shadow: 0 0 15px var(--primary-color);
+            border-color: transparent;
+        }
+
+        /* --- MAIN CONTENT LAYOUT --- */
+        .main-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* --- SECTIONS --- */
+        .policy-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 60px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .policy-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+        }
+
+        .policy-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .policy-header i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 2.2rem;
+            color: #fff;
+        }
+
+        .last-updated {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        /* Content Styling */
+        h2 {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            margin: 35px 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        h2 i { font-size: 1rem; opacity: 0.8; }
+
+        p {
+            color: #d1d1e0;
+            margin-bottom: 15px;
+            font-size: 1rem;
+            text-align: left;
+        }
+
+        ul {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+
+        ul li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 12px;
+            color: #d1d1e0;
+        }
+
+        ul li::before {
+            content: '➢';
+            position: absolute;
+            left: 0;
+            color: var(--accent-color);
+            font-size: 0.8rem;
+            top: 3px;
+        }
+
+        /* --- SPECIAL COMPONENTS --- */
+        
+        /* Payment Icons */
+        .payment-methods {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .payment-methods i {
+            font-size: 2rem;
+            color: #fff;
+            opacity: 0.7;
+            transition: 0.3s;
+        }
+        .payment-methods i:hover { opacity: 1; transform: scale(1.1); color: var(--primary-color); }
+
+        /* Highlight Boxes */
+        .info-box {
+            background: rgba(0, 210, 255, 0.08);
+            border-left: 4px solid var(--primary-color);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+
+        .refund-highlight {
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+            padding: 15px 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Contact Grid */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .contact-card {
+            background: rgba(255,255,255,0.03);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid var(--card-border);
+            text-align: center;
+        }
+        
+        .contact-role { font-size: 0.75rem; text-transform: uppercase; color: var(--accent-color); letter-spacing: 1px; margin-bottom: 5px; font-weight: 700; }
+        .contact-name { color: #fff; font-weight: 500; margin-bottom: 5px; }
+        .contact-phone { color: var(--text-muted); font-family: monospace; font-size: 1.1rem; }
+
+        /* --- FOOTER --- */
+        footer {
+            background: rgba(5, 5, 16, 0.95);
+            border-top: 1px solid var(--card-border);
+            padding: 40px 20px;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .footer-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        .footer-secure {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+            padding: 5px 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #fff;
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; gap: 15px; }
+            .nav-container { flex-wrap: wrap; justify-content: center; width: 100%; }
+            .nav-link { font-size: 0.8rem; padding: 6px 12px; }
+            .policy-card { padding: 25px 20px; }
+            h1 { font-size: 1.8rem; }
+            .payment-methods i { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Elements -->
+    <div class="cosmic-bg"></div>
+    <div class="stars"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <a href="/" class="brand">
+                <span class="logo">LAKSHYA 2K26</span>
+                <span class="college-sub">Lakireddy Balireddy Engineering College</span>
+            </a>
+            <nav class="nav-container">
+                <a href="#terms" class="nav-link">Terms</a>
+                <a href="#privacy" class="nav-link">Privacy</a>
+                <a href="#refunds" class="nav-link">Refunds</a>
+                <a href="/contact" class="nav-link contact-btn">Support</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="main-wrapper">
+
+        <!-- TERMS & CONDITIONS -->
+        <section id="terms" class="policy-card">
+            <div class="policy-header">
+                <i class="fa-solid fa-scale-balanced"></i>
+                <h1>Terms & Conditions</h1>
+                <div class="last-updated">Last Updated: November 2025</div>
+            </div>
+
+            <p>Welcome to <strong>LAKSHYA 2K26</strong>. By registering for events and making payments on our platform, you agree to the following legally binding terms. Participation in the event implies full acceptance of these regulations.</p>
+
+            <h2><i class="fa-solid fa-id-card-clip"></i> Registration Policy</h2>
+            <ul>
+                <li>Participation is exclusively open to college students possessing a valid institutional ID card.</li>
+                <li>Students are required to produce their digital registration receipt and physical college ID at the venue entrance.</li>
+                <li>For team events, the team leader bears sole responsibility for the accuracy of member data provided during registration.</li>
+                <li>The organizing committee retains the right to modify the schedule or cancel events due to force majeure or administrative reasons.</li>
+            </ul>
+
+            <h2><i class="fa-solid fa-credit-card"></i> Payment & Security</h2>
+            <p>All financial transactions are processed securely through our authorized partner, <strong>PhonePe</strong>.</p>
+            
+            <div class="payment-methods">
+                <i class="fa-brands fa-google-pay" title="UPI"></i>
+                <i class="fa-solid fa-mobile-screen-button" title="PhonePe"></i>
+                <i class="fa-brands fa-cc-visa" title="Visa"></i>
+                <i class="fa-brands fa-cc-mastercard" title="Mastercard"></i>
+                <i class="fa-solid fa-building-columns" title="Net Banking"></i>
+            </div>
+
+            <div class="info-box">
+                <strong>Data Security Promise:</strong> LAKSHYA 2K26 does not store your card details. All transaction data is encrypted via SSL and handled directly by PhonePe in compliance with PCI-DSS standards.
+            </div>
+
+            <h2><i class="fa-solid fa-gavel"></i> Code of Conduct</h2>
+            <p>Participants must adhere to strict disciplinary standards. Any instance of harassment, vandalism, or violation of campus rules will result in immediate disqualification and removal from the premises without refund.</p>
+        </section>
+
+        <!-- PRIVACY POLICY -->
+        <section id="privacy" class="policy-card">
+            <div class="policy-header">
+                <i class="fa-solid fa-user-shield"></i>
+                <h1>Privacy Policy</h1>
+            </div>
+
+            <p>We value your trust. This section details how we collect, use, and protect your personal data during your interaction with the LAKSHYA 2K26 platform.</p>
+
+            <h2><i class="fa-solid fa-database"></i> Information Collection</h2>
+            <p>We collect only the essential data required for event logistics and identity verification:</p>
+            <ul>
+                <li><strong>Identity:</strong> Full Name, College Roll Number.</li>
+                <li><strong>Contact:</strong> Verified Email Address, Mobile Number.</li>
+                <li><strong>Academic:</strong> Institution Name, Department, Current Year.</li>
+                <li><strong>Transaction:</strong> Payment IDs and Status (Financial credentials are <strong>never</strong> stored by us).</li>
+            </ul>
+
+            <h2><i class="fa-solid fa-share-nodes"></i> Data Usage & Sharing</h2>
+            <ul>
+                <li>To facilitate event registration and generate unique participant IDs.</li>
+                <li>To issue verifiable digital certificates upon completion.</li>
+                <li>To communicate critical updates regarding schedules or venue changes.</li>
+            </ul>
+            <p>We strictly <strong>do not sell, trade, or rent</strong> your personal identification information to third parties. Data is shared with PhonePe solely for payment processing.</p>
+        </section>
+
+        <!-- REFUND POLICY -->
+        <section id="refunds" class="policy-card">
+            <div class="policy-header">
+                <i class="fa-solid fa-money-bill-transfer"></i>
+                <h1>Refund Policy</h1>
+            </div>
+
+            <div class="info-box">
+                <i class="fa-solid fa-circle-info"></i> &nbsp;<strong>Note:</strong> Registration fees are generally non-refundable. Please review the specific exceptions below carefully.
+            </div>
+
+            <h2><i class="fa-solid fa-ban"></i> Cancellation Terms</h2>
+            <p>Voluntary cancellations by participants are not eligible for refunds. We urge students to confirm their availability prior to payment. However, if an event is cancelled by the LAKSHYA Committee, a 100% refund for that specific event will be issued.</p>
+
+            <h2><i class="fa-solid fa-bug"></i> Technical Failures & Double Payments</h2>
+            <p>If you are charged twice for the same transaction due to a server error or network timeout:</p>
+            <ul>
+                <li>The duplicate amount is typically auto-refunded by the banking system within <strong>3-5 working days</strong>.</li>
+                <li>If the transaction status remains "Pending" for over 30 minutes, please do not re-attempt payment immediately.</li>
+            </ul>
+
+            <div class="refund-highlight">
+                <i class="fa-solid fa-check-circle"></i>
+                <span>Approved refunds will be credited to the original source within 10 working days.</span>
+            </div>
+
+            <h2><i class="fa-solid fa-headset"></i> Payment Support Team</h2>
+            <p>For transaction disputes, email us at <a href="mailto:support.lakshya@lbrce.ac.in" style="color:var(--primary-color)">support.lakshya@lbrce.ac.in</a> with the subject <em>"Payment Dispute - [Transaction ID]"</em>.</p>
+            
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <div class="contact-role">Payment Lead</div>
+                    <div class="contact-name">MR KOTAGIRI VENKATASIVASAIMIDHUN</div>
+                    <div class="contact-phone">90104 08899</div>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-role">Support Executive</div>
+                    <div class="contact-name">Adivi Charitha</div>
+                    <div class="contact-phone">79892 90297</div>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-role">Support Executive</div>
+                    <div class="contact-name">Pappula Sathvika</div>
+                    <div class="contact-phone">94949 00763</div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <footer>
+        <p class="footer-text">&copy; 2026 LAKSHYA Fest Committee | Lakireddy Balireddy Engineering College</p>
+        <div class="footer-secure">
+            <i class="fa-solid fa-lock"></i> Secured by PhonePe Gateway
+        </div>
+    </footer>
+
+</body>
+</html>
+

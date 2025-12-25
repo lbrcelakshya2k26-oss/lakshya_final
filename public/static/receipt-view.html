@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entry Pass | LAKSHYA 2K26</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Include html2canvas for downloading tickets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        :root { 
+            --primary: #00f2ff;
+            --secondary: #0048ff; 
+            --bg-color: #050508;
+            --card-bg: #0e0e15;
+            --card-inner: #15151e;
+            --text-white: #ffffff;
+            --text-muted: #8f9bb3;
+            --success: #00ff88;
+            --pending: #ffab00;
+        }
+        
+        body { 
+            background-color: var(--bg-color);
+            background-image: 
+                linear-gradient(45deg, rgba(0, 242, 255, 0.05) 0%, transparent 70%),
+                radial-gradient(circle at 80% 20%, rgba(0, 72, 255, 0.1) 0%, transparent 40%);
+            color: var(--text-white); 
+            font-family: 'Rajdhani', sans-serif; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 20px;
+            /* Changed to column to stack multiple tickets */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px; 
+        }
+        
+        .pass-container {
+            width: 100%;
+            max-width: 850px;
+            filter: drop-shadow(0 20px 50px rgba(0, 0, 0, 0.6));
+            animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative; /* For positioning download button */
+        }
+
+        .ticket-visual {
+            display: flex;
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.1);
+            background-image: linear-gradient(120deg, #12121a 0%, #0a0a10 100%);
+        }
+
+        /* --- LEFT SECTION (MAIN INFO) --- */
+        .main-section {
+            flex: 1;
+            padding: 30px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border-right: 2px dashed rgba(255,255,255,0.15);
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 15px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .clg-logo { height: 40px; background: white; padding: 4px; border-radius: 8px; }
+        .event-logo { height: 50px; background: white; padding: 4px; border-radius: 8px; }
+
+        .pass-badge {
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            color: black;
+            padding: 6px 15px;
+            border-radius: 4px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            transform: skewX(-10deg);
+        }
+
+        .kit-badge {
+            background: linear-gradient(90deg, #FFD700, #ff8c00); /* Gold/Orange for Kit */
+            color: black;
+            padding: 6px 15px;
+            border-radius: 4px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            transform: skewX(-10deg);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .user-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-white);
+            text-transform: uppercase;
+            line-height: 1.1;
+            margin-bottom: 5px;
+            text-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+            word-wrap: break-word; /* Ensure long names wrap */
+        }
+
+        .event-name {
+            font-size: 1.1rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            background: rgba(255,255,255,0.03);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .info-item { display: flex; flex-direction: column; }
+        .label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; letter-spacing: 1px; }
+        .value { font-size: 1rem; color: white; font-weight: 700; font-family: 'Orbitron', sans-serif; }
+
+        /* --- RIGHT SECTION (STUB / QR) --- */
+        .stub-section {
+            width: 280px;
+            background: linear-gradient(180deg, #0e0e15 0%, #001233 100%);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .qr-box {
+            background: white;
+            padding: 10px;
+            border-radius: 12px;
+            width: 140px;
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.15);
+        }
+        .qr-img { width: 100%; height: 100%; }
+
+        .reg-id {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .status-stamp {
+            border: 2px solid var(--success);
+            color: var(--success);
+            padding: 8px 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+        }
+        
+        .status-stamp.pending {
+            border-color: var(--pending);
+            color: var(--pending);
+            box-shadow: 0 0 15px rgba(255, 171, 0, 0.2);
+        }
+
+        /* --- DECORATIVE NOTCHES --- */
+        .notch-top, .notch-bottom {
+            position: absolute;
+            left: calc(100% - 280px - 10px); /* Aligns with stub width */
+            width: 20px;
+            height: 20px;
+            background-color: var(--bg-color);
+            border-radius: 50%;
+            z-index: 10;
+        }
+        .notch-top { top: -10px; }
+        .notch-bottom { bottom: -10px; }
+
+        /* --- DOWNLOAD BUTTON --- */
+        .btn-download {
+            margin-top: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            align-self: center; /* Center button relative to container */
+        }
+        
+        .btn-download:hover {
+            background: var(--primary);
+            color: black;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .ticket-visual { 
+                flex-direction: column; /* Stack vertically on mobile */
+            }
+            .main-section { 
+                border-right: none; 
+                border-bottom: 2px dashed rgba(255,255,255,0.15); 
+                padding: 20px;
+            }
+            .stub-section { 
+                width: 100%; 
+                padding: 30px 20px; 
+            }
+            .info-grid { 
+                grid-template-columns: 1fr 1fr; /* Two columns on mobile */
+            }
+            /* Hide side notches on mobile as layout changes */
+            .notch-top, .notch-bottom { display: none; }
+            
+            .user-name { font-size: 1.5rem; } /* Smaller font for name */
+            .header-row { flex-direction: column; gap: 10px; align-items: flex-start; } /* Stack header items */
+            .pass-badge, .kit-badge { align-self: flex-start; transform: none; } /* Reset skew */
+        }
+
+        .loader { color: var(--primary); font-size: 2rem; }
+        .ticket-wrapper { width: 100%; display: flex; justify-content: center; }
+    </style>
+</head>
+<body>
+
+    <!-- Container for multiple tickets -->
+    <div id="ticketsList" style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 40px;">
+        <div class="pass-container">
+            <div class="ticket-visual" style="align-items:center; justify-content:center; min-height:300px;">
+                <div class="loader"><i class="fa-solid fa-spinner fa-spin"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const LOGO_EVENT = "https://res.cloudinary.com/dpz44zf0z/image/upload/v1764605760/logo_oeso2m.png";
+        const LOGO_CLG = "https://res.cloudinary.com/dpz44zf0z/image/upload/v1764610592/1000150316_94d436c3b0efe15eb7fb1d332f32709f-10_6_2025_7_05_27_AM_wt8kgm.png";
+
+        // Keywords that likely indicate a kit is included
+        const kitEligibleKeywords = ['major', 'mba', 'management', 'cultural', 'music', 'dance', 'singing', 'drama', 'art', 'fashion', 'literary', 'technical'];
+
+        // Helper to check if event type/title suggests it gets a kit
+        function isKitCategory(event) {
+            const t = (event.type || '').toLowerCase();
+            const ti = (event.title || '').toLowerCase();
+            return kitEligibleKeywords.some(key => t.includes(key) || ti.includes(key));
+        }
+
+        async function loadPass() {
+            const params = new URLSearchParams(window.location.search);
+            const regId = params.get('id');
+            const listContainer = document.getElementById('ticketsList');
+
+            if (!regId) {
+                listContainer.innerHTML = `<div class="pass-container"><div class="ticket-visual" style="padding:40px; text-align:center; color:#ff4444;"><h3>INVALID LINK</h3></div></div>`;
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/public/receipt-details/${regId}`);
+                if (!res.ok) throw new Error("Not Found");
+                
+                const data = await res.json();
+                const { reg, event, user } = data;
+                
+                const isPaid = reg.paymentStatus === 'COMPLETED';
+                const statusClass = isPaid ? '' : 'pending';
+                const statusText = isPaid ? 'ACCESS GRANTED' : 'PAYMENT PENDING';
+                const dateStr = new Date(reg.paymentDate || reg.registeredAt).toLocaleDateString('en-GB');
+                
+                // --- ROBUST KIT CHECK LOGIC ---
+                // 1. Base eligibility check (Database flag, Description, or Category)
+                const baseEligible = event.kit === true || 
+                                     event.includesKit === true || 
+                                     (event.description && event.description.toLowerCase().includes('kit')) ||
+                                     isKitCategory(event);
+                
+                let showKitBadge = baseEligible;
+
+                // 2. Strict Price Check (If paid less than full fee, they don't get a kit)
+                if (isPaid) {
+                    const paid = parseFloat(reg.amountPaid) || 0;
+                    const fee = parseFloat(event.fee) || 0;
+                    
+                    // If paid < fee (minus 1 rupee tolerance for float), it implies discount -> No Kit
+                    if (paid < (fee - 1)) {
+                        showKitBadge = false; 
+                    }
+                } 
+
+                const kitHtml = showKitBadge ? `<div class="kit-badge"><i class="fa-solid fa-box-open" style="margin-right:5px;"></i> KIT INCLUDED</div>` : '';
+                
+                // Generate QR Code URL
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.href)}`;
+
+                // 1. Prepare List of People (Main User + Team Members)
+                const people = [];
+                // Add Main User
+                people.push({ 
+                    name: user.fullName, 
+                    roll: user.rollNo || '-', 
+                    role: reg.teamName ? 'Team Lead' : 'Participant' 
+                });
+
+                // Add Team Members if any
+                if(reg.teamMembers && Array.isArray(reg.teamMembers)) {
+                    reg.teamMembers.forEach(m => {
+                        people.push({ 
+                            name: m.name, 
+                            roll: m.roll || m.rollNo || '-', 
+                            role: 'Team Member' 
+                        });
+                    });
+                }
+
+                // 2. Generate HTML for EACH person
+                listContainer.innerHTML = ''; // Clear loader
+
+                people.forEach((person, index) => {
+                    const ticketId = `ticket-${index}`; // Unique ID for capturing
+                    const ticketHtml = `
+                    <div class="pass-container">
+                        <div class="ticket-visual" id="${ticketId}">
+                            <!-- NOTCHES (Only visible on desktop via CSS) -->
+                            <div class="notch-top"></div>
+                            <div class="notch-bottom"></div>
+
+                            <!-- LEFT SIDE: INFO -->
+                            <div class="main-section">
+                                <div class="header-row">
+                                    <div class="brand">
+                                        <img src="${LOGO_CLG}" class="clg-logo" alt="College">
+                                        <img src="${LOGO_EVENT}" class="event-logo" alt="Event">
+                                    </div>
+                                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                        ${kitHtml}
+                                        <div class="pass-badge">OFFICIAL ENTRY PASS</div>
+                                    </div>
+                                </div>
+
+                                <div class="user-name">${person.name}</div>
+                                <div class="event-name">${event.title} <span style="font-size:0.7em; color:#666; margin-left:10px;">(${person.role})</span></div>
+
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <span class="label">Roll No</span>
+                                        <span class="value">${person.roll}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="label">Date</span>
+                                        <span class="value">${dateStr}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="label">Team</span>
+                                        <span class="value">${reg.teamName || 'N/A'}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="label">Gate</span>
+                                        <span class="value">MAIN A</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- RIGHT SIDE: STUB -->
+                            <div class="stub-section">
+                                <div class="qr-box">
+                                    <img src="${qrUrl}" class="qr-img" alt="QR Code">
+                                </div>
+                                <div class="reg-id">ID: ${reg.registrationId.substring(0,8).toUpperCase()}</div>
+                                <div class="status-stamp ${statusClass}">
+                                    ${statusText}
+                                </div>
+                                <div style="margin-top:10px; font-size:0.7rem; color:#666;">Ticket ${index + 1} of ${people.length}</div>
+                            </div>
+                        </div>
+                        <button class="btn-download" onclick="downloadTicket('${ticketId}', '${person.name}')">
+                            <i class="fa-solid fa-download"></i> Download Ticket
+                        </button>
+                    </div>`;
+                    
+                    listContainer.innerHTML += ticketHtml;
+                });
+
+            } catch (err) {
+                console.error(err);
+                listContainer.innerHTML = `<div class="pass-container"><div class="ticket-visual" style="padding:40px; text-align:center; color:#ff4444;"><h3>ERROR LOADING TICKET</h3></div></div>`;
+            }
+        }
+
+        // Function to download ticket as image
+        async function downloadTicket(elementId, userName) {
+            const ticketElement = document.getElementById(elementId);
+            if (!ticketElement) return;
+
+            // Use html2canvas to capture the element
+            try {
+                const canvas = await html2canvas(ticketElement, {
+                    scale: 2, // Higher scale for better quality
+                    backgroundColor: null, // Keep transparency if any
+                    useCORS: true // Allow loading cross-origin images (like logos)
+                });
+
+                // Create a temporary link to download
+                const link = document.createElement('a');
+                link.download = `Lakshya_Ticket_${userName.replace(/\s+/g, '_')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (err) {
+                console.error("Download failed:", err);
+                alert("Failed to download ticket. Please try taking a screenshot.");
+            }
+        }
+
+        loadPass();
+    </script>
+</body>
+</html>

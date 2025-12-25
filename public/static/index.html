@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- --- PRIMARY SEO DATA --- -->
+    <title>LAKSHYA 2K26 | 19th National Level Techno Cultural Symposium</title>
+    <meta name="description" content="Welcome to LAKSHYA 2K26 - A National Level Techno Cultural Symposium. Participate in Technical Events, Culturals, and Many More Special Events. Experience the future of technology.">
+    <meta name="keywords" content="LAKSHYA 2K26, Tech Fest, Symposium, Technical Events, Workshops, College Fest, Engineering Fest, Student Symposium, Culturals">
+    <meta name="author" content="Team LAKSHYA">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#00d2ff">
+
+    <!-- --- OPEN GRAPH / FACEBOOK / WHATSAPP --- -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://lakshya2k26.com/">
+    <meta property="og:title" content="LAKSHYA 2K26 | Unveiling The Feature">
+    <meta property="og:description" content="Join us for the ultimate technical & Cultural extravaganza! Lakshya 2K26.">
+    <meta property="og:image" content="https://res.cloudinary.com/dpz44zf0z/image/upload/v1764605760/logo_oeso2m.png">
+
+    <!-- --- TWITTER --- -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://lakshya2k26.com/">
+    <meta property="twitter:title" content="LAKSHYA 2K26 | National Level Tech Fest">
+    <meta property="twitter:description" content="Join us for the ultimate technical extravaganza! Events, Workshops, Pro-Shows and more at Lakshya 2K26.">
+    <meta property="twitter:image" content="https://res.cloudinary.com/dpz44zf0z/image/upload/v1764605760/logo_oeso2m.png">
+
+    <!-- --- FAVICON --- -->
+    <link rel="icon" type="image/png" href="https://res.cloudinary.com/dpz44zf0z/image/upload/v1764605760/logo_oeso2m.png">
+
+    <!-- --- FONTS & STYLES --- -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #00d2ff;
+            --accent-color: #ff00cc;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #05050a;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* --- INTRO ANIMATION STYLES --- */
+        #intro-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .intro-logo-container {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .intro-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            animation: floatLogo 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(0, 210, 255, 0.4));
+        }
+
+        .ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid transparent;
+            border-top-color: var(--primary-color);
+            border-bottom-color: var(--accent-color);
+            animation: spinRing 2s linear infinite;
+        }
+
+        .ring:nth-child(1) { width: 100%; height: 100%; border-width: 3px; }
+        .ring:nth-child(2) { width: 130%; height: 130%; border-width: 1px; animation-duration: 4s; opacity: 0.5; }
+        .ring:nth-child(3) { width: 160%; height: 160%; border-width: 1px; border-style: dashed; animation-duration: 10s; opacity: 0.3; }
+
+        .loading-text {
+            letter-spacing: 4px;
+            color: white;
+            font-size: 1.2rem;
+            animation: pulseText 1.5s infinite alternate;
+        }
+
+        /* Background Particles (Visual Continuity) */
+        .hero-particles {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 1px),
+                radial-gradient(white, rgba(255,255,255,.1) 1px, transparent 1px);
+            background-size: 500px 500px, 300px 300px;
+            opacity: 0.6; z-index: 1; animation: starsPass 60s linear infinite;
+        }
+
+        @keyframes spinRing { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes floatLogo { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes pulseText { from { opacity: 0.6; } to { opacity: 1; text-shadow: 0 0 10px var(--primary-color); } }
+        @keyframes starsPass { from { transform: translateY(0); } to { transform: translateY(-500px); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="hero-particles"></div>
+
+    <div id="intro-container">
+        <div class="intro-logo-container">
+            <div class="ring"></div>
+            <div class="ring"></div>
+            <div class="ring"></div>
+            <img src="https://res.cloudinary.com/dpz44zf0z/image/upload/v1764605760/logo_oeso2m.png" alt="Lakshya Logo" class="intro-logo" onerror="this.src='https://placehold.co/150x150/000000/00d2ff?text=LAKSHYA'">
+        </div>
+        <h2 class="loading-text">INITIALIZING...</h2>
+    </div>
+
+    <script>
+        window.onload = function() {
+            // Random duration between 2500ms (2.5s) and 4500ms (4.5s)
+            const randomDuration = Math.floor(Math.random() * 2000) + 2500;
+            
+            console.log(`Redirecting in ${randomDuration}ms...`);
+
+            setTimeout(() => {
+                window.location.href = 'home';
+            }, randomDuration);
+        };
+    </script>
+</body>
+</html>

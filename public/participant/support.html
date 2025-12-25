@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help & Support | LAKSHYA 2K26</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="/assets/logo.png">
+    
+    <!-- <script src="/js/common.js"></script> -->
+
+    <style>
+        :root { 
+            --primary: #00d2ff; 
+            --secondary: #3a7bd5; 
+            --bg-dark: #0a0a0a;
+            --card-bg: rgba(30, 30, 40, 0.6);
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        body { 
+            background-color: var(--bg-dark); 
+            color: white; 
+            font-family: 'Poppins', sans-serif; 
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+        }
+
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('../assets/admin-block.jpg') center/cover; opacity: 0.15; z-index: -1; }
+
+        /* Navigation Sidebar Placeholder - Assuming main layout */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header { margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; }
+        .header h1 { font-family: 'Montserrat', sans-serif; color: var(--primary); margin: 0; }
+        .header p { color: #aaa; margin-top: 5px; }
+
+        /* Grid Layout */
+        .support-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 30px;
+        }
+
+        /* Create Ticket Form */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; margin-bottom: 5px; color: #ccc; font-size: 0.9rem; }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--primary); outline: none; }
+        .form-textarea { min-height: 120px; resize: vertical; }
+
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, var(--secondary), var(--primary));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-submit:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        /* Queries List */
+        .query-list { display: flex; flex-direction: column; gap: 15px; max-height: 600px; overflow-y: auto; padding-right: 5px; }
+        
+        .query-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px;
+            transition: 0.3s;
+        }
+        .query-item:hover { background: rgba(255,255,255,0.05); }
+
+        .q-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .q-category { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .q-subject { font-weight: 600; font-size: 1.1rem; color: white; margin: 2px 0; }
+        .q-date { font-size: 0.75rem; color: #666; }
+
+        .status-badge {
+            padding: 4px 10px; border-radius: 50px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;
+        }
+        .status-open { background: rgba(255, 193, 7, 0.15); color: #ffc107; border: 1px solid #ffc107; }
+        .status-resolved { background: rgba(0, 255, 136, 0.15); color: #00ff88; border: 1px solid #00ff88; }
+
+        .q-desc { font-size: 0.9rem; color: #ddd; margin-bottom: 10px; line-height: 1.5; }
+        
+        .admin-reply-box {
+            background: rgba(0, 210, 255, 0.05);
+            border-left: 3px solid var(--primary);
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .reply-label { font-size: 0.75rem; color: var(--primary); font-weight: bold; margin-bottom: 3px; display: block; }
+        .reply-text { font-size: 0.9rem; color: #fff; }
+
+        @media (max-width: 768px) {
+            .support-grid { grid-template-columns: 1fr; }
+            .main-content { padding: 20px; }
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="bg-layer"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        
+        <!-- Back Link -->
+        <a href="/participant/dashboard" style="color:#aaa; text-decoration:none; display:inline-block; margin-bottom:20px;">
+            <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+        </a>
+
+        <div class="header">
+            <h1>Help & Support</h1>
+            <p>Raise a query regarding payments, events, or technical issues.</p>
+        </div>
+
+        <div class="support-grid">
+            
+            <!-- Left: Form -->
+            <div class="card">
+                <h3 style="margin-top:0; color:var(--primary); margin-bottom:20px;">Raise New Ticket</h3>
+                <form id="queryForm" onsubmit="submitQuery(event)">
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" id="category" required>
+                            <option value="" disabled selected>Select Category</option>
+                            <option value="Payment Issue">Payment Issue</option>
+                            <option value="Registration">Registration</option>
+                            <option value="Event Details">Event Details</option>
+                            <option value="Technical Bug">Technical Bug</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Subject</label>
+                        <input type="text" class="form-input" id="subject" placeholder="Brief summary of issue" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-textarea" id="description" placeholder="Describe your issue in detail..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit" id="btnSubmit">
+                        <i class="fa-solid fa-paper-plane"></i> Submit Ticket
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right: List -->
+            <div class="card" style="display:flex; flex-direction:column;">
+                <h3 style="margin-top:0; color:white; margin-bottom:20px;">My History</h3>
+                <div id="queryList" class="query-list">
+                    <div style="text-align:center; color:#666; padding:30px;">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Loading...
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        async function loadQueries() {
+            const list = document.getElementById('queryList');
+            try {
+                const res = await fetch('/api/support/my-queries');
+                
+                // CRITICAL FIX: Check if request was successful first
+                if (!res.ok) {
+                    throw new Error("Server Error");
+                }
+
+                const data = await res.json();
+
+                // CRITICAL FIX: Ensure data is an array before looping
+                if (!Array.isArray(data) || data.length === 0) {
+                    list.innerHTML = `<div style="text-align:center; color:#666; padding:30px;">No tickets found.</div>`;
+                    return;
+                }
+
+                list.innerHTML = '';
+                data.forEach(q => {
+                    const isResolved = q.status === 'RESOLVED';
+                    const statusClass = isResolved ? 'status-resolved' : 'status-open';
+                    
+                    // Safe date formatting
+                    const dateStr = q.createdAt ? new Date(q.createdAt).toLocaleDateString() : 'Just now';
+
+                    let replyHtml = '';
+                    if(isResolved && q.adminReply) {
+                        replyHtml = `
+                            <div class="admin-reply-box">
+                                <span class="reply-label"><i class="fa-solid fa-user-shield"></i> Admin Response</span>
+                                <div class="reply-text">${q.adminReply}</div>
+                            </div>
+                        `;
+                    }
+
+                    const html = `
+                        <div class="query-item">
+                            <div class="q-header">
+                                <div>
+                                    <div class="q-category">${q.category || 'General'}</div>
+                                    <div class="q-subject">${q.subject || 'No Subject'}</div>
+                                    <div class="q-date">${dateStr}</div>
+                                </div>
+                                <span class="status-badge ${statusClass}">${q.status || 'OPEN'}</span>
+                            </div>
+                            <div class="q-desc">${q.description}</div>
+                            ${replyHtml}
+                        </div>
+                    `;
+                    list.innerHTML += html;
+                });
+
+            } catch(e) {
+                console.error(e);
+                // Show a friendly error message instead of crashing
+                list.innerHTML = `<div style="text-align:center; color:#ff4444;">
+                    <i class="fa-solid fa-triangle-exclamation"></i><br>
+                    Unable to load history.<br>
+                    <small style="color:#666;">(Server is syncing, please try again)</small>
+                </div>`;
+            }
+        }
+
+        async function submitQuery(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmit');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+            btn.disabled = true;
+
+            const payload = {
+                category: document.getElementById('category').value,
+                subject: document.getElementById('subject').value,
+                description: document.getElementById('description').value
+            };
+
+            try {
+                const res = await fetch('/api/support/create', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+
+                if(res.ok) {
+                    alert("Ticket raised successfully!");
+                    document.getElementById('queryForm').reset();
+                    loadQueries(); // Refresh list
+                } else {
+                    const d = await res.json();
+                    alert("Error: " + d.error);
+                }
+            } catch(err) {
+                alert("Network error.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        window.onload = loadQueries;
+    </script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stall Scanner | LAKSHYA 2K26</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- QR Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+    <style>
+        :root { --primary: #00ff88; --danger: #ff4444; --bg: #000000; --card: #1a1a1a; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body { background: var(--bg); color: white; min-height: 100vh; display: flex; flex-direction: column; }
+
+        /* Mobile Header */
+        .header {
+            padding: 15px 20px; background: #111; border-bottom: 1px solid #333;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .stall-name { font-weight: bold; font-size: 1.1rem; color: #00d2ff; }
+        .logout-btn { color: #666; font-size: 0.9rem; cursor: pointer; }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px;
+            background: #0f0f0f; border-bottom: 1px solid #222;
+        }
+        .stat-box { background: #1a1a1a; padding: 10px; border-radius: 8px; text-align: center; }
+        .stat-val { font-size: 1.4rem; font-weight: bold; color: white; }
+        .stat-lbl { font-size: 0.7rem; color: #888; text-transform: uppercase; }
+
+        /* Scanner Area */
+        .scanner-container {
+            flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; position: relative;
+        }
+        #reader { width: 100%; max-width: 400px; border-radius: 15px; overflow: hidden; border: 2px solid #333; }
+        
+        .scan-msg { margin-top: 15px; color: #888; font-size: 0.9rem; text-align: center; }
+
+        /* Status Modal (Success/Fail) */
+        .result-modal {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            padding: 30px 20px; border-radius: 20px 20px 0 0;
+            background: #222; transform: translateY(100%); transition: 0.3s; z-index: 100;
+            text-align: center;
+        }
+        .result-modal.active { transform: translateY(0); }
+        .result-modal.success { background: #0a2e1a; border-top: 2px solid #00ff88; }
+        .result-modal.error { background: #2e0a0a; border-top: 2px solid #ff4444; }
+
+        .result-icon { font-size: 3rem; margin-bottom: 15px; }
+        .success .result-icon { color: #00ff88; }
+        .error .result-icon { color: #ff4444; }
+
+        .result-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 5px; }
+        .result-desc { color: #aaa; font-size: 0.9rem; margin-bottom: 20px; }
+        
+        .btn-next {
+            width: 100%; padding: 15px; border-radius: 50px; border: none; font-weight: bold; font-size: 1rem; cursor: pointer;
+        }
+        .success .btn-next { background: #00ff88; color: #000; }
+        .error .btn-next { background: #ff4444; color: white; }
+
+        /* Manual Entry Toggle */
+        .manual-trigger { margin-top: 20px; color: #00d2ff; text-decoration: underline; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="stall-name" id="stallNameDisplay">Loading...</div>
+        <div class="logout-btn" onclick="logout()"><i class="fa-solid fa-power-off"></i> Logout</div>
+    </div>
+
+    <div class="stats-bar">
+        <div class="stat-box">
+            <div class="stat-val" id="todayCount">0</div>
+            <div class="stat-lbl">Coupons Today</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-val" id="totalValue">₹0</div>
+            <div class="stat-lbl">Total Value</div>
+        </div>
+    </div>
+
+    <div class="scanner-container">
+        <div id="reader"></div>
+        <p class="scan-msg">Point camera at student QR code</p>
+        <div class="manual-trigger" onclick="manualEntry()">Enter Code Manually</div>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="resultModal" class="result-modal">
+        <div id="resultIcon" class="result-icon"><i class="fa-solid fa-check-circle"></i></div>
+        <div id="resultTitle" class="result-title">Coupon Redeemed!</div>
+        <div id="resultDesc" class="result-desc">Student: John Doe (CSE)</div>
+        <button class="btn-next" onclick="resetScanner()">Scan Next</button>
+    </div>
+
+    <script>
+        let html5QrcodeScanner;
+        let isScanning = true;
+
+        // Init
+        window.onload = function() {
+            loadStallData();
+            startScanner();
+        };
+
+        async function loadStallData() {
+            try {
+                const res = await fetch('/api/stall/stats');
+                const data = await res.json();
+                if(data.error) return window.location.href = '/login';
+                
+                document.getElementById('stallNameDisplay').innerText = data.stallName;
+                document.getElementById('todayCount').innerText = data.scannedCount;
+                document.getElementById('totalValue').innerText = '₹' + (data.scannedCount * 50); // Assuming 150 per coupon value
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        function startScanner() {
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, 
+                config, 
+                onScanSuccess, 
+                (err) => { /* ignore errors */ }
+            );
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            if(!isScanning) return;
+            isScanning = false;
+            
+            // Audio Feedback
+            const audio = new Audio('/assets/beep.mp3');
+            audio.play().catch(e => {});
+
+            processCoupon(decodedText);
+        }
+
+        async function processCoupon(qrCode) {
+            // Show processing state?
+            
+            try {
+                const res = await fetch('/api/stall/redeem', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ qrCode })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    showResult('success', 'Coupon Redeemed!', `Valid Coupon. Enjoy the meal!`);
+                    loadStallData(); // Refresh stats
+                } else {
+                    showResult('error', 'Invalid / Used', data.error || 'This coupon cannot be processed.');
+                }
+
+            } catch (e) {
+                showResult('error', 'Network Error', 'Please check your internet connection.');
+            }
+        }
+
+        function showResult(type, title, desc) {
+            const modal = document.getElementById('resultModal');
+            const icon = document.getElementById('resultIcon');
+            
+            modal.className = `result-modal active ${type}`;
+            document.getElementById('resultTitle').innerText = title;
+            document.getElementById('resultDesc').innerText = desc;
+            
+            icon.innerHTML = type === 'success' 
+                ? '<i class="fa-solid fa-check-circle"></i>' 
+                : '<i class="fa-solid fa-circle-xmark"></i>';
+        }
+
+        function resetScanner() {
+            document.getElementById('resultModal').classList.remove('active');
+            isScanning = true;
+        }
+
+        function manualEntry() {
+            const code = prompt("Enter Coupon ID manually:");
+            if(code) processCoupon(code);
+        }
+
+        function logout() {
+            fetch('/api/auth/logout').then(() => window.location.href = '/stall/login');
+        }
+    </script>
+</body>
+</html>

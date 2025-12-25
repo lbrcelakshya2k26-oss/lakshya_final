@@ -1,0 +1,279 @@
+app.post('/api/payment/verify', isAuthenticated('participant'), async (req, res) => {
+    // 1. EXTRACT DATA (razorpay_payment_id is the primary key from Razorpay)
+    let { razorpay_payment_id, couponCode, cartItems, pendingRegIds } = req.body; 
+    const CLIENT_URL = "https://lakshya.lbrce.ac.in/"; 
+    const logoUrl = "https://res.cloudinary.com/dpz44zf0z/image/upload/v1764605760/logo_oeso2m.png";
+    const user = req.session.user;
+
+    try {
+        if (!razorpay_payment_id) return res.status(400).json({ error: 'Missing Payment ID' });
+
+        // 2. VERIFY WITH RAZORPAY
+        const payment = await razorpay.payments.fetch(razorpay_payment_id);
+        if (payment.status !== 'captured' && payment.status !== 'authorized') {
+            return res.status(400).json({ error: 'Payment not captured or failed.' });
+        }
+
+        // 3. IDEMPOTENCY CHECK
+        const existing = await docClient.send(new ScanCommand({
+            TableName: 'Lakshya_Registrations',
+            FilterExpression: 'paymentId = :pid',
+            ExpressionAttributeValues: { ':pid': razorpay_payment_id }
+        }));
+        if (existing.Items && existing.Items.length > 0) {
+            return res.json({ status: 'success', message: 'Already processed' });
+        }
+
+        // 4. ROBUST CART RECOVERY (The Critical Fix for Mobile Browsers)
+        // If frontend didn't send cart (localStorage lost on redirect), pull from server-side Cart table
+        if (!pendingRegIds && (!cartItems || cartItems.length === 0)) {
+            try {
+                const dbCart = await docClient.send(new GetCommand({ 
+                    TableName: 'Lakshya_Cart', 
+                    Key: { email: user.email } 
+                }));
+                if (dbCart.Item && dbCart.Item.items) {
+                    cartItems = dbCart.Item.items;
+                }
+            } catch (cartErr) {
+                console.error("Cart Recovery Failed:", cartErr);
+            }
+        }
+
+        let eventsToProcess = [];
+
+        // A. If Processing Pending Registrations (from My Registrations page)
+        if (pendingRegIds && Array.isArray(pendingRegIds) && pendingRegIds.length > 0) {
+            for (const regId of pendingRegIds) {
+                const regDoc = await docClient.send(new GetCommand({ TableName: 'Lakshya_Registrations', Key: { registrationId: regId }}));
+                if (regDoc.Item) {
+                    const eventDoc = await docClient.send(new GetCommand({ TableName: 'Lakshya_Events', Key: { eventId: regDoc.Item.eventId }}));
+                    if(eventDoc.Item) {
+                        eventsToProcess.push({
+                            ...eventDoc.Item, 
+                            fee: parseInt(eventDoc.Item.fee),
+                            source: 'PENDING',
+                            regId: regId,
+                            dept: regDoc.Item.deptName,
+                            teamName: regDoc.Item.teamName
+                        });
+                    }
+                }
+            }
+        } 
+        // B. If Processing New Cart Items (from Cart page)
+        else if (cartItems && Array.isArray(cartItems) && cartItems.length > 0) {
+            for (const item of cartItems) {
+                const eventDoc = await docClient.send(new GetCommand({ TableName: 'Lakshya_Events', Key: { eventId: item.eventId } }));
+                if (eventDoc.Item) {
+                    eventsToProcess.push({ 
+                        ...eventDoc.Item, 
+                        fee: parseInt(eventDoc.Item.fee),
+                        source: 'NEW_CART',
+                        dept: item.dept,
+                        teamName: item.teamName,
+                        teamMembers: item.teamMembers,
+                        submissionTitle: item.submissionTitle,
+                        submissionAbstract: item.submissionAbstract,
+                        submissionUrl: item.submissionUrl
+                    });
+                }
+            }
+        }
+
+        if (eventsToProcess.length === 0) return res.json({ status: 'success', warning: 'No Items Found' }); 
+
+        // 5. SERVER-SIDE RE-CALCULATION (Pricing Logic from backend (12).js)
+        eventsToProcess.sort((a, b) => b.fee - a.fee);
+
+        let standardCoupon = null;
+        if (couponCode && couponCode !== 'LAKSHYA2K26' && couponCode !== 'NONE') {
+            const couponQuery = await docClient.send(new GetCommand({ TableName: 'Lakshya_Coupons', Key: { code: couponCode.toUpperCase() } }));
+            if (couponQuery.Item && couponQuery.Item.currentUses < couponQuery.Item.usageLimit) {
+                standardCoupon = couponQuery.Item;
+            }
+        }
+
+        let historyCount = 0;
+        if (couponCode === 'LAKSHYA2K26') {
+            try {
+                const existingRegs = await docClient.send(new QueryCommand({
+                    TableName: 'Lakshya_Registrations',
+                    IndexName: 'StudentIndex',
+                    KeyConditionExpression: 'studentEmail = :email',
+                    ExpressionAttributeValues: { ':email': user.email }
+                }));
+                const regs = existingRegs.Items || [];
+                for (const reg of regs) {
+                    if (reg.paymentStatus === 'COMPLETED' && !eventsToProcess.some(e => e.eventId === reg.eventId)) {
+                        if (reg.category) {
+                            if (isEligibleForCombo({ type: reg.category, title: '', fee: 100 })) historyCount++; 
+                        } else if(reg.amountPaid) {
+                            historyCount++; 
+                        }
+                    }
+                }
+            } catch (e) { console.error("History check error:", e); }
+        }
+
+        let currentEligibleIndex = 0;
+        const calculatedAmounts = {};
+
+        for (const event of eventsToProcess) {
+            let finalItemPrice = event.fee;
+            const isEligible = isEligibleForCombo(event);
+
+            if (couponCode === 'LAKSHYA2K26' && isEligible) {
+                currentEligibleIndex++;
+                if (historyCount + currentEligibleIndex > 1) {
+                    finalItemPrice = event.fee / 2;
+                }
+            } 
+            else if (standardCoupon) {
+                const type = (event.type || '').toLowerCase();
+                if (!type.includes('special') && standardCoupon.allowedTypes?.includes(event.type)) {
+                    finalItemPrice = event.fee - (event.fee * standardCoupon.percentage / 100);
+                }
+            }
+            calculatedAmounts[event.eventId] = finalItemPrice;
+        }
+
+        // 6. DATABASE UPDATES
+        let regItemsForEmail = [];
+        let totalBaseForEmail = 0;
+
+        const processPromises = eventsToProcess.map(async (event) => {
+            const finalAmount = calculatedAmounts[event.eventId];
+            
+            if (event.source === 'PENDING') {
+                await docClient.send(new UpdateCommand({
+                    TableName: 'Lakshya_Registrations',
+                    Key: { registrationId: event.regId },
+                    UpdateExpression: "set paymentStatus = :s, paymentId = :pid, paymentMode = :pm, couponUsed = :cu, paymentDate = :pd, amountPaid = :ap",
+                    ExpressionAttributeValues: {
+                        ":s": "COMPLETED",
+                        ":pid": razorpay_payment_id,
+                        ":pm": "ONLINE",
+                        ":cu": couponCode || "NONE",
+                        ":pd": new Date().toISOString(),
+                        ":ap": finalAmount
+                    }
+                }));
+                regItemsForEmail.push({ regId: event.regId, title: event.title, dept: event.dept, paidAmount: finalAmount, teamName: event.teamName });
+            } 
+            else {
+                const regId = uuidv4();
+                await docClient.send(new PutCommand({
+                    TableName: 'Lakshya_Registrations', 
+                    Item: {
+                        registrationId: regId,
+                        studentEmail: user.email,
+                        eventId: event.eventId,
+                        deptName: event.dept,
+                        category: event.type,
+                        kitAllocated: checkKitEligibility(event.type),
+                        teamName: event.teamName || null,
+                        teamMembers: event.teamMembers || [],
+                        paymentStatus: "COMPLETED", 
+                        paymentId: razorpay_payment_id, 
+                        paymentMode: "ONLINE", 
+                        attendance: false,
+                        couponUsed: couponCode || "NONE", 
+                        paymentDate: new Date().toISOString(), 
+                        amountPaid: finalAmount,
+                        registeredAt: new Date().toISOString(),
+                        submissionTitle: event.submissionTitle || null,
+                        submissionAbstract: event.submissionAbstract || null,
+                        submissionUrl: event.submissionUrl || null
+                    }
+                }));
+                regItemsForEmail.push({ regId: regId, title: event.title, dept: event.dept, paidAmount: finalAmount, teamName: event.teamName });
+            }
+            totalBaseForEmail += finalAmount;
+        });
+
+        await Promise.all(processPromises);
+
+        // 7. CLEAR CART & FETCH USER NAME
+        try { await docClient.send(new DeleteCommand({ TableName: 'Lakshya_Cart', Key: { email: user.email } })); } catch(e) {}
+        
+        let userName = user.name || "Participant";
+        try {
+            const u = await docClient.send(new GetCommand({ TableName: 'Lakshya_Users', Key: { email: user.email }}));
+            if(u.Item) userName = u.Item.fullName;
+        } catch(e) {}
+
+        // 8. SEND EMAILS (Original Templates)
+        if (regItemsForEmail.length > 0) {
+            const totalPaid = payment.amount / 100;
+            const platformFee = totalPaid - totalBaseForEmail; 
+
+            // Template 1: Registration Confirmed
+            const eventsHtml = regItemsForEmail.map(item => `
+                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #00d2ff;">
+                    <p style="margin: 5px 0;"><strong>Event:</strong> ${item.title}</p>
+                    <p style="margin: 5px 0;"><strong>Reg ID:</strong> ${item.regId}</p>
+                    <p style="margin: 5px 0;"><strong>Dept:</strong> ${item.dept}</p>
+                    ${item.teamName ? `<p style="margin: 5px 0;"><strong>Team:</strong> ${item.teamName}</p>` : ''}
+                    <div style="margin-top: 15px;">
+                        <a href="${CLIENT_URL}receipt-view?id=${item.regId}" style="display: inline-block; background-color: #00d2ff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px;">View Ticket</a>
+                    </div>
+                </div>`).join('');
+
+            const regEmailHtml = `
+                <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; border: 1px solid #eee; max-width: 600px; margin: 0 auto;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <img src="${logoUrl}" style="height: 50px;">
+                        <h2 style="color: #4fc3f7; margin: 10px 0;">Registration Confirmed</h2>
+                    </div>
+                    <p>Dear ${userName},</p>
+                    <p>Thank you for registering!</p>
+                    ${eventsHtml}
+                    <p style="color: #4CAF50; font-weight: bold;">Status: Payment Successful</p>
+                    <p style="color: #555; font-size: 14px; margin-top: 30px;">Best Regards,<br>Team LAKSHYA</p>
+                </div>`;
+            
+            // Template 2: Receipt
+            const paymentRows = regItemsForEmail.map(item => `
+                <tr>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.title}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">₹${item.paidAmount.toFixed(2)}</td>
+                </tr>`).join('');
+            
+            const receiptHtml = `
+                <div style="font-family: 'Segoe UI', sans-serif; border: 1px solid #eee; max-width: 600px; margin: 0 auto; border-radius: 8px; overflow: hidden;">
+                    <div style="background-color: #00d2ff; padding: 20px; text-align: center; color: white;">
+                        <img src="${logoUrl}" style="height: 40px; margin-bottom: 10px; background: rgba(255,255,255,0.2); padding: 5px; border-radius: 5px;">
+                        <h2 style="margin: 0;">PAYMENT RECEIPT</h2>
+                    </div>
+                    <div style="padding: 20px;">
+                        <p>Dear ${userName},</p>
+                        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                            <tr style="background-color: #f5f5f5;">
+                                <th style="padding: 10px; text-align: left;">Event</th>
+                                <th style="padding: 10px; text-align: right;">Amount</th>
+                            </tr>
+                            ${paymentRows}
+                            <tr><td style="padding: 8px; color: #888;">Platform Fee</td><td style="padding: 8px; text-align: right; color: #888;">₹${platformFee.toFixed(2)}</td></tr>
+                            <tr><td style="padding: 10px; font-weight: bold;">Total Paid</td><td style="padding: 10px; font-weight: bold; text-align: right;">₹${totalPaid.toFixed(2)}</td></tr>
+                        </table>
+                        <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #4CAF50;">
+                            <p style="margin: 5px 0; font-size: 13px;"><strong>Transaction ID:</strong> ${razorpay_payment_id}</p>
+                        </div>
+                    </div>
+                </div>`;
+
+            // Parallel Send
+            await Promise.all([
+                sendEmail(user.email, `Registration Confirmed`, regEmailHtml),
+                sendEmail(user.email, `Payment Receipt - Transaction ${razorpay_payment_id}`, receiptHtml)
+            ]);
+        }
+
+        res.json({ status: 'success' }); 
+
+    } catch (err) {
+        console.error("Verify Error:", err);
+        res.status(500).json({ error: 'Verification failed.' });
+    }
+});

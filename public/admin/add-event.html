@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Event | Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- COSMIC ADMIN THEME --- */
+        :root {
+            --primary-color: #00d2ff;
+            --accent-color: #ff00cc;
+            --glass-bg: rgba(15, 15, 25, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(0, 0, 0, 0.4);
+            --text-color: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #050510; color: var(--text-color); display: flex; min-height: 100vh; overflow-x: hidden; }
+
+        /* Background Image Layer */
+        .bg-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('../assets/admin-block.jpg') no-repeat center center/cover;
+            z-index: -2;
+        }
+        .overlay-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 12, 0.92); 
+            z-index: -1;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--glass-bg);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem;
+            display: flex; flex-direction: column;
+            flex-shrink: 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .logo { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--primary-color); margin-bottom: 3rem; text-align: center; }
+        .menu { list-style: none; flex-grow: 1; }
+        .menu li { margin-bottom: 1rem; }
+        .menu a {
+            text-decoration: none; color: #ccc; display: flex; align-items: center; gap: 10px;
+            padding: 12px 15px; border-radius: 8px; transition: 0.3s; font-weight: 500;
+        }
+        .menu a:hover, .menu a.active { background: rgba(0, 210, 255, 0.15); color: var(--primary-color); border: 1px solid rgba(0, 210, 255, 0.2); }
+        .logout { color: #ff4444; cursor: pointer; margin-top: auto; }
+
+        /* Main Content */
+        .main { flex-grow: 1; padding: 2rem; margin-left: 260px; overflow-y: auto; position: relative; z-index: 1; }
+        .container { max-width: 850px; margin: 0 auto; padding-bottom: 50px; }
+        
+        .page-header h2 { margin-bottom: 2rem; color: white; font-family: 'Montserrat', sans-serif; font-size: 2rem; }
+
+        /* --- FORM STYLES --- */
+        .glass-form {
+            background: rgba(30, 30, 40, 0.6);
+            border: 1px solid var(--glass-border);
+            padding: 2.5rem; border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            backdrop-filter: blur(15px);
+        }
+
+        .form-group { margin-bottom: 1.8rem; }
+        label { display: block; margin-bottom: 8px; font-size: 0.95rem; color: #ccc; font-weight: 500; }
+        
+        input[type="text"], input[type="number"], select, textarea, input[type="file"] {
+            width: 100%; padding: 14px 16px;
+            background: var(--input-bg); 
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px; 
+            color: white; font-size: 1rem; outline: none; transition: 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.1);
+            background: rgba(0,0,0,0.6);
+        }
+
+        select option { background: #1a1a2e; color: white; padding: 10px; }
+
+        /* Department Grid */
+        .dept-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;
+            background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .dept-checkbox { 
+            display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: #ddd; 
+            cursor: pointer; padding: 8px; border-radius: 5px; transition: 0.2s;
+        }
+        .dept-checkbox:hover { background: rgba(255,255,255,0.05); }
+        .dept-checkbox input { width: 18px; height: 18px; accent-color: var(--primary-color); cursor: pointer; }
+
+        /* Dynamic Sections */
+        .dynamic-section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px dashed var(--glass-border);
+            padding: 1.5rem; margin-bottom: 1.5rem; border-radius: 10px; position: relative;
+        }
+        .remove-btn {
+            position: absolute; top: 10px; right: 10px; color: #ff4444; cursor: pointer; font-size: 1.2rem;
+        }
+        .add-section-btn {
+            background: transparent; border: 1px dashed var(--primary-color); color: var(--primary-color);
+            width: 100%; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s;
+        }
+        .add-section-btn:hover { background: rgba(0, 210, 255, 0.1); }
+
+        /* Buttons */
+        .btn-submit {
+            width: 100%; padding: 16px; 
+            background: linear-gradient(135deg, var(--primary-color), #00a8cc); 
+            color: black; border: none; border-radius: 8px; 
+            cursor: pointer; font-weight: 700; font-size: 1.1rem; letter-spacing: 1px;
+            transition: 0.3s; margin-top: 20px; text-transform: uppercase;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 0 20px rgba(0, 210, 255, 0.4); }
+        .btn-cancel { display: block; text-align: center; margin-top: 15px; color: #aaa; text-decoration: none; font-size: 0.9rem; transition: 0.3s; }
+        .btn-cancel:hover { color: white; }
+
+        @media(max-width: 768px) {
+            .sidebar { display: none; } 
+            .main { margin-left: 0; padding: 1rem; }
+            .dept-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">LAKSHYA ADMIN</div>
+        <ul class="menu">
+            <li><a href="dashboard" >
+    <i class="fa-solid fa-gauge-high"></i> Dashboard
+</a></li>
+
+<li><a href="registrations">
+    <i class="fa-solid fa-clipboard-list"></i> Registrations
+</a></li>
+
+<li><a href="add-event" class="active">
+    <i class="fa-solid fa-calendar-plus"></i> Add Event
+</a></li>
+
+<li><a href="departments">
+    <i class="fa-solid fa-building-columns"></i> Departments
+</a></li>
+
+<li><a href="manage-users">
+    <i class="fa-solid fa-users"></i> Users
+</a></li>
+
+<li><a href="committee">
+    <i class="fa-solid fa-user-tie"></i> Committee
+</a></li>
+
+<li><a href="setup-scoring">
+    <i class="fa-solid fa-sliders"></i> Setup Scoring
+</a></li>
+
+<li><a href="view-scores">
+    <i class="fa-solid fa-square-poll-vertical"></i> View Scores
+</a></li>
+ <li><a onclick="logout()" class="logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <div class="page-header">
+                <h2>Create New Event</h2>
+            </div>
+            
+            <div class="glass-form">
+                <form onsubmit="event.preventDefault(); addEvent();">
+                    
+                    <!-- Basic Info -->
+                    <div class="form-group">
+                        <label>Event Name</label>
+                        <input type="text" id="eventName" placeholder="Enter event title" required>
+                    </div>
+
+                    <!-- ADDED: Short Description Field -->
+                    <div class="form-group">
+                        <label>Short Description (Card Summary)</label>
+                        <textarea id="eventDesc" rows="2" placeholder="A brief summary that appears on the event card..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Event Image / Banner</label>
+                        <input type="file" id="eventImage" accept="image/*">
+                        <small style="color:#888; display:block; margin-top:5px;">Upload an image for the event card.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Event Type</label>
+                        <select id="eventType">
+                            <option value="Major">Major Event</option>
+                            <option value="Special">Special Event</option>
+                            <option value="MBA">Management Event</option>
+                            <option value="Cultural">Cultural</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Eligible Departments</label>
+                        <div class="dept-grid" id="deptCheckboxes">
+                            <span style="color:#888;">Loading departments...</span>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label>Team Size (Max)</label>
+                            <input type="number" id="teamSize" value="1" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Registration Fee (₹)</label>
+                            <input type="number" id="fee" value="0" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Description Sections -->
+                    <div class="form-group">
+                        <label>Detailed Rules & Info (Displayed in Modal)</label>
+                        <div id="sectionsContainer">
+                            <!-- Default first section -->
+                            <div class="dynamic-section">
+                                <input type="text" placeholder="Section Title (e.g., Rules)" class="section-title" required style="margin-bottom:10px; font-weight:bold;">
+                                <textarea rows="3" placeholder="Content for this section..." class="section-content" required></textarea>
+                            </div>
+                        </div>
+                        <button type="button" class="add-section-btn" onclick="addSection()">+ Add Another Section</button>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="submitBtn">Create Event</button>
+                    <a href="dashboard " class="btn-cancel">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 1. Load Departments
+        async function loadDepts() {
+            const container = document.getElementById('deptCheckboxes');
+            try {
+                const res = await fetch('/api/admin/departments');
+                if(!res.ok) throw new Error("Failed");
+                const departments = await res.json();
+                
+                container.innerHTML = '';
+                if(departments.length === 0) {
+                    container.innerHTML = '<span style="color:#aaa;">No departments found.</span>';
+                    return;
+                }
+                departments.sort((a, b) => a.name.localeCompare(b.name));
+                departments.forEach(dept => {
+                    const label = document.createElement('label');
+                    label.className = 'dept-checkbox';
+                    label.innerHTML = `<input type="checkbox" value="${dept.name}" checked> ${dept.name}`;
+                    container.appendChild(label);
+                });
+            } catch (e) {
+                container.innerHTML = '<span style="color:red;">Error loading depts</span>';
+            }
+        }
+        loadDepts();
+
+        // 2. Dynamic Sections Logic
+        function addSection() {
+            const container = document.getElementById('sectionsContainer');
+            const div = document.createElement('div');
+            div.className = 'dynamic-section';
+            div.innerHTML = `
+                <span class="remove-btn" onclick="this.parentElement.remove()"><i class="fa-solid fa-times"></i></span>
+                <input type="text" placeholder="Section Title (e.g., Rules)" class="section-title" required style="margin-bottom:10px; font-weight:bold;">
+                <textarea rows="3" placeholder="Content for this section..." class="section-content" required></textarea>
+            `;
+            container.appendChild(div);
+        }
+
+        // 3. Submit Logic (Handles Image & Dynamic Data)
+        async function addEvent() {
+            const btn = document.getElementById('submitBtn');
+            btn.innerText = "Creating..."; btn.disabled = true;
+
+            // Get Form Data
+            const title = document.getElementById('eventName').value;
+            const description = document.getElementById('eventDesc').value; // Added Description
+            const type = document.getElementById('eventType').value;
+            const teamSize = document.getElementById('teamSize').value;
+            const fee = document.getElementById('fee').value;
+            const imageInput = document.getElementById('eventImage');
+
+            // Departments
+            const departments = [];
+            document.querySelectorAll('#deptCheckboxes input:checked').forEach(cb => departments.push(cb.value));
+
+            // Dynamic Sections
+            const sections = [];
+            document.querySelectorAll('.dynamic-section').forEach(sec => {
+                sections.push({
+                    heading: sec.querySelector('.section-title').value,
+                    content: sec.querySelector('.section-content').value
+                });
+            });
+
+            // USE FORM DATA for file upload
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('description', description); // Append Description
+            formData.append('type', type);
+            formData.append('teamSize', teamSize);
+            formData.append('fee', fee);
+            formData.append('departments', JSON.stringify(departments)); // Send array as JSON string
+            formData.append('sections', JSON.stringify(sections));       // Send array as JSON string
+            
+            // Append image if selected
+            if(imageInput.files[0]) {
+                formData.append('image', imageInput.files[0]);
+            }
+
+            try {
+                const res = await fetch('/api/admin/add-event', {
+                    method: 'POST',
+                    // Note: Do NOT set Content-Type header when sending FormData, browser does it automatically
+                    body: formData
+                });
+
+                if(res.ok) {
+                    alert("Event Created Successfully!");
+                    window.location.href = 'dashboard ';
+                } else {
+                    alert("Failed to create event.");
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Error connecting to server.");
+            } finally {
+                btn.innerText = "Create Event";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

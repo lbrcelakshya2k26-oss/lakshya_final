@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhonePe Secure Payment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root { --brand-purple: #5f259f; --brand-purple-dark: #4a1c7c; }
+        .bg-brand { background-color: var(--brand-purple); }
+        .text-brand { color: var(--brand-purple); }
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .bank-option.selected { border-color: var(--brand-purple); background-color: #f3e8ff; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
+
+    <!-- HEADER -->
+    <header class="bg-brand text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-brand font-bold text-xl select-none">Pe</div>
+                <span class="font-semibold text-lg tracking-wide hidden sm:block">PhonePe</span>
+            </div>
+            <div class="flex flex-col items-end">
+                <span class="text-xs opacity-80">Payable Amount</span>
+                <span class="font-bold text-lg" id="displayAmount">₹0</span>
+            </div>
+        </div>
+        <div class="bg-purple-800 text-xs text-center py-1 text-purple-200">
+            Session expires in <span id="timer" class="font-mono font-bold text-white">09:59</span>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-grow w-full max-w-4xl mx-auto p-4 md:py-8 grid grid-cols-1 md:grid-cols-12 gap-6">
+        <!-- SIDEBAR -->
+        <aside class="md:col-span-4 space-y-4">
+            <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-500">Transaction ID</span>
+                    <span class="text-xs font-mono bg-gray-100 px-2 py-1 rounded" id="txnId">T---</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-500">Merchant</span>
+                    <span class="font-medium">LAKSHYA 2K26</span>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-3 bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">Payment Instruments</div>
+                <nav class="flex flex-col" id="methodList">
+                    <button onclick="switchTab('upi')" class="method-btn active flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors border-l-4 border-brand text-left w-full"><i data-lucide="smartphone" class="w-5 h-5 text-brand"></i><div class="flex-1"><p class="font-medium text-sm">UPI</p></div></button>
+                    <button onclick="switchTab('card')" class="method-btn flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors border-l-4 border-transparent text-left w-full"><i data-lucide="credit-card" class="w-5 h-5 text-gray-400"></i><div class="flex-1"><p class="font-medium text-sm">Card</p></div></button>
+                    <button onclick="switchTab('netbanking')" class="method-btn flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors border-l-4 border-transparent text-left w-full"><i data-lucide="landmark" class="w-5 h-5 text-gray-400"></i><div class="flex-1"><p class="font-medium text-sm">Net Banking</p></div></button>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- RIGHT PANEL -->
+        <div class="md:col-span-8 bg-white rounded-lg shadow-md border border-gray-100 min-h-[400px] relative overflow-hidden">
+            <!-- UPI SECTION -->
+            <div id="upi" class="tab-content active h-full flex flex-col">
+                <div class="p-6 border-b border-gray-100"><h2 class="font-bold text-lg text-gray-800">Pay via UPI</h2></div>
+                <div class="p-6 flex-grow flex flex-col md:flex-row gap-8 items-center justify-center">
+                    <div class="flex flex-col items-center">
+                         <div class="w-48 h-48 bg-gray-900 rounded flex items-center justify-center relative overflow-hidden mb-4">
+                             <div class="absolute inset-0 opacity-20 bg-white"></div>
+                             <i data-lucide="qr-code" class="w-32 h-32 text-white relative z-10"></i>
+                             <div class="absolute bg-white p-1 rounded-sm z-20"><div class="w-4 h-4 bg-brand rounded-sm flex items-center justify-center text-[8px] text-white font-bold">Pe</div></div>
+                         </div>
+                         <p class="text-sm font-medium text-gray-700">Scan QR to Pay</p>
+                    </div>
+                    <div class="w-full max-w-xs">
+                        <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Or Enter UPI ID</label>
+                        <input type="text" placeholder="mobile@ybl" class="w-full border border-gray-300 rounded-md px-4 py-3 mb-4 focus:ring-2 focus:ring-purple-500 outline-none">
+                        <button onclick="processPayment()" class="w-full bg-brand text-white font-bold py-3 rounded-md hover:bg-purple-800 shadow-lg transition-colors">Verify & Pay</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD SECTION -->
+            <div id="card" class="tab-content h-full flex flex-col">
+                <div class="p-6 border-b border-gray-100"><h2 class="font-bold text-lg text-gray-800">Enter Card Details</h2></div>
+                <div class="p-6 max-w-md mx-auto w-full space-y-4">
+                    <input type="text" placeholder="Card Number" class="w-full border border-gray-300 rounded-md px-4 py-3 outline-none focus:ring-2 focus:ring-purple-500">
+                    <div class="flex gap-4">
+                        <input type="text" placeholder="MM/YY" class="w-full border border-gray-300 rounded-md px-4 py-3 outline-none focus:ring-2 focus:ring-purple-500">
+                        <input type="password" placeholder="CVV" class="w-full border border-gray-300 rounded-md px-4 py-3 outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <button onclick="processPayment()" class="w-full bg-brand text-white font-bold py-3 rounded-md hover:bg-purple-800 shadow-lg mt-4 transition-colors">Pay Now</button>
+                </div>
+            </div>
+
+            <!-- NETBANKING -->
+            <div id="netbanking" class="tab-content h-full flex flex-col">
+                <div class="p-6 border-b border-gray-100"><h2 class="font-bold text-lg text-gray-800">Select Bank</h2></div>
+                <div class="p-6 grid grid-cols-3 gap-3">
+                    <button onclick="processPayment()" class="border border-gray-200 rounded-lg p-4 hover:border-brand hover:bg-purple-50 flex flex-col items-center gap-2"><div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">SBI</div><span class="text-xs">SBI</span></button>
+                    <button onclick="processPayment()" class="border border-gray-200 rounded-lg p-4 hover:border-brand hover:bg-purple-50 flex flex-col items-center gap-2"><div class="w-8 h-8 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-bold text-xs">HDFC</div><span class="text-xs">HDFC</span></button>
+                    <button onclick="processPayment()" class="border border-gray-200 rounded-lg p-4 hover:border-brand hover:bg-purple-50 flex flex-col items-center gap-2"><div class="w-8 h-8 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-xs">ICICI</div><span class="text-xs">ICICI</span></button>
+                </div>
+            </div>
+            
+            <!-- PROCESSING OVERLAY -->
+            <div id="processing" class="absolute inset-0 bg-white z-50 hidden flex-col items-center justify-center">
+                <div class="loader mb-4"></div>
+                <h3 class="text-xl font-bold text-gray-800">Processing Payment</h3>
+                <p class="text-gray-500 text-sm mt-2">Do not press back or refresh.</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+        
+        // 1. Get Params from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const amount = urlParams.get('amount') || '500';
+        const sourcePage = urlParams.get('source') || 'index.html';
+        
+        document.getElementById('displayAmount').innerText = '₹' + parseInt(amount).toLocaleString();
+        document.getElementById('txnId').innerText = 'T' + Math.floor(Math.random() * 1000000000);
+
+        // 2. Tab Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            document.querySelectorAll('.method-btn').forEach(btn => {
+                btn.classList.remove('active', 'border-brand');
+                btn.classList.add('border-transparent');
+                btn.querySelector('i').classList.remove('text-brand');
+                btn.querySelector('i').classList.add('text-gray-400');
+            });
+            const activeBtn = document.querySelector(`button[onclick="switchTab('${tabId}')"]`);
+            activeBtn.classList.add('active', 'border-brand');
+            activeBtn.classList.remove('border-transparent');
+            activeBtn.querySelector('i').classList.add('text-brand');
+        }
+
+        // 3. Process Payment Logic
+        function processPayment() {
+            document.getElementById('processing').classList.remove('hidden');
+            document.getElementById('processing').style.display = 'flex';
+            
+            // Simulate API Delay
+            setTimeout(() => {
+                // Redirect back to Source Page with SUCCESS status
+                const returnUrl = new URL(sourcePage, window.location.origin);
+                returnUrl.searchParams.set('status', 'success');
+                returnUrl.searchParams.set('payment_id', 'PAY' + Math.floor(Math.random() * 10000));
+                window.location.href = returnUrl.toString();
+            }, 3000);
+        }
+        
+        // CSS for Loader
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .loader { border: 4px solid #f3f3f3; border-top: 4px solid #5f259f; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

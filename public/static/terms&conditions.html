@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms & Conditions | LAKSHYA 2K26</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- COSMIC THEME --- */
+        :root {
+            --primary-color: #00d2ff;
+            --secondary-color: #3a7bd5;
+            --accent-color: #ff00cc;
+            --glass-bg: rgba(20, 20, 35, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #050510; color: var(--text-color); overflow-x: hidden; }
+
+        /* Background */
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('/assets/admin-block.jpg') no-repeat center center/cover; z-index: -2; opacity: 0.4; }
+        .overlay-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 12, 0.95); z-index: -1; }
+
+        /* Header */
+        header {
+            padding: 20px 5%; display: flex; justify-content: space-between; align-items: center;
+            background: var(--glass-bg); border-bottom: 1px solid var(--glass-border); backdrop-filter: blur(10px);
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .logo { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.5rem; color: var(--primary-color); text-decoration: none; }
+        
+        .container { max-width: 900px; margin: 40px auto; padding: 20px; }
+        
+        .terms-box {
+            background: rgba(30, 30, 40, 0.6); border: 1px solid var(--glass-border);
+            border-radius: 15px; padding: 3rem; box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 { font-family: 'Montserrat', sans-serif; color: white; margin-bottom: 10px; font-size: 2.5rem; text-align: center; }
+        .last-updated { text-align: center; color: #aaa; font-size: 0.9rem; margin-bottom: 40px; }
+
+        h2 { color: var(--primary-color); margin-top: 30px; margin-bottom: 15px; font-size: 1.4rem; border-left: 4px solid var(--accent-color); padding-left: 15px; }
+        
+        p, li { color: #ddd; line-height: 1.7; margin-bottom: 15px; font-size: 1rem; }
+        ul { margin-left: 20px; list-style-type: disc; }
+        
+        .highlight { color: var(--accent-color); font-weight: bold; }
+
+        .payment-icons { display: flex; gap: 15px; margin: 20px 0; justify-content: center; font-size: 2rem; color: #ccc; }
+        
+        .btn-back {
+            display: inline-block; margin-top: 30px; padding: 12px 30px;
+            background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color);
+            border-radius: 50px; text-decoration: none; font-weight: 600; transition: 0.3s;
+        }
+        .btn-back:hover { background: var(--primary-color); color: black; }
+
+        @media (max-width: 600px) {
+            .terms-box { padding: 1.5rem; }
+            h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <header>
+        <a href="/" class="logo">LAKSHYA 2K26</a>
+        <a href="/" class="btn-back" style="margin:0; padding: 8px 20px;">Home</a>
+    </header>
+
+    <div class="container">
+        <div class="terms-box">
+            <h1>Terms & Conditions</h1>
+            <p class="last-updated">Last Updated: November 2025</p>
+
+            <p>Welcome to <strong>LAKSHYA 2K26</strong>. By registering for events and making payments on our platform, you agree to the following terms and conditions. Please read them carefully.</p>
+
+            <h2>1. General Provisions</h2>
+            <ul>
+                <li><strong>Entity Name:</strong> These terms constitute an agreement between the participant ("User") and the LAKSHYA 2K26 Organizing Committee ("Organizers").</li>
+                <li><strong>Eligibility:</strong> Participation is open to students with a valid college ID card.</li>
+                <li><strong>Modifications:</strong> The committee reserves the right to modify these terms at any time without prior notice.</li>
+            </ul>
+
+            <h2>2. Registration & Delivery Policy</h2>
+            <ul>
+                <li><strong>Digital Delivery:</strong> Upon successful payment, the "Entry Pass" or "Event Registration" is generated immediately and delivered digitally to your registered email address and dashboard. No physical tickets are shipped.</li>
+                <li><strong>Accuracy:</strong> Participants are responsible for providing accurate details (Name, College, Team Members) during registration.</li>
+                <li><strong>Team Events:</strong> The team leader is responsible for the conduct and data accuracy of all team members.</li>
+            </ul>
+
+            <h2>3. Payment Terms</h2>
+            <p>All online payments are processed securely through our authorized payment gateway, <strong>Razorpay</strong>.</p>
+            <div class="payment-icons">
+                <i class="fa-brands fa-cc-visa"></i>
+                <i class="fa-brands fa-cc-mastercard"></i>
+                <i class="fa-solid fa-qrcode"></i>
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
+            <ul>
+                <li>We accept payments via UPI, Debit/Credit Cards, Net Banking, and Wallets.</li>
+                <li><strong>Currency:</strong> All transactions are processed in Indian Rupees (INR).</li>
+                <li><strong>Security:</strong> LAKSHYA 2K26 does not store your card details. All transaction data is encrypted and handled securely by Razorpay in compliance with PCI-DSS standards.</li>
+            </ul>
+
+            <h2>4. Refund & Cancellation</h2>
+            <p>Our refund policy is strict but fair. Please refer to our separate <a href="/refunds.html" style="color:var(--primary-color)">Refund Policy</a> page for detailed information on timelines (5-7 working days) and conditions.</p>
+
+            <h2>5. Code of Conduct</h2>
+            <p>Any form of misconduct, harassment, or violation of campus rules will lead to immediate disqualification and removal from the venue without refund.</p>
+
+            <h2>6. Governing Law</h2>
+            <p>These terms shall be governed by and constructed in accordance with the laws of India. Any disputes arising in relation to these terms shall be subject to the exclusive jurisdiction of the courts.</p>
+
+            <div style="text-align: center;">
+                <a href="javascript:history.back()" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Go Back</a>
+            </div>
+        </div>
+    </div>
+
+    <footer style="text-align: center; padding: 20px; color: #666; font-size: 0.8rem;">
+        &copy; 2026 LAKSHYA Fest Committee. All Rights Reserved. | Powered by Razorpay
+    </footer>
+</body>
+</html>

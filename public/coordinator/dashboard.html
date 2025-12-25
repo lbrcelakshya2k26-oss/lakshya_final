@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coordinator Dashboard | LAKSHYA 2K26</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="\assets\logo.png">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        /* --- COSMIC COORDINATOR THEME --- */
+        :root {
+            --primary-color: #00d2ff;
+            --accent-color: #ff00cc;
+            --glass-bg: rgba(20, 20, 35, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+            --sidebar-width: 260px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #050510; color: var(--text-color); display: flex; min-height: 100vh; overflow-x: hidden; }
+
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('../assets/admin-block.jpg') no-repeat center/cover; z-index: -2; }
+        .overlay-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,15,0.9); z-index: -1; }
+
+        /* --- SIDEBAR --- */
+        .sidebar { 
+            width: var(--sidebar-width); background: var(--glass-bg); border-right: 1px solid var(--glass-border); 
+            padding: 2rem; display: flex; flex-direction: column; z-index: 1000; height: 100vh; position: sticky; top: 0; 
+            transition: transform 0.3s ease-in-out;
+        }
+        .logo { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--primary-color); margin-bottom: 3rem; text-align: center; display: flex; justify-content: space-between; align-items: center; }
+        .menu { list-style: none; flex-grow: 1; } .menu li { margin-bottom: 1rem; }
+        .menu a { text-decoration: none; color: #ccc; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; transition: 0.3s; }
+        .menu a:hover, .menu a.active { background: rgba(0, 210, 255, 0.1); color: var(--primary-color); }
+        .logout { color: #ff4444; cursor: pointer; margin-top: auto; }
+
+        /* --- MOBILE HEADER --- */
+        .mobile-header {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 70px;
+            background: rgba(20, 20, 35, 0.95); border-bottom: 1px solid var(--glass-border);
+            z-index: 900; align-items: center; justify-content: space-between; padding: 0 20px;
+            backdrop-filter: blur(10px);
+        }
+        .mobile-logo { font-family: 'Montserrat', sans-serif; font-weight: 900; color: white; font-size: 1.2rem; }
+        .menu-toggle { font-size: 1.5rem; color: var(--primary-color); cursor: pointer; }
+        
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; }
+        .sidebar-overlay.active { display: block; }
+        .close-sidebar-btn { display: none; font-size: 1.2rem; color: white; cursor: pointer; }
+
+        /* --- MAIN CONTENT --- */
+        .main { flex-grow: 1; padding: 2rem; overflow-y: auto; z-index: 1; width: 100%; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 2rem; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .header h2 { font-family: 'Montserrat', sans-serif; font-size: 1.8rem; margin: 0; }
+
+        /* Header Actions */
+        .header-actions { display: flex; gap: 15px; }
+        .btn-report {
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            color: white; padding: 10px 20px; border-radius: 8px; border: none;
+            font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3); transition: 0.3s;
+        }
+        .btn-report:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 210, 255, 0.5); }
+
+        /* Stats Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); padding: 1.5rem; border-radius: 15px; position: relative; overflow: hidden; }
+        .stat-card::before { content:''; position: absolute; top:0; left:0; width: 4px; height: 100%; background: var(--primary-color); }
+        .stat-card h3 { font-size: 2.5rem; margin-bottom: 5px; color: white; font-family: 'Montserrat', sans-serif; }
+        .stat-card p { color: #aaa; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Charts */
+        .charts-container { display: grid; grid-template-columns: 1fr; gap: 2rem; margin-bottom: 2rem; }
+        .chart-card { background: rgba(20, 20, 35, 0.8); border: 1px solid var(--glass-border); border-radius: 15px; padding: 2rem; height: 400px; }
+        
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-box { background: #151520; width: 90%; max-width: 500px; padding: 2rem; border-radius: 15px; border: 1px solid var(--glass-border); position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        .modal-close { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 1.5rem; color: #aaa; }
+        
+        .modal-form select { width: 100%; padding: 12px; background: #0a0a12; border: 1px solid #444; color: white; border-radius: 6px; margin-bottom: 20px; outline: none; }
+        .modal-form h3 { color: var(--primary-color); margin-bottom: 20px; }
+        
+        .btn-download { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 10px; transition: 0.2s; }
+        .btn-dl-excel { background: rgba(76, 175, 80, 0.2); color: #4caf50; border: 1px solid #4caf50; }
+        .btn-dl-excel:hover { background: #4caf50; color: white; }
+        .btn-dl-pdf { background: rgba(244, 67, 54, 0.2); color: #ff4444; border: 1px solid #ff4444; }
+        .btn-dl-pdf:hover { background: #ff4444; color: white; }
+
+        @media (max-width: 1024px) {
+            .sidebar { position: fixed; left: -100%; width: 280px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
+            .sidebar.active { left: 0; transform: translateX(0); }
+            .mobile-header { display: flex; }
+            .close-sidebar-btn { display: block; }
+            .main { padding: 1.5rem; padding-top: 90px; width: 100%; margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <div class="mobile-header">
+        <div class="mobile-logo">DEPT COORD</div>
+        <i class="fa-solid fa-bars menu-toggle" onclick="toggleSidebar()"></i>
+    </div>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <main class="main">
+        <div class="header">
+            <div>
+                <h2 id="deptTitle">Dashboard</h2>
+            </div>
+            <button class="btn-report" onclick="openReportModal()">
+                <i class="fa-solid fa-file-arrow-down"></i> Generate Event Report
+            </button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3 id="totalReg">0</h3>
+                <p>Total Registrations</p>
+            </div>
+            <div class="stat-card" style="--primary-color: #4caf50;">
+                <h3 id="confirmedPay" style="color:#4caf50;">0</h3>
+                <p>Confirmed (Paid)</p>
+            </div>
+            <div class="stat-card" style="--primary-color: #ffc107;">
+                <h3 id="pendingPay" style="color:#ffc107;">0</h3>
+                <p>Pending Payment</p>
+            </div>
+            <div class="stat-card" style="--primary-color: #ff00cc;">
+                <h3 id="totalRevenue">₹0</h3>
+                <p>Actual Revenue</p>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-card">
+                <canvas id="eventChart"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- REPORT MODAL -->
+    <div class="modal-overlay" id="reportModal">
+        <div class="modal-box">
+            <span class="modal-close" onclick="closeReportModal()"><i class="fa-solid fa-xmark"></i></span>
+            <div class="modal-form">
+                <h3><i class="fa-solid fa-print"></i> Generate Report</h3>
+                <p style="color:#aaa; margin-bottom:15px; font-size:0.9rem;">Select an event to download the complete data sheet including members, contact info, attendance, and scores.</p>
+                
+                <select id="reportEventSelect">
+                    <option value="">-- Select Event --</option>
+                </select>
+
+                <button class="btn-download btn-dl-excel" onclick="downloadReport('excel')">
+                    <i class="fa-solid fa-file-excel"></i> Download Excel
+                </button>
+                <button class="btn-download btn-dl-pdf" onclick="downloadReport('pdf')">
+                    <i class="fa-solid fa-file-pdf"></i> Download Official PDF
+                </button>
+            </div>
+        </div>
+    </div>
+<script src="/js/common-menu.js"></script>
+    <script>
+        let allRegistrations = [];
+        let eventsMap = {};
+        let deptName = "";
+
+      
+
+        async function loadAnalytics() {
+            try {
+                // 1. Fetch Events
+                const eventsRes = await fetch('/api/events');
+                const eventsData = await eventsRes.json();
+                eventsData.forEach(e => eventsMap[e.eventId] = e.title);
+
+                // 2. Fetch Dashboard Data
+                const res = await fetch('/api/coordinator/dashboard-data');
+                if (res.redirected) { window.location.href = '../login'; return; }
+                
+                const data = await res.json();
+                allRegistrations = data.registrations;
+                deptName = data.dept || 'Department';
+                
+                document.getElementById('deptTitle').innerText = `${deptName} Analytics`;
+                
+                // Populate Stats
+                const total = allRegistrations.length;
+                const paid = allRegistrations.filter(r => r.paymentStatus === 'COMPLETED').length;
+                const pending = total - paid;
+                
+                // --- FIX: CALCULATE REVENUE FROM ACTUAL PAYMENTS ---
+                let totalRevenue = 0;
+                allRegistrations.forEach(r => {
+                    if (r.paymentStatus === 'COMPLETED') {
+                        // Use amountPaid from DB, fallback to 200 only if undefined, 
+                        // fallback to 0 if data is corrupt
+                        const val = parseFloat(r.amountPaid);
+                        if (!isNaN(val)) {
+                            totalRevenue += val;
+                        } else {
+                            // Only fallback to 200 if payment is marked complete but amount is missing
+                            // (Legacy data support)
+                            totalRevenue += 200; 
+                        }
+                    }
+                });
+
+                document.getElementById('totalReg').innerText = total;
+                document.getElementById('confirmedPay').innerText = paid;
+                document.getElementById('pendingPay').innerText = pending;
+                document.getElementById('totalRevenue').innerText = '₹' + totalRevenue.toLocaleString('en-IN'); // Formatted
+
+                // Populate Chart
+                const eventCounts = {};
+                allRegistrations.forEach(r => {
+                    const title = eventsMap[r.eventId] || "Unknown Event";
+                    eventCounts[title] = (eventCounts[title] || 0) + 1;
+                });
+                renderChart(eventCounts);
+
+                // Populate Report Dropdown
+                const reportSelect = document.getElementById('reportEventSelect');
+                const activeEventIds = [...new Set(allRegistrations.map(r => r.eventId))];
+                activeEventIds.forEach(eid => {
+                    const opt = document.createElement('option');
+                    opt.value = eid;
+                    opt.innerText = eventsMap[eid] || eid;
+                    reportSelect.appendChild(opt);
+                });
+
+            } catch (e) { console.error(e); }
+        }
+
+        function renderChart(dataObj) {
+            const ctx = document.getElementById('eventChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(dataObj),
+                    datasets: [{
+                        label: 'Registrations',
+                        data: Object.values(dataObj),
+                        backgroundColor: 'rgba(0, 210, 255, 0.5)',
+                        borderColor: '#00d2ff',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: 'white' } } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#aaa' } },
+                        x: { grid: { display: false }, ticks: { color: '#aaa' } }
+                    }
+                }
+            });
+        }
+
+        // --- REPORT GENERATION LOGIC ---
+
+        function openReportModal() { document.getElementById('reportModal').style.display = 'flex'; }
+        function closeReportModal() { document.getElementById('reportModal').style.display = 'none'; }
+
+        async function downloadReport(type) {
+            const eventId = document.getElementById('reportEventSelect').value;
+            if(!eventId) return alert("Please select an event.");
+
+            // 1. Filter Data
+            const reportData = allRegistrations.filter(r => r.eventId === eventId);
+            if(reportData.length === 0) return alert("No data for this event.");
+
+            // 2. Fetch Full User Details (Roll, College, Dept + Members + Mobile + Email)
+            const userMap = await fetchUserDetailsForReport(reportData);
+            const eventTitle = eventsMap[eventId] || "Event Report";
+
+            // 3. Map final dataset
+            const finalData = reportData.map((reg, index) => {
+                const user = userMap[reg.studentEmail] || {};
+                const leadName = user.fullName || "N/A";
+                const teamName = reg.teamName || "Individual";
+                const leadRoll = user.rollNo || "-";
+                const leadMobile = user.mobile || "N/A";
+                const leadEmail = reg.studentEmail || "N/A";
+                const college = user.college || "-";
+                const dept = user.dept || "-";
+                
+                // Show Paid Amount in Payment Column
+                let payment = reg.paymentStatus === 'COMPLETED' ? (reg.paymentMode || 'Paid') : 'Pending';
+                if(reg.paymentStatus === 'COMPLETED' && reg.amountPaid) {
+                    payment += ` (₹${reg.amountPaid})`;
+                }
+
+                const attendance = reg.attendance ? "Present" : "Absent";
+                const score = reg.totalScore || "0";
+
+                // Format Members
+                let membersStr = "";
+                if (reg.teamMembers && reg.teamMembers.length > 0) {
+                    membersStr = reg.teamMembers.map(m => {
+                        const mDetails = userMap[m.email] || {};
+                        const mRoll = mDetails.rollNo || m.rollNo || m.regNo || '-';
+                        const mMobile = mDetails.mobile || m.mobile || '-';
+                        return `${m.name} (${mRoll}) [${mMobile}]`;
+                    }).join(type === 'excel' ? "\n" : ", ");
+                } else {
+                    membersStr = "None";
+                }
+
+                return {
+                    sno: index + 1,
+                    team: teamName,
+                    lead: leadName,
+                    leadRoll: leadRoll,
+                    mobile: leadMobile,
+                    email: leadEmail,
+                    members: membersStr,
+                    college: college,
+                    dept: dept,
+                    payment: payment,
+                    attendance: attendance,
+                    score: score
+                };
+            });
+
+            if(type === 'excel') generateExcel(finalData, eventTitle);
+            else generatePDF(finalData, eventTitle);
+        }
+
+        async function fetchUserDetailsForReport(data) {
+            let emails = [];
+            data.forEach(r => {
+                if(r.studentEmail) emails.push(r.studentEmail);
+                if(r.teamMembers) r.teamMembers.forEach(m => { if(m.email) emails.push(m.email); });
+            });
+            
+            const uniqueEmails = [...new Set(emails)];
+            
+            try {
+                const res = await fetch('/api/coordinator/export-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ emails: uniqueEmails })
+                });
+                return await res.json();
+            } catch(e) { console.error(e); return {}; }
+        }
+
+        function generateExcel(data, title) {
+            const ws = XLSX.utils.json_to_sheet(data);
+            
+            // Set Column Widths
+            if(!ws['!cols']) ws['!cols'] = [];
+            ws['!cols'][6] = { wch: 60 }; // Member column width
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Report");
+            XLSX.writeFile(wb, `${title}_Report.xlsx`);
+        }
+
+        function generatePDF(data, title) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a3'); // Landscape A3 for better fit
+
+            // -- Header --
+            doc.setFontSize(20);
+            doc.setTextColor(0, 0, 0);
+            doc.text("LAKSHYA 2K26", 210, 20, null, null, "center"); // Center on A3 width (~420mm)
+            
+            doc.setFontSize(14);
+            doc.text(`Department: ${deptName}`, 210, 28, null, null, "center");
+            
+            doc.setFontSize(12);
+            doc.setTextColor(100);
+            doc.text(`Event Report: ${title}`, 14, 40);
+            doc.text(`Date: ${new Date().toLocaleDateString()}`, 350, 40);
+
+            // -- Table --
+            const tableBody = data.map(row => [
+                row.sno, 
+                row.team, 
+                row.lead, 
+                row.leadRoll, 
+                row.mobile, // Added Mobile
+                row.email,  // Added Email
+                row.members, 
+                row.college,
+                row.dept,
+                row.payment, 
+                row.attendance, 
+                row.score
+            ]);
+
+            doc.autoTable({
+                head: [['S.No', 'Team/ID', 'Lead Name', 'Roll No', 'Mobile', 'Email', 'Members (Name, Roll, Mobile)', 'College', 'Dept', 'Pay', 'Att', 'Score']],
+                body: tableBody,
+                startY: 45,
+                theme: 'grid',
+                styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
+                headStyles: { fillColor: [0, 210, 255], textColor: 255, halign: 'center' },
+                columnStyles: {
+                    5: { cellWidth: 40 }, // Email
+                    6: { cellWidth: 70 }, // Members (Wider)
+                    7: { cellWidth: 35 }, // College
+                }
+            });
+
+            // -- Signature Block (Bottom) --
+            const finalY = doc.lastAutoTable.finalY + 40; 
+            if (finalY > 250) doc.addPage();
+            
+            const pageHeight = doc.internal.pageSize.height;
+            const pageWidth = doc.internal.pageSize.width;
+            const sigY = finalY > 250 ? pageHeight - 40 : finalY;
+
+            doc.setFontSize(11);
+            doc.setTextColor(0);
+            doc.setLineWidth(0.5);
+
+            // Positions adjusted for A3 Landscape
+            // Coordinator
+            doc.line(30, sigY, 100, sigY);
+            doc.text("COORDINATOR SIGN", 45, sigY + 7);
+
+            // HOD
+            doc.line(170, sigY, 240, sigY);
+            doc.text("HOD SIGN", 190, sigY + 7);
+
+            // Judge
+            doc.line(310, sigY, 380, sigY);
+            doc.text("JUDGE SIGN", 330, sigY + 7);
+
+            doc.save(`${title}_Official_Report.pdf`);
+        }
+
+        function logout() { localStorage.clear(); window.location.href = '../login'; }
+        loadAnalytics();
+    </script>
+</body>
+</html>

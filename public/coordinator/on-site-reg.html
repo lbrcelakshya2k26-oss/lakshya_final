@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>On-Site Registration | LAKSHYA 2K26</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #00d2ff;
+            --accent-color: #ff00cc;
+            --glass-bg: rgba(20, 20, 35, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+            --sidebar-width: 260px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { 
+            background-color: #050510; 
+            color: var(--text-color); 
+            min-height: 100vh;
+            background: url('/assets/admin-block.jpg') no-repeat center/cover fixed;
+        }
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 15, 0.92); z-index: -1;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 2rem;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* --- SEARCH BOX --- */
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .search-box input {
+            flex-grow: 1;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.05);
+            color: white;
+            font-size: 1rem;
+            outline: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            color: white; border: none; padding: 10px 25px;
+            border-radius: 8px; font-weight: bold; cursor: pointer;
+            transition: 0.3s; display: flex; align-items: center; gap: 8px;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,210,255,0.4); }
+
+        /* --- STUDENT INFO --- */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .info-item label { color: #888; font-size: 0.8rem; text-transform: uppercase; }
+        .info-item p { font-weight: 600; font-size: 1.1rem; color: #fff; }
+
+        .discount-badge {
+            display: inline-block;
+            background: rgba(255, 0, 204, 0.1);
+            color: var(--accent-color);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            border: 1px solid var(--accent-color);
+            margin-top: 10px;
+        }
+
+        /* --- FORM --- */
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #ccc; }
+        .form-group select, .form-group input {
+            width: 100%; padding: 12px; border-radius: 6px;
+            background: rgba(0,0,0,0.3); border: 1px solid #444; color: white;
+            outline: none;
+        }
+
+        .billing-summary {
+            background: rgba(0,0,0,0.4);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 25px;
+            border-left: 4px solid var(--primary-color);
+        }
+        .price-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .price-row.total { 
+            border-top: 1px solid #444; padding-top: 10px; margin-top: 10px; 
+            font-weight: bold; font-size: 1.3rem; color: var(--primary-color);
+        }
+
+        .status-msg { margin-top: 15px; padding: 12px; border-radius: 6px; display: none; }
+        .status-msg.error { background: rgba(255, 68, 68, 0.1); color: #ff4444; border: 1px solid #ff4444; }
+        .status-msg.success { background: rgba(76, 175, 80, 0.1); color: #4caf50; border: 1px solid #4caf50; }
+
+        .team-section {
+            background: rgba(255,255,255,0.03);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        /* Loading Spinner */
+        .spinner { display: none; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 600px) { .container { margin: 10px auto; } }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1>On-Site Registration</h1>
+            <p style="color: #888;">Register participants and collect cash payments</p>
+        </div>
+
+        <!-- STEP 1: SEARCH -->
+        <div class="card">
+            <div class="search-box">
+                <input type="email" id="studentEmail" placeholder="Enter Student Email ID...">
+                <button class="btn-primary" onclick="searchStudent()" id="searchBtn">
+                    <span id="btnText">Verify Account</span>
+                    <div class="spinner" id="btnSpinner"></div>
+                </button>
+            </div>
+            <p id="searchHint" style="font-size: 0.85rem; color: #666;">Note: Student must have a website account already.</p>
+        </div>
+
+        <!-- STEP 2: STUDENT DETAILS & REGISTRATION -->
+        <div id="registrationArea" style="display: none;">
+            <div class="card">
+                <h3 style="margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+                    <i class="fa-solid fa-user-check"></i> Participant Profile
+                </h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Full Name</label>
+                        <p id="dispName">-</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Roll No / College</label>
+                        <p id="dispRoll">-</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Mobile</label>
+                        <p id="dispMobile">-</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Paid Events</label>
+                        <p id="dispHours">-</p>
+                    </div>
+                </div>
+                <div id="discountBanner" class="discount-badge" style="display: none;">
+                    <i class="fa-solid fa-bolt"></i> Loyalty Discount Active: 50% OFF
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-trophy"></i> Register for Event</h3>
+                
+                <div class="form-group">
+                    <label>Select Event</label>
+                    <select id="eventSelect" onchange="handleEventChange()">
+                        <option value="">-- Choose an Event --</option>
+                    </select>
+                </div>
+
+                <!-- Team Section -->
+                <div id="teamSection" class="team-section">
+                    <div class="form-group">
+                        <label>Team Name</label>
+                        <input type="text" id="teamName" placeholder="Enter team name">
+                    </div>
+                    <div id="teamMembersArea">
+                        <!-- Dynamic member inputs -->
+                    </div>
+                    <button class="btn-primary" style="background: rgba(255,255,255,0.1); border: 1px dashed #444; width: 100%; margin-top: 10px;" onclick="addMemberInput()">
+                        + Add Team Member
+                    </button>
+                </div>
+
+                <div class="billing-summary" id="billingSummary">
+                    <div class="price-row">
+                        <span>Standard Fee</span>
+                        <span id="billBase">₹0</span>
+                    </div>
+                    <div class="price-row" id="billDiscountRow" style="display: none; color: var(--accent-color);">
+                        <span>Loyalty Discount (50%)</span>
+                        <span id="billDiscount">-₹0</span>
+                    </div>
+                    <div class="price-row total">
+                        <span>Total to Collect (Cash)</span>
+                        <span id="billTotal">₹0</span>
+                    </div>
+                </div>
+
+                <div class="status-msg" id="statusMsg"></div>
+
+                <button class="btn-primary" style="width: 100%; margin-top: 25px; padding: 18px; font-size: 1.1rem;" onclick="processRegistration()" id="submitRegBtn">
+                    Confirm Registration & Payment
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let studentData = null;
+        let allEvents = [];
+        let selectedEvent = null;
+
+        // Load authorized events on page load
+        window.onload = async () => {
+            try {
+                const res = await fetch('/api/coordinator/my-events');
+                allEvents = await res.json();
+                const select = document.getElementById('eventSelect');
+                allEvents.forEach(e => {
+                    const opt = document.createElement('option');
+                    opt.value = e.eventId;
+                    opt.innerText = `${e.title} (${e.type})`;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Failed to load events", e);
+            }
+        };
+
+        async function searchStudent() {
+            const email = document.getElementById('studentEmail').value.trim();
+            if (!email) return alert("Please enter an email");
+
+            // UI Loading state
+            const btn = document.getElementById('searchBtn');
+            const spinner = document.getElementById('btnSpinner');
+            const btnText = document.getElementById('btnText');
+            
+            btn.disabled = true;
+            spinner.style.display = 'block';
+            btnText.style.display = 'none';
+
+            try {
+                const res = await fetch(`/api/coordinator/search-participant?email=${encodeURIComponent(email)}`);
+                const data = await res.json();
+
+                if (res.status !== 200) {
+                    alert(data.error || "Student not found");
+                    document.getElementById('registrationArea').style.display = 'none';
+                    return;
+                }
+
+                studentData = data;
+                displayStudentInfo();
+            } catch (e) {
+                alert("Server error looking up student");
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.style.display = 'block';
+            }
+        }
+
+        function displayStudentInfo() {
+            const area = document.getElementById('registrationArea');
+            area.style.display = 'block';
+            
+            document.getElementById('dispName').innerText = studentData.student.fullName;
+            document.getElementById('dispRoll').innerText = `${studentData.student.rollNo} / ${studentData.student.college}`;
+            document.getElementById('dispMobile').innerText = studentData.student.mobile;
+            document.getElementById('dispHours').innerText = studentData.historyCount;
+
+            const banner = document.getElementById('discountBanner');
+            banner.style.display = studentData.historyCount >= 1 ? 'inline-block' : 'none';
+            
+            // Scroll to details
+            area.scrollIntoView({ behavior: 'smooth' });
+            
+            // Trigger recalculation if event was already selected
+            handleEventChange();
+        }
+
+        function handleEventChange() {
+            const eid = document.getElementById('eventSelect').value;
+            selectedEvent = allEvents.find(e => e.eventId === eid);
+
+            if (!selectedEvent) {
+                document.getElementById('billingSummary').style.opacity = '0.5';
+                document.getElementById('teamSection').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('billingSummary').style.opacity = '1';
+
+            // Show Team Section if applicable
+            const teamSize = parseInt(selectedEvent.teamSize || '1');
+            document.getElementById('teamSection').style.display = teamSize > 1 ? 'block' : 'none';
+            if(teamSize > 1) {
+                document.getElementById('teamMembersArea').innerHTML = ''; // Reset
+                addMemberInput(); // Add first required slot
+            }
+
+            // Calculate Price
+            const baseFee = parseInt(selectedEvent.fee);
+            let finalPrice = baseFee;
+            let hasDiscount = false;
+
+            // Eligibility Helper (Simplified frontend logic mirroring backend)
+            const type = (selectedEvent.type || '').toLowerCase();
+            const eligible = ['major', 'mba', 'cultural', 'management'].some(k => type.includes(k)) && !type.includes('special');
+
+            if (eligible && studentData.historyCount >= 1) {
+                finalPrice = baseFee / 2;
+                hasDiscount = true;
+            }
+
+            // Update Billing UI
+            document.getElementById('billBase').innerText = `₹${baseFee}`;
+            if(hasDiscount) {
+                document.getElementById('billDiscountRow').style.display = 'flex';
+                document.getElementById('billDiscount').innerText = `-₹${baseFee / 2}`;
+            } else {
+                document.getElementById('billDiscountRow').style.display = 'none';
+            }
+            document.getElementById('billTotal').innerText = `₹${finalPrice}`;
+        }
+
+        function addMemberInput() {
+            const container = document.getElementById('teamMembersArea');
+            const div = document.createElement('div');
+            div.style.display = 'flex';
+            div.style.gap = '10px';
+            div.style.marginTop = '10px';
+            div.innerHTML = `
+                <input type="text" placeholder="Name" class="m-name" style="flex: 2">
+                <input type="email" placeholder="Email" class="m-email" style="flex: 3">
+                <button onclick="this.parentElement.remove()" style="background:none; border:none; color:#ff4444; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+            `;
+            container.appendChild(div);
+        }
+
+        async function processRegistration() {
+            const eid = document.getElementById('eventSelect').value;
+            if (!eid) return alert("Please select an event");
+
+            const btn = document.getElementById('submitRegBtn');
+            const msg = document.getElementById('statusMsg');
+
+            // Gather Team Members
+            const members = [];
+            document.querySelectorAll('#teamMembersArea div').forEach(div => {
+                const name = div.querySelector('.m-name').value;
+                const email = div.querySelector('.m-email').value;
+                if(name && email) members.push({ name, email });
+            });
+
+            const payload = {
+                studentEmail: studentData.student.email,
+                eventId: eid,
+                deptName: selectedEvent.departments ? selectedEvent.departments[0] : 'General',
+                teamName: document.getElementById('teamName').value,
+                teamMembers: members,
+                historyCount: studentData.historyCount
+            };
+
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+
+            try {
+                const res = await fetch('/api/coordinator/on-site-register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+
+                if (res.status === 200) {
+                    msg.className = 'status-msg success';
+                    msg.innerHTML = `<strong>Success!</strong> ${result.message}<br>Amount Collected: ₹${result.amountPaid}`;
+                    msg.style.display = 'block';
+                    setTimeout(() => window.location.reload(), 3000);
+                } else {
+                    msg.className = 'status-msg error';
+                    msg.innerText = result.error || "Registration failed";
+                    msg.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerText = "Confirm Registration & Payment";
+                }
+            } catch (e) {
+                alert("Network error processing registration");
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

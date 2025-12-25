@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registrations | Coordinator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="\assets\logo.png">
+    <!-- Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="/js/common-menu.js"></script>
+    <style>
+        /* --- COSMIC THEME VARIABLES --- */
+        :root {
+            --primary-color: #00d2ff;
+            --secondary-color: #3a7bd5;
+            --accent-color: #ff00cc;
+            --glass-bg: #141423; 
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+            --sidebar-width: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { 
+            background-color: #050510; color: var(--text-color); 
+            display: flex; min-height: 100vh; overflow-x: hidden; 
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- BACKGROUND LAYERS --- */
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('../assets/admin-block.jpg') no-repeat center/cover; z-index: -2; }
+        .overlay-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,15,0.9); z-index: -1; }
+
+        /* --- SIDEBAR --- */
+        .sidebar { 
+            width: var(--sidebar-width); background: var(--glass-bg); border-right: 1px solid var(--glass-border); 
+            padding: 2rem; display: flex; flex-direction: column; height: 100vh; position: sticky; top: 0; z-index: 1000; 
+            transition: transform 0.3s ease-in-out;
+        }
+        .logo { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--primary-color); margin-bottom: 3rem; text-align: center; display: flex; justify-content: space-between; align-items: center; }
+        .menu { list-style: none; flex-grow: 1; } .menu li { margin-bottom: 1rem; }
+        .menu a { text-decoration: none; color: #ccc; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; transition: 0.3s; }
+        .menu a:hover, .menu a.active { background: rgba(0, 210, 255, 0.1); color: var(--primary-color); border: 1px solid rgba(0,210,255,0.2); box-shadow: 0 0 15px rgba(0,210,255,0.1); }
+        .logout { color: #ff4444; cursor: pointer; margin-top: auto; border: 1px solid rgba(255,68,68,0.2); }
+        .logout:hover { background: rgba(255,68,68,0.1) !important; }
+
+        /* --- MOBILE NAV --- */
+        .mobile-header { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 70px; 
+            background: #141423; border-bottom: 1px solid var(--glass-border); 
+            z-index: 1100; align-items: center; justify-content: space-between; padding: 0 20px; 
+        }
+        .mobile-logo { font-family: 'Montserrat', sans-serif; font-weight: 900; color: white; font-size: 1.2rem; }
+        .menu-toggle { font-size: 1.5rem; color: var(--primary-color); cursor: pointer; }
+        
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; }
+        .sidebar-overlay.active { display: block; }
+        .close-sidebar-btn { display: none; font-size: 1.2rem; color: white; cursor: pointer; }
+
+        /* --- MAIN CONTENT --- */
+        .main { flex-grow: 1; padding: 2rem; overflow-y: auto; z-index: 1; width: 100%; }
+        
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        h2 { font-family: 'Montserrat', sans-serif; color: var(--primary-color); margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+        .user-info { font-size: 0.9rem; color: #aaa; display: flex; align-items: center; gap: 10px; }
+
+        /* --- CONTROLS BAR --- */
+        .controls-bar {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
+            padding: 15px; border-radius: 10px; margin-bottom: 20px;
+            display: flex; gap: 15px; align-items: center; flex-wrap: wrap;
+        }
+        
+        select, input {
+            padding: 12px; background: #151520; border: 1px solid #444; color: white; 
+            border-radius: 6px; outline: none; font-family: 'Poppins';
+        }
+        select { min-width: 200px; cursor: pointer; }
+        input { flex-grow: 1; min-width: 220px; }
+        input:focus, select:focus { border-color: var(--primary-color); }
+
+        .btn { 
+            padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; 
+            font-weight: 600; color: white; display: flex; align-items: center; gap: 8px; 
+            transition: 0.3s; font-size: 0.9rem;
+        }
+        .btn-excel { background: rgba(31, 111, 74, 0.8); border: 1px solid #2e8b57; } 
+        .btn-excel:hover { background: #2e8b57; transform: translateY(-2px); }
+        
+        .btn-pdf { background: rgba(211, 47, 47, 0.8); border: 1px solid #b71c1c; } 
+        .btn-pdf:hover { background: #b71c1c; transform: translateY(-2px); }
+
+        /* --- TABLE --- */
+        .table-wrapper { 
+            background: rgba(20, 20, 35, 0.8); border-radius: 15px; padding: 0; 
+            overflow: hidden; border: 1px solid var(--glass-border); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .table-scroll { overflow-x: auto; }
+        
+        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        th, td { padding: 15px 20px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        th { background: rgba(0, 210, 255, 0.05); color: var(--primary-color); font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
+        td { color: #ddd; font-size: 0.9rem; }
+        tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+        .click-link { color: var(--primary-color); cursor: pointer; text-decoration: underline; font-weight: 500; transition: 0.2s; }
+        .click-link:hover { color: white; text-shadow: 0 0 10px var(--primary-color); }
+        
+        .badge { padding: 5px 10px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; }
+        .badge-paid { background: rgba(76, 175, 80, 0.15); color: #4caf50; border: 1px solid rgba(76, 175, 80, 0.3); }
+        .badge-pending { background: rgba(255, 193, 7, 0.15); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.3); }
+
+        /* --- MODAL --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-box { background: #151520; padding: 2rem; border-radius: 15px; border: 1px solid var(--glass-border); width: 90%; max-width: 900px; max-height: 90vh; overflow-y: auto; box-shadow: 0 0 50px rgba(0,0,0,0.8); position: relative; }
+        .modal-close { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 1.5rem; color: #aaa; transition: 0.2s; }
+        .modal-close:hover { color: #ff4444; transform: rotate(90deg); }
+        
+        .detail-section-title { color: var(--primary-color); margin: 20px 0 10px 0; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px; font-size: 1.1rem; }
+        .detail-row { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 0; font-size: 0.9rem; }
+        .detail-label { color: #aaa; }
+        .detail-val { color: white; font-weight: 500; text-align: right; }
+
+        .team-table { width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 0.85rem; }
+        .team-table th { text-align: left; color: var(--secondary-color); background: rgba(255,255,255,0.05); padding: 8px; font-weight: 600; }
+        .team-table td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #ddd; }
+
+        /* --- RESPONSIVE --- */
+        @media(max-width: 1024px) { 
+            .sidebar { 
+                position: fixed; left: 0; top: 0; height: 100vh; 
+                transform: translateX(-100%); box-shadow: 10px 0 30px rgba(0,0,0,0.5); 
+            }
+            .sidebar.active { transform: translateX(0); }
+            .mobile-header { display: flex; }
+            .close-sidebar-btn { display: block; }
+            .main { width: 100%; margin-left: 0; padding: 1.5rem; padding-top: 90px; }
+            .controls-bar { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Backgrounds -->
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <!-- Mobile Header -->
+    
+    <!-- Sidebar -->
+   
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="page-header">
+            <h2>Student Registrations</h2>
+            <div class="user-info">Coordinator Panel <i class="fa-solid fa-circle-user"></i></div>
+        </div>
+
+        <div class="controls-bar">
+            <select id="eventSelect" onchange="filterData()">
+                <option value="all">All Events</option>
+                <!-- Options populated by JS -->
+            </select>
+            
+            <input type="text" id="searchInput" placeholder="Search Name, Team, Email, Roll No..." onkeyup="filterData()">
+            
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-excel" onclick="exportExcel()"><i class="fa-solid fa-file-excel"></i> Excel</button>
+                <button class="btn btn-pdf" onclick="exportPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <div class="table-scroll">
+                <table id="regTable">
+                    <thead>
+                        <tr>
+                            <th>Team / Participant</th>
+                            <th>Lead Roll No</th>
+                            <th>Department</th>
+                            <th>Event Name</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="6" style="text-align:center; padding:30px;">Loading registrations...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Detail Modal -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-box">
+            <span class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></span>
+            <h3 style="color:var(--primary-color); margin-bottom:10px; font-family:'Montserrat';" id="modalTitle">Details</h3>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- STATE MANAGEMENT ---
+        let allRegistrations = [];
+        let filteredRegistrations = [];
+        let eventsMap = {};
+        let userDetailsMap = {}; 
+        let deptName = "";
+
+      
+
+        // --- INITIALIZATION ---
+        async function init() {
+            try {
+                // 1. Fetch Events
+                const eventsRes = await fetch('/api/events');
+                const eventsData = await eventsRes.json();
+                eventsData.forEach(e => eventsMap[e.eventId] = e.title);
+
+                // 2. Populate Dropdown
+                const myEventsRes = await fetch('/api/coordinator/my-events');
+                const myEvents = await myEventsRes.json();
+                const eventSelect = document.getElementById('eventSelect');
+                myEvents.forEach(e => {
+                    const opt = document.createElement('option');
+                    opt.value = e.eventId;
+                    opt.innerText = e.title;
+                    eventSelect.appendChild(opt);
+                });
+
+                // 3. Fetch Registrations
+                const res = await fetch('/api/coordinator/dashboard-data');
+                if (res.redirected) { window.location.href = '../login'; return; }
+                
+                const data = await res.json();
+                allRegistrations = data.registrations;
+                deptName = data.dept || 'Dept';
+                
+                // 4. Bulk Fetch User Details (Updated to include Team Members)
+                await bulkFetchUserDetails(allRegistrations);
+
+                // Initial Render
+                filteredRegistrations = allRegistrations;
+                renderTable(filteredRegistrations);
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">Error loading data. Refresh page.</td></tr>';
+            }
+        }
+
+        // --- FETCH USER DETAILS (LEADERS AND MEMBERS) ---
+        async function bulkFetchUserDetails(registrations) {
+            let emails = [];
+            
+            registrations.forEach(r => {
+                // 1. Add Leader Email
+                if (r.studentEmail) emails.push(r.studentEmail);
+                
+                // 2. Add Team Member Emails (To get their Roll No)
+                if (r.teamMembers && Array.isArray(r.teamMembers)) {
+                    r.teamMembers.forEach(m => {
+                        if (m.email) emails.push(m.email);
+                    });
+                }
+            });
+
+            // Remove duplicates
+            emails = [...new Set(emails)];
+
+            if (emails.length === 0) return;
+
+            try {
+                const res = await fetch('/api/coordinator/export-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ emails: emails })
+                });
+                if (!res.ok) throw new Error("Failed to fetch");
+                userDetailsMap = await res.json();
+            } catch (err) {
+                console.error("Failed to fetch user details", err);
+            }
+        }
+
+        // --- RENDER TABLE ---
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if(data.length === 0) { 
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#aaa;">No records found.</td></tr>'; 
+                return; 
+            }
+
+            data.forEach(reg => {
+                const eventName = eventsMap[reg.eventId] || reg.eventId;
+                const user = userDetailsMap[reg.studentEmail] || {};
+                const badgeClass = reg.paymentStatus === 'COMPLETED' ? 'badge-paid' : 'badge-pending';
+                
+                let displayName = reg.teamName ? reg.teamName : (user.fullName || reg.studentEmail);
+                let subText = reg.teamName ? "Team Lead: " + (user.fullName || "N/A") : "Individual";
+                let icon = reg.teamName ? '<i class="fa-solid fa-users"></i>' : '<i class="fa-solid fa-user"></i>';
+                let displayColor = reg.teamName ? 'var(--accent-color)' : 'white';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <span style="color:${displayColor}; font-weight:600;">${icon} &nbsp; ${displayName}</span><br>
+                            <small style="color:#888; margin-left:25px;">${subText}</small>
+                        </td>
+                        <td>${user.rollNo || '-'}</td>
+                        <td>${user.dept || '-'}</td>
+                        <td>${eventName}</td>
+                        <td><span class="badge ${badgeClass}">${reg.paymentStatus}</span></td>
+                        <td><span class="click-link" onclick="viewDetails('${reg.registrationId}')">View Details</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- FILTERING ---
+        function filterData() {
+            const eventId = document.getElementById('eventSelect').value;
+            const term = document.getElementById('searchInput').value.toLowerCase();
+
+            filteredRegistrations = allRegistrations.filter(reg => {
+                const user = userDetailsMap[reg.studentEmail] || {};
+                
+                const matchEvent = (eventId === 'all') || (reg.eventId === eventId);
+                
+                const eventName = (eventsMap[reg.eventId] || '').toLowerCase();
+                const team = (reg.teamName || '').toLowerCase();
+                const pName = (user.fullName || '').toLowerCase();
+                const rollNo = (user.rollNo || '').toLowerCase();
+                const dept = (user.dept || '').toLowerCase();
+                
+                const matchSearch = reg.studentEmail.toLowerCase().includes(term) || 
+                                    pName.includes(term) ||
+                                    team.includes(term) || 
+                                    rollNo.includes(term) ||
+                                    dept.includes(term) ||
+                                    eventName.includes(term);
+
+                return matchEvent && matchSearch;
+            });
+
+            renderTable(filteredRegistrations);
+        }
+
+        // --- DETAILS MODAL (UPDATED TO FETCH MEMBER ROLL NO) ---
+        function viewDetails(regId) {
+            const reg = allRegistrations.find(r => r.registrationId === regId);
+            if(!reg) return;
+            
+            const user = userDetailsMap[reg.studentEmail] || {}; 
+            const modal = document.getElementById('detailModal');
+            const content = document.getElementById('modalContent');
+            const title = document.getElementById('modalTitle');
+            
+            modal.style.display = 'flex';
+            
+            // Determine Titles
+            let mainTitle = reg.teamName ? `Team: ${reg.teamName}` : `Participant: ${user.fullName}`;
+            title.innerText = mainTitle;
+
+            let html = `
+                <div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.05); border-radius:8px; margin-bottom:15px;">
+                    <span>Event: <strong style="color:var(--primary-color)">${eventsMap[reg.eventId]}</strong></span>
+                    <span>Status: <strong>${reg.paymentStatus}</strong></span>
+                </div>
+
+                <h4 class="detail-section-title">1. Team Lead Details</h4>
+                <div class="detail-row"><span class="detail-label">Full Name</span><span class="detail-val">${user.fullName || 'N/A'}</span></div>
+                <div class="detail-row"><span class="detail-label">Email</span><span class="detail-val">${reg.studentEmail}</span></div>
+                <div class="detail-row"><span class="detail-label">Mobile</span><span class="detail-val">${user.mobile || 'N/A'}</span></div>
+                <div class="detail-row"><span class="detail-label">Roll Number</span><span class="detail-val">${user.rollNo || 'N/A'}</span></div>
+
+                <h4 class="detail-section-title">2. Team Members</h4>
+                <div class="table-scroll">
+                <table class="team-table">
+                    <thead>
+                        <tr><th>Name</th><th>Mobile</th><th>Email</th><th>Roll No</th></tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            if(reg.teamMembers && reg.teamMembers.length > 0) {
+                reg.teamMembers.forEach(m => {
+                    // Try to get member details from fetched map using email
+                    const memberDetails = userDetailsMap[m.email] || {};
+                    // Fallback to registration data if map lookup fails
+                    const memberRoll = memberDetails.rollNo || m.rollNo || m.regNo || '-';
+                    
+                    html += `
+                        <tr>
+                            <td>${m.name || '-'}</td>
+                            <td>${m.mobile || '-'}</td>
+                            <td>${m.email || '-'}</td>
+                            <td>${memberRoll}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                html += `<tr><td colspan="4" style="text-align:center; color:#666;">No additional members.</td></tr>`;
+            }
+
+            html += `
+                    </tbody>
+                </table>
+                </div>
+
+                <h4 class="detail-section-title">3. Institution Details</h4>
+                <div class="detail-row"><span class="detail-label">Department</span><span class="detail-val">${user.dept || 'N/A'}</span></div>
+                <div class="detail-row"><span class="detail-label">College</span><span class="detail-val">${user.college || 'N/A'}</span></div>
+            `;
+            
+            content.innerHTML = html;
+        }
+
+        function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
+
+        // --- EXPORT EXCEL (UPDATED MEMBER ROLL NO) ---
+        async function exportExcel() {
+            if(filteredRegistrations.length === 0) return alert("No data to export.");
+            
+            const data = filteredRegistrations.map(reg => {
+                const user = userDetailsMap[reg.studentEmail] || {};
+                
+                const finalTeamName = reg.teamName ? reg.teamName : (user.fullName || "Individual");
+
+                let membersStr = "";
+                if (reg.teamMembers && reg.teamMembers.length > 0) {
+                    membersStr = reg.teamMembers.map(m => {
+                        const memberDetails = userDetailsMap[m.email] || {};
+                        const memberRoll = memberDetails.rollNo || m.rollNo || '-';
+                        return `Name: ${m.name}, Mob: ${m.mobile || '-'}, Email: ${m.email || '-'}, Roll: ${memberRoll}`;
+                    }).join("\n");
+                } else {
+                    membersStr = "None";
+                }
+
+                return {
+                    "Team / Participant Name": finalTeamName,
+                    "Event Name": eventsMap[reg.eventId] || reg.eventId,
+                    "Lead Name": user.fullName || "N/A",
+                    "Lead Email": reg.studentEmail,
+                    "Lead Mobile": user.mobile || "N/A",
+                    "Lead Roll No": user.rollNo || "N/A",
+                    "Team Members Details": membersStr,
+                    "Department": user.dept || "N/A",
+                    "College": user.college || "N/A"
+                };
+            });
+
+            const ws = XLSX.utils.json_to_sheet(data);
+            if(!ws['!cols']) ws['!cols'] = [];
+            ws['!cols'][6] = { wch: 60 }; 
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Registrations");
+            XLSX.writeFile(wb, `${deptName}_Registrations.xlsx`);
+        }
+
+        // --- EXPORT PDF (UPDATED MEMBER ROLL NO) ---
+        async function exportPDF() {
+            if(filteredRegistrations.length === 0) return alert("No data to export.");
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a3'); 
+            
+            doc.setFontSize(16);
+            doc.text(`${deptName} - Registration List`, 14, 20);
+            
+            const tableBody = filteredRegistrations.map(reg => {
+                const user = userDetailsMap[reg.studentEmail] || {};
+                
+                const finalTeamName = reg.teamName ? reg.teamName : (user.fullName || "Individual");
+                
+                let membersStr = "";
+                if (reg.teamMembers && reg.teamMembers.length > 0) {
+                    membersStr = reg.teamMembers.map(m => {
+                        const memberDetails = userDetailsMap[m.email] || {};
+                        const memberRoll = memberDetails.rollNo || m.rollNo || '-';
+                        return `${m.name} (${memberRoll})`;
+                    }).join(", ");
+                }
+
+                return [
+                    finalTeamName,
+                    eventsMap[reg.eventId] || reg.eventId,
+                    user.fullName || "-",
+                    reg.studentEmail,
+                    user.mobile || "-",
+                    user.rollNo || "-",
+                    membersStr,
+                    user.dept || "-",
+                    user.college || "-"
+                ];
+            });
+
+            doc.autoTable({
+                head: [['Team/Name', 'Event', 'Lead Name', 'Lead Email', 'Lead Mobile', 'Lead Roll', 'Members (Roll)', 'Dept', 'College']],
+                body: tableBody,
+                startY: 30,
+                styles: { fontSize: 9, overflow: 'linebreak' },
+                columnStyles: { 
+                    6: { cellWidth: 80 } 
+                }
+            });
+
+            doc.save(`${deptName}_Registrations.pdf`);
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '../login';
+        }
+
+        init();
+    </script>
+</body>
+</html>

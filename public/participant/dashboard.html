@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | LAKSHYA 2K26</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="\assets\logo.png">
+    <style>
+        /* --- GLOBAL VARIABLES (COSMIC THEME) --- */
+        :root {
+            --primary-color: #00d2ff;
+            --secondary-color: #3a7bd5;
+            --accent-color: #ff00cc;
+            --text-color: #ffffff;
+            --glass-bg: rgba(15, 15, 30, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --card-hover: rgba(0, 210, 255, 0.15);
+            --dark-overlay: linear-gradient(to bottom, rgba(5, 5, 15, 0.6), rgba(5, 5, 15, 0.95));
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #0a0a0a; color: var(--text-color); display: flex; min-height: 100vh; overflow-x: hidden; }
+
+        /* --- BACKGROUND --- */
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('../assets/admin-block.jpg') no-repeat center top/cover; z-index: -2; }
+        .overlay-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--dark-overlay); z-index: -1; }
+
+        /* --- MAIN CONTENT (Matches common.js Sidebar Width) --- */
+        .main-content {
+            flex-grow: 1; 
+            margin-left: 260px; /* Aligned with common.js sidebar width */
+            padding: 3rem; 
+            width: calc(100% - 260px); 
+            transition: 0.3s;
+        }
+
+        /* --- RESPONSIVE --- */
+        /* Must match common.js breakpoint (1024px) */
+        @media (max-width: 1024px) {
+            .main-content { margin-left: 0; width: 100%; padding: 1.5rem; padding-top: 90px; }
+        }
+
+        /* --- DASHBOARD SPECIFIC --- */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .welcome-msg h2 { font-size: 2rem; }
+        .welcome-msg span { color: var(--primary-color); }
+        .user-profile { display: flex; align-items: center; gap: 15px; }
+        .avatar { width: 45px; height: 45px; background: var(--primary-color); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 700; color: black; text-transform: uppercase; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 3rem; }
+        .stat-card { background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 1.5rem; border-radius: 15px; display: flex; align-items: center; gap: 1.5rem; transition: 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); border-color: var(--primary-color); }
+        .stat-icon { width: 60px; height: 60px; border-radius: 12px; background: rgba(0, 210, 255, 0.1); color: var(--primary-color); display: flex; justify-content: center; align-items: center; font-size: 1.8rem; }
+        .stat-info h3 { font-size: 2rem; font-weight: 700; }
+        .stat-info p { color: #aaa; font-size: 0.9rem; }
+        .actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+        .action-card { background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 2rem; border-radius: 15px; text-align: center; transition: 0.3s; cursor: pointer; text-decoration: none; color: white; }
+        .action-card:hover { background: var(--card-hover); border-color: var(--primary-color); box-shadow: 0 0 20px rgba(0, 210, 255, 0.1); }
+        .action-card i { font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem; }
+        .action-card h3 { margin-bottom: 0.5rem; }
+        .action-card p { color: #ccc; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <!-- Sidebar Injected by Common JS -->
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="header">
+            <div class="user-profile">
+                <div class="avatar">S</div>
+                <div>
+                    <h4 id="userName">Loading...</h4>
+                    <small style="color:#aaa">Participant</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="welcome-msg" style="margin-bottom: 2rem;">
+            <h2>Welcome back, <span id="userNameTitle">...</span>!</h2>
+            <p style="color:#ccc">Ready for Unveiling the future?</p>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fa-solid fa-ticket"></i></div>
+                <div class="stat-info">
+                    <h3 id="regCount">0</h3>
+                    <p>Registered Events</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color: var(--accent-color); background: rgba(255,0,204,0.1);"><i class="fa-solid fa-wallet"></i></div>
+                <div class="stat-info">
+                    <h3 id="paymentStatus">Checking...</h3>
+                    <p>Payment Status</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUICK ACTIONS -->
+        <h3 style="margin-bottom: 1.5rem;">Quick Actions</h3>
+        <div class="actions-grid">
+            <a href="events" class="action-card">
+                <i class="fa-solid fa-rocket"></i>
+                <h3>Browse Events</h3>
+                <p>Register for Technical & Cultural events.</p>
+            </a>
+            <a href="my-registrations" class="action-card">
+                <i class="fa-solid fa-file-invoice"></i>
+                <h3>View Status</h3>
+                <p>Check your registration & payment details.</p>
+            </a>
+            <a href="certificates" class="action-card">
+                <i class="fa-solid fa-medal"></i>
+                <h3>Certificates</h3>
+                <p>Download your participation certificates.</p>
+            </a>
+        </div>
+    </main>
+
+    <script>const CURRENT_PAGE = 'dashboard';</script>
+    <script src="/js/common.js"></script>
+    <script src="/js/chatbot.js"></script>
+
+    <!-- Original Logic -->
+    <script>
+        // 2. Logout Logic (Optional explicit function, though common.js handles link click)
+        async function logout() {
+            try {
+                localStorage.clear(); 
+                window.location.href = '/login';
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        // 3. Fetch User Data (DYNAMIC)
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await fetch('/api/participant/dashboard-stats');
+                
+                if (res.url.includes('login')) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                if (!res.ok) throw new Error('Failed to fetch stats');
+
+                const data = await res.json();
+
+                // Update UI
+                const displayName = data.name || "Student"; 
+                document.getElementById('userName').innerText = displayName;
+                document.getElementById('userNameTitle').innerText = displayName.split(' ')[0];
+                document.querySelector('.avatar').innerText = displayName.charAt(0).toUpperCase();
+                document.getElementById('regCount').innerText = data.totalRegistrations || 0;
+                
+                // Determine status text color
+                const statusElem = document.getElementById('paymentStatus');
+                statusElem.innerText = data.paymentStatus;
+                if(data.paymentStatus === 'Paid') statusElem.style.color = '#4caf50'; // Green
+                else if(data.paymentStatus === 'Partial') statusElem.style.color = '#ffc107'; // Yellow
+                else statusElem.style.color = '#ff4444'; // Red
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('userName').innerText = "Student"; 
+                document.getElementById('paymentStatus').innerText = "Unknown";
+            }
+        });
+    </script>
+
+</body>
+</html>

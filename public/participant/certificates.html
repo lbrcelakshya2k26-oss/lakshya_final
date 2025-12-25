@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificates | LAKSHYA 2K26</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Using same COSMIC THEME variables */
+        :root { --primary-color: #00d2ff; --glass-bg: rgba(20, 20, 35, 0.85); --text-color: #ffffff; --glass-border: rgba(255,255,255,0.1); }
+        body { background-color: #0a0a0a; color: var(--text-color); display: flex; min-height: 100vh; font-family: 'Poppins', sans-serif; margin:0; overflow-x: hidden; }
+        
+        /* Background */
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('../assets/admin-block.jpg') no-repeat center/cover; z-index: -2; }
+        .overlay-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,15,0.92); z-index: -1; }
+
+        /* --- SIDEBAR (Responsive) --- */
+        .sidebar {
+            width: 260px; background: var(--glass-bg); border-right: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px); padding: 2rem; display: flex; flex-direction: column;
+            position: fixed; height: 100vh; z-index: 1000; transition: transform 0.3s ease-in-out; left: 0; top: 0;
+        }
+        .logo { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--primary-color); margin-bottom: 3rem; text-align: center; }
+        .menu { list-style: none; flex-grow: 1; }
+        .menu li { margin-bottom: 1rem; }
+        .menu a { text-decoration: none; color: #ccc; display: flex; align-items: center; gap: 15px; padding: 10px; border-radius: 8px; transition: 0.3s; }
+        .menu a:hover, .menu a.active { background: rgba(0, 210, 255, 0.1); color: var(--primary-color); }
+        .logout { color: #ff4444; cursor: pointer; margin-top: auto; }
+
+        /* --- MOBILE HEADER --- */
+        .mobile-header { display: none; }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 999; opacity: 0; transition: opacity 0.3s; }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.active { transform: translateX(0); }
+            .main { margin-left: 0 !important; width: 100% !important; padding: 1.5rem; padding-top: 80px !important; }
+            .mobile-header {
+                display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+                background: rgba(15, 15, 30, 0.95); backdrop-filter: blur(10px); z-index: 900;
+                align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid var(--glass-border);
+            }
+            .mobile-logo { font-family: 'Montserrat', sans-serif; font-weight: 900; color: white; }
+            .menu-toggle { font-size: 1.5rem; color: var(--primary-color); cursor: pointer; }
+        }
+
+        .main { flex-grow: 1; padding: 2rem; margin-left: 260px; width: calc(100% - 260px); overflow-y: auto; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h2 { margin-bottom: 2rem; font-family: 'Montserrat', sans-serif; color: var(--primary-color); }
+
+        /* Certificate Grid */
+        .cert-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; }
+        
+        .cert-card {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);
+            border-radius: 15px; padding: 2rem; text-align: center; transition: 0.3s;
+        }
+        .cert-card:hover { transform: translateY(-5px); border-color: var(--primary-color); box-shadow: 0 0 20px rgba(0,210,255,0.1); }
+        
+        .cert-icon { font-size: 3rem; color: gold; margin-bottom: 1rem; }
+        .cert-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .cert-date { color: #aaa; font-size: 0.9rem; margin-bottom: 1.5rem; }
+        
+        .btn-download {
+            background: var(--primary-color); color: black; padding: 8px 20px; border-radius: 50px;
+            text-decoration: none; font-weight: bold; font-size: 0.9rem; transition: 0.2s;
+        }
+        .btn-download:hover { background: white; }
+    </style>
+</head>
+<body>
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+    
+    <!-- Sidebar Injected by Common JS -->
+
+    <main class="main">
+        <div class="container">
+            <h2>My Certificates</h2>
+            <div class="cert-grid" id="certContainer">
+                <p style="color:#aaa;">Loading certificates...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>const CURRENT_PAGE = 'certificates';</script>
+    <script src="/js/common.js"></script>
+
+    <!-- Original Logic -->
+    <script>
+        async function loadCertificates() {
+            const container = document.getElementById('certContainer');
+            try {
+                const res = await fetch('/api/participant/my-registrations-data');
+                const data = await res.json();
+                
+                // Filter attended events
+                const attended = data.filter(r => r.attendance === true);
+                
+                container.innerHTML = '';
+                if(attended.length === 0) {
+                    container.innerHTML = '<p style="color:#aaa;">No certificates available yet. Attend events to earn them!</p>';
+                    return;
+                }
+
+                attended.forEach(reg => {
+                    container.innerHTML += `
+                        <div class="cert-card">
+                            <div class="cert-icon"><i class="fa-solid fa-award"></i></div>
+                            <h3 class="cert-title">Certificate of Participation</h3>
+                            <p class="cert-date">Event ID: ${reg.eventId}</p>
+                            <a href="#" onclick="alert('Downloading Certificate...')" class="btn-download">Download <i class="fa-solid fa-download"></i></a>
+                        </div>
+                    `;
+                });
+            } catch(e) {
+                container.innerHTML = '<p style="color:red;">Error loading certificates.</p>';
+            }
+        }
+        loadCertificates();
+    </script>
+</body>
+</html>

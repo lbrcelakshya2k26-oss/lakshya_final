@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users | LAKSHYA 2K26</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        /* --- COSMIC ADMIN THEME (Consistent with Dashboard) --- */
+        :root {
+            --primary-color: #00d2ff;
+            --secondary-color: #3a7bd5;
+            --accent-color: #ff00cc; 
+            --bg-color: #050510;
+            --card-bg: #151520; 
+            --text-color: #ffffff;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --sidebar-width: 260px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            display: flex; min-height: 100vh; 
+            overflow-x: hidden; 
+        }
+
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('../assets/admin-block.jpg') no-repeat center/cover; z-index: -2; opacity: 0.4; }
+        .overlay-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,15,0.9); z-index: -1; }
+
+        /* --- SIDEBAR --- */
+        .sidebar { 
+            width: var(--sidebar-width); background: var(--card-bg); border-right: 1px solid var(--border-color); 
+            padding: 2rem; display: flex; flex-direction: column; z-index: 1000; height: 100vh; position: sticky; top: 0; 
+        }
+        .logo { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--primary-color); margin-bottom: 3rem; text-align: center; display: flex; justify-content: space-between; align-items: center; }
+        .menu { list-style: none; flex-grow: 1; } .menu li { margin-bottom: 1rem; }
+        .menu a { text-decoration: none; color: #ccc; display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 8px; transition: 0.3s; border: 1px solid transparent; }
+        .menu a:hover, .menu a.active { background: rgba(0, 210, 255, 0.1); color: var(--primary-color); border-color: rgba(0, 210, 255, 0.2); }
+        .logout { color: #ff4444; cursor: pointer; margin-top: auto; }
+
+        /* --- MAIN CONTENT --- */
+        .main { flex-grow: 1; padding: 2rem; overflow-y: auto; width: 100%; }
+        
+        .header { display: flex; justify-content: space-between; margin-bottom: 2rem; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .header h2 { font-family: 'Montserrat', sans-serif; font-size: 1.8rem; margin: 0; }
+
+        /* Toolbar */
+        .toolbar {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border-color);
+            padding: 15px; border-radius: 12px; margin-bottom: 25px;
+            display: flex; gap: 15px; flex-wrap: wrap; align-items: center;
+        }
+        
+        .search-box {
+            flex-grow: 1; position: relative; min-width: 250px;
+        }
+        .search-box input {
+            width: 100%; padding: 12px 15px 12px 40px; 
+            background: #151520; border: 1px solid #444; color: white; border-radius: 6px; outline: none;
+        }
+        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666; }
+
+        .filter-select {
+            padding: 12px; background: #151520; border: 1px solid #444; color: white; border-radius: 6px; cursor: pointer; min-width: 140px;
+        }
+
+        .btn-export {
+            background: #4caf50; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; margin-left: auto;
+        }
+        .btn-export:hover { background: #43a047; }
+
+        /* --- USER TABLE --- */
+        .table-container {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 15px; overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; min-width: 900px; } 
+        th, td { padding: 15px 20px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        th { background: rgba(0, 210, 255, 0.1); color: var(--primary-color); font-weight: 600; text-transform: uppercase; font-size: 0.85rem; }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        
+        .role-badge { padding: 5px 10px; border-radius: 50px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+        .role-admin { background: rgba(255, 0, 204, 0.2); color: #ff00cc; border: 1px solid rgba(255, 0, 204, 0.3); }
+        .role-coord { background: rgba(0, 210, 255, 0.2); color: #00d2ff; border: 1px solid rgba(0, 210, 255, 0.3); }
+        .role-participant { background: rgba(76, 175, 80, 0.2); color: #4caf50; border: 1px solid #4caf50; }
+
+        .user-avatar { width: 35px; height: 35px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #aaa; margin-right: 10px; float: left; }
+        .user-info-cell { display: flex; align-items: center; }
+        .user-sub { font-size: 0.8rem; color: #888; display: block; }
+        
+        /* Registration Badge */
+        .reg-badge { 
+            background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border-color);
+            padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; cursor: help;
+        }
+        .reg-list-tooltip {
+            visibility: hidden; position: absolute; background: #000; color: #fff;
+            padding: 10px; border-radius: 6px; border: 1px solid var(--primary-color);
+            width: 200px; z-index: 10; font-size: 0.8rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .reg-cell:hover .reg-list-tooltip { visibility: visible; }
+
+        /* Loading & Empty States */
+        .loading-state { padding: 40px; text-align: center; color: #aaa; }
+        .empty-state { padding: 40px; text-align: center; color: #666; display: none; }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 1024px) {
+            .sidebar { position: fixed; left: -100%; height: 100vh; transition: 0.3s; }
+            .sidebar.active { left: 0; }
+            .main { padding: 1.5rem; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+    <div class="overlay-layer"></div>
+
+    <aside class="sidebar">
+        <div class="logo">LAKSHYA ADMIN</div>
+        <ul class="menu">
+            <li><a href="dashboard"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+            <li><a href="manage-users" class="active"><i class="fa-solid fa-users"></i> Users</a></li>
+            <li><a href="registrations"><i class="fa-solid fa-clipboard-list"></i> Registrations</a></li>
+            <li><a href="manage-events"><i class="fa-solid fa-calendar-check"></i> Events</a></li>
+            <li><a onclick="logout()" class="logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="main">
+        <div class="header">
+            <h2>Active Users Directory</h2>
+            <div class="header-actions">
+                <span id="userCount" style="color: var(--primary-color); font-weight: bold;">0 Users Found</span>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="Search by Name, Email, or Roll No..." onkeyup="filterUsers()">
+            </div>
+            
+            <!-- Filters -->
+            <select id="roleFilter" class="filter-select" onchange="filterUsers()">
+                <option value="all">All Roles</option>
+                <option value="participant">Participant</option>
+                <option value="coordinator">Coordinator</option>
+                <option value="admin">Admin</option>
+            </select>
+
+            <select id="regStatusFilter" class="filter-select" onchange="filterUsers()">
+                <option value="all">Any Status</option>
+                <option value="registered">Registered (Has Events)</option>
+                <option value="not_registered">Not Registered (0 Events)</option>
+            </select>
+
+            <select id="collegeFilter" class="filter-select" onchange="filterUsers()">
+                <option value="all">All Colleges</option>
+                <!-- Dynamically populated -->
+            </select>
+
+            <button class="btn-export" onclick="exportToExcel()">
+                <i class="fa-solid fa-file-excel"></i> Export Filtered
+            </button>
+        </div>
+
+        <!-- Users Table -->
+        <div class="table-container">
+            <table id="usersTable">
+                <thead>
+                    <tr>
+                        <th>User Profile</th>
+                        <th>Role</th>
+                        <th>Contact Info</th>
+                        <th>Academic Details</th>
+                        <th>Registrations</th>
+                        <th>Joined On</th>
+                    </tr>
+                </thead>
+                <tbody id="usersBody">
+                    <!-- Rows injected by JS -->
+                </tbody>
+            </table>
+            
+            <div id="loading" class="loading-state">
+                <i class="fa-solid fa-circle-notch fa-spin"></i> Loading users...
+            </div>
+            <div id="emptyState" class="empty-state">
+                <i class="fa-solid fa-user-slash" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
+                No users matching your criteria.
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Global variables to hold data
+        let allUsers = [];
+        let currentFilteredUsers = []; // Stores the currently visible dataset for export
+
+        async function fetchUsers() {
+            try {
+                // Fetch from Real Backend
+                const res = await fetch('/api/admin/all-users');
+                
+                // Handle Redirects (e.g. if session expired)
+                if (res.redirected) { 
+                    window.location.href = '../login'; 
+                    return; 
+                }
+                
+                if (!res.ok) throw new Error("Failed to fetch");
+
+                allUsers = await res.json();
+                
+                // Initialize filtered users with all users initially
+                currentFilteredUsers = [...allUsers];
+
+                populateCollegeDropdown();
+                renderUsers(currentFilteredUsers);
+                
+                document.getElementById('loading').style.display = 'none';
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loading').innerHTML = `<span style="color: #ff4444;">Error loading data. Please try again.</span>`;
+            }
+        }
+
+        // --- NEW: Populate College Dropdown Dynamically ---
+        function populateCollegeDropdown() {
+            const collegeSelect = document.getElementById('collegeFilter');
+            
+            // Get unique colleges, filter out nulls/undefined, and sort
+            const uniqueColleges = [...new Set(allUsers.map(u => u.college).filter(c => c))].sort();
+
+            uniqueColleges.forEach(college => {
+                const option = document.createElement('option');
+                option.value = college;
+                option.textContent = college;
+                collegeSelect.appendChild(option);
+            });
+        }
+
+        function renderUsers(users) {
+            const tbody = document.getElementById('usersBody');
+            const emptyState = document.getElementById('emptyState');
+            const countLabel = document.getElementById('userCount');
+            
+            tbody.innerHTML = '';
+            countLabel.innerText = `${users.length} Users Found`;
+
+            if (users.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            } else {
+                emptyState.style.display = 'none';
+            }
+
+            users.forEach(user => {
+                const initials = user.fullName ? user.fullName.charAt(0).toUpperCase() : '?';
+                const roleClass = user.role === 'admin' ? 'role-admin' : (user.role === 'coordinator' ? 'role-coord' : 'role-participant');
+                const dateJoined = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-';
+                
+                // Registration Data Logic
+                const regCount = user.regCount || 0;
+                const events = user.regEvents || [];
+                const eventsListStr = events.join('<br>'); // For tooltip
+                
+                // Handle Registration Cell
+                let regCellContent = '<span style="color:#666; font-size:0.85rem;">Not Registered</span>';
+                if(regCount > 0) {
+                    regCellContent = `
+                        <div class="reg-cell" style="position:relative; display:inline-block;">
+                            <span class="reg-badge">${regCount} Events</span>
+                            <div class="reg-list-tooltip">
+                                <strong>Registered For:</strong><br>
+                                ${eventsListStr}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                const row = `
+                    <tr>
+                        <td>
+                            <div class="user-info-cell">
+                                <div class="user-avatar">${initials}</div>
+                                <div>
+                                    <div style="font-weight:600;">${user.fullName || 'Unknown'}</div>
+                                    <span class="user-sub">${user.rollNo || 'No ID'}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="role-badge ${roleClass}">${user.role}</span></td>
+                        <td>
+                            <div>${user.email}</div>
+                            <span class="user-sub">${user.mobile || '-'}</span>
+                        </td>
+                        <td>
+                            <div>${user.college || 'N/A'}</div>
+                            <span class="user-sub">${user.dept ? user.dept + ' - ' + (user.year || '') : '-'}</span>
+                        </td>
+                        <td>${regCellContent}</td>
+                        <td style="color:#aaa;">${dateJoined}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function filterUsers() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const roleFilter = document.getElementById('roleFilter').value;
+            const regStatusFilter = document.getElementById('regStatusFilter').value;
+            const collegeFilter = document.getElementById('collegeFilter').value;
+
+            // Update the global filtered variable
+            currentFilteredUsers = allUsers.filter(user => {
+                // 1. Text Search
+                const matchesSearch = (
+                    (user.fullName || '').toLowerCase().includes(searchTerm) ||
+                    (user.email || '').toLowerCase().includes(searchTerm) ||
+                    (user.rollNo || '').toLowerCase().includes(searchTerm)
+                );
+                
+                // 2. Role Filter
+                const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+
+                // 3. Registration Status Filter
+                // Registered: regCount > 0, Not Registered: regCount == 0 (or undefined)
+                let matchesRegStatus = true;
+                const userEventCount = user.regCount || 0;
+
+                if (regStatusFilter === 'registered') {
+                    matchesRegStatus = userEventCount > 0;
+                } else if (regStatusFilter === 'not_registered') {
+                    matchesRegStatus = userEventCount === 0;
+                }
+
+                // 4. College Filter
+                const matchesCollege = collegeFilter === 'all' || user.college === collegeFilter;
+
+                return matchesSearch && matchesRole && matchesRegStatus && matchesCollege;
+            });
+
+            renderUsers(currentFilteredUsers);
+        }
+
+        function exportToExcel() {
+            // Use currentFilteredUsers instead of allUsers
+            if (currentFilteredUsers.length === 0) return alert("No data matches the current filters to export.");
+
+            // Prepare enriched data for export
+            const exportData = currentFilteredUsers.map(u => ({
+                "Full Name": u.fullName,
+                "Email": u.email,
+                "Role": u.role,
+                "Roll No": u.rollNo,
+                "Mobile": u.mobile,
+                "College": u.college,
+                "Department": u.dept,
+                "Year": u.year,
+                "Joined On": u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '',
+                "Events Count": u.regCount || 0,
+                "Event Names": (u.regEvents || []).join(", ")
+            }));
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            
+            // Auto-width for columns
+            const wscols = [
+                {wch: 20}, {wch: 30}, {wch: 10}, {wch: 15}, 
+                {wch: 15}, {wch: 25}, {wch: 10}, {wch: 10}, {wch: 15},
+                {wch: 12}, {wch: 40}
+            ];
+            ws['!cols'] = wscols;
+
+            XLSX.utils.book_append_sheet(wb, ws, "Filtered Users");
+            
+            // Generate a filename that might include filter hints
+            const fileName = `Lakshya_Users_Export_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '../login';
+        }
+
+        // Initialize
+        fetchUsers();
+    </script>
+</body>
+</html>

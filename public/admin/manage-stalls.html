@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Stalls | LAKSHYA 2K26 Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="/assets/logo.png">
+
+    <style>
+        :root { --primary: #00d2ff; --accent: #ff00cc; --bg: #050510; --card: #151520; --border: rgba(255,255,255,0.1); }
+        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--bg); color: white; margin: 0; padding: 20px; min-height: 100vh; }
+
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header h2 { font-family: 'Montserrat', sans-serif; color: var(--primary); margin: 0; }
+        .back-link { color: #888; text-decoration: none; font-size: 0.9rem; display: block; margin-bottom: 10px; }
+
+        .add-card {
+            background: rgba(255,255,255,0.05); padding: 25px; border-radius: 12px; border: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+        .add-card h3 { margin-top: 0; color: var(--accent); }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end; }
+        
+        input {
+            width: 100%; padding: 12px; background: #0a0a12; border: 1px solid #444; border-radius: 6px;
+            color: white; outline: none;
+        }
+        input:focus { border-color: var(--primary); }
+
+        .btn { padding: 12px 25px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-add { background: var(--primary); color: #000; }
+        .btn-add:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3); }
+
+        .stall-list { display: grid; gap: 15px; }
+        .stall-item {
+            background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .stall-info h4 { margin: 0 0 5px 0; color: white; font-size: 1.1rem; }
+        .stall-meta { color: #888; font-size: 0.85rem; display: flex; gap: 15px; }
+        .stall-meta span { display: flex; align-items: center; gap: 5px; }
+        .stall-meta i { color: var(--primary); }
+
+        .btn-del { background: rgba(255, 68, 68, 0.2); color: #ff4444; padding: 8px 15px; font-size: 0.9rem; }
+        .btn-del:hover { background: #ff4444; color: white; }
+
+        @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="/admin/dashboard" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+        <div class="header">
+            <h2>Manage Food Stalls</h2>
+        </div>
+
+        <!-- Add Stall Form -->
+        <div class="add-card">
+            <h3><i class="fa-solid fa-plus-circle"></i> Add New Stall</h3>
+            <form onsubmit="addStall(event)" class="form-grid">
+                <div>
+                    <label style="font-size:0.8rem; color:#aaa; display:block; margin-bottom:5px;">Stall Name / ID</label>
+                    <input type="text" id="sName" placeholder="e.g. BIRYANI_POINT" required>
+                </div>
+                <div>
+                    <label style="font-size:0.8rem; color:#aaa; display:block; margin-bottom:5px;">Access Password</label>
+                    <input type="text" id="sPass" placeholder="e.g. food@123" required>
+                </div>
+                <button type="submit" class="btn btn-add">Create Stall</button>
+            </form>
+        </div>
+
+        <!-- List -->
+        <h3 style="margin-bottom:15px; color:#ddd;">Existing Stalls</h3>
+        <div id="stallList" class="stall-list">
+            <p style="text-align:center; color:#666;">Loading Stalls...</p>
+        </div>
+    </div>
+
+    <script>
+        async function loadStalls() {
+            try {
+                const res = await fetch('/api/admin/stalls');
+                const stalls = await res.json();
+                
+                const container = document.getElementById('stallList');
+                container.innerHTML = '';
+
+                if(stalls.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:#666;">No stalls created yet.</p>';
+                    return;
+                }
+
+                stalls.forEach(s => {
+                    const div = document.createElement('div');
+                    div.className = 'stall-item';
+                    div.innerHTML = `
+                        <div class="stall-info">
+                            <h4>${s.stallName}</h4>
+                            <div class="stall-meta">
+                                <span><i class="fa-solid fa-key"></i> Pass: ${s.accessCode}</span>
+                                <span><i class="fa-solid fa-clock"></i> Created: ${new Date(s.createdAt).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                        <button onclick="deleteStall('${s.stallId}')" class="btn btn-del"><i class="fa-solid fa-trash"></i> Delete</button>
+                    `;
+                    container.appendChild(div);
+                });
+
+            } catch(e) { console.error(e); }
+        }
+
+        async function addStall(e) {
+            e.preventDefault();
+            const name = document.getElementById('sName').value.trim().toUpperCase().replace(/\s+/g, '_');
+            const pass = document.getElementById('sPass').value.trim();
+
+            if(!name || !pass) return alert("Fields required");
+
+            try {
+                const res = await fetch('/api/admin/create-stall', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stallName: name, accessCode: pass })
+                });
+
+                if(res.ok) {
+                    alert("Stall Created Successfully!");
+                    document.getElementById('sName').value = '';
+                    document.getElementById('sPass').value = '';
+                    loadStalls();
+                } else {
+                    const d = await res.json();
+                    alert(d.error || "Failed");
+                }
+            } catch(e) { console.error(e); alert("Server Error"); }
+        }
+
+        async function deleteStall(id) {
+            if(!confirm("Are you sure? This will revoke access immediately.")) return;
+            try {
+                await fetch('/api/admin/delete-stall', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stallId: id })
+                });
+                loadStalls();
+            } catch(e) { alert("Delete failed"); }
+        }
+
+        window.onload = loadStalls;
+    </script>
+</body>
+</html>

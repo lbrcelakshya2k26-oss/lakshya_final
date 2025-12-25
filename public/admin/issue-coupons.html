@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Issue Team Coupons | Admin Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts & Icons -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 200ms; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 font-bold">A</div>
+                <h1 class="text-xl font-bold text-gray-900">Coordinator Coupons</h1>
+            </div>
+            <a href="/admin/dashboard" class="text-sm font-medium text-gray-500 hover:text-gray-900">
+                &larr; Back to Dashboard
+            </a>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto p-6">
+        
+        <!-- SECTION 1: DEPARTMENT STATS OVERVIEW -->
+        <div id="statsSection" class="transition-all">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Department Overview</h2>
+                <p class="text-gray-500 text-sm">Select a department to manage specific team members.</p>
+            </div>
+
+            <!-- Loader -->
+            <div id="statsLoader" class="flex justify-center py-12">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+            </div>
+
+            <!-- Grid -->
+            <div id="statsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 hidden">
+                <!-- Cards injected via JS -->
+            </div>
+        </div>
+
+        <!-- SECTION 2: MEMBER LIST (Hidden by default) -->
+        <div id="listSection" class="hidden transition-all">
+            <!-- Breadcrumb / Back -->
+            <button onclick="showStats()" class="mb-6 flex items-center gap-1 text-sm text-gray-500 hover:text-indigo-600 font-medium transition-colors">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                Back to Departments
+            </button>
+
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900" id="selectedDeptTitle">Department Name</h2>
+                    <p class="text-gray-500 text-sm">Manage coupons for student coordinators.</p>
+                </div>
+                
+                <!-- Action Bar -->
+                <div class="flex items-center gap-3">
+                    <span id="selectionCount" class="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full hidden">0 Selected</span>
+                    <button id="issueBtn" onclick="issueCoupons()" disabled class="disabled:opacity-50 disabled:cursor-not-allowed bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2 transition-all">
+                        <span>🎁</span> Issue / Resend Coupons
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left">
+                                    <input type="checkbox" id="selectAll" onclick="toggleAll(this)" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4">
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="membersTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Rows injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Empty State for List -->
+                <div id="listEmpty" class="hidden p-12 text-center text-gray-500">
+                    <p>No student coordinators found in this department.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <div class="bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
+            <span id="toastIcon">✅</span>
+            <span id="toastMsg" class="font-medium text-sm">Operation Successful</span>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let currentMembers = [];
+        let selectedRecipients = [];
+
+        // Elements
+        const statsSection = document.getElementById('statsSection');
+        const listSection = document.getElementById('listSection');
+        const statsGrid = document.getElementById('statsGrid');
+        const statsLoader = document.getElementById('statsLoader');
+        const tableBody = document.getElementById('membersTableBody');
+        const issueBtn = document.getElementById('issueBtn');
+        const selectAllCheckbox = document.getElementById('selectAll');
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', loadStats);
+
+        // --- SECTION 1: STATS ---
+
+        async function loadStats() {
+            statsGrid.innerHTML = '';
+            statsLoader.classList.remove('hidden');
+            statsGrid.classList.add('hidden');
+            
+            try {
+                const res = await fetch('/api/admin/team-coupon-stats');
+                const data = await res.json();
+                
+                statsLoader.classList.add('hidden');
+                statsGrid.classList.remove('hidden');
+                
+                // Sort: Departments with pending issues first
+                data.sort((a, b) => {
+                    const aPending = a.totalMembers - a.issuedCount;
+                    const bPending = b.totalMembers - b.issuedCount;
+                    return bPending - aPending;
+                });
+
+                if(data.length === 0) {
+                    statsGrid.innerHTML = `<p class="col-span-full text-center text-gray-500">No team data found.</p>`;
+                    return;
+                }
+
+                data.forEach(dept => {
+                    const percentage = dept.totalMembers > 0 ? Math.round((dept.issuedCount / dept.totalMembers) * 100) : 0;
+                    const pending = dept.totalMembers - dept.issuedCount;
+                    const isComplete = pending === 0 && dept.totalMembers > 0;
+                    
+                    const card = document.createElement('div');
+                    card.className = `bg-white p-6 rounded-xl border hover:shadow-md transition-all cursor-pointer group ${isComplete ? 'border-gray-200' : 'border-indigo-100'}`;
+                    card.onclick = () => loadDepartment(dept.deptName);
+
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="font-bold text-gray-900 text-lg group-hover:text-indigo-600 transition-colors">${dept.deptName}</h3>
+                            ${isComplete 
+                                ? `<span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold">Done</span>`
+                                : `<span class="bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded-full font-bold">${pending} Pending</span>`
+                            }
+                        </div>
+                        
+                        <div class="flex justify-between text-sm text-gray-500 mb-2">
+                            <span>Issued</span>
+                            <span class="font-medium text-gray-900">${dept.issuedCount} / ${dept.totalMembers}</span>
+                        </div>
+                        
+                        <!-- Progress Bar -->
+                        <div class="w-full bg-gray-100 rounded-full h-2 mb-4 overflow-hidden">
+                            <div class="h-2 rounded-full transition-all duration-1000 ${isComplete ? 'bg-green-500' : 'bg-indigo-500'}" style="width: ${percentage}%"></div>
+                        </div>
+
+                        <div class="flex items-center text-indigo-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                            Manage Members &rarr;
+                        </div>
+                    `;
+                    statsGrid.appendChild(card);
+                });
+
+            } catch (err) {
+                console.error(err);
+                statsGrid.innerHTML = `<div class="col-span-full text-red-500 text-center">Failed to load statistics.</div>`;
+            }
+        }
+
+        function showStats() {
+            listSection.classList.add('hidden');
+            statsSection.classList.remove('hidden');
+            loadStats(); // Refresh data
+        }
+
+        // --- SECTION 2: MEMBER LIST ---
+
+        async function loadDepartment(deptName) {
+            // UI Transition
+            statsSection.classList.add('hidden');
+            listSection.classList.remove('hidden');
+            
+            document.getElementById('selectedDeptTitle').innerText = deptName;
+            tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-10 text-gray-500">Loading members...</td></tr>`;
+            document.getElementById('listEmpty').classList.add('hidden');
+            selectAllCheckbox.checked = false;
+            updateSelectionUI();
+
+            try {
+                const res = await fetch(`/api/admin/department-coordinators?deptName=${encodeURIComponent(deptName)}`);
+                const members = await res.json();
+                currentMembers = members;
+
+                renderTable(members);
+
+            } catch (err) {
+                tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-10 text-red-500">Error loading members.</td></tr>`;
+            }
+        }
+
+        function renderTable(members) {
+            tableBody.innerHTML = '';
+            selectedRecipients = []; // Reset selections
+
+            if (members.length === 0) {
+                document.getElementById('listEmpty').classList.remove('hidden');
+                return;
+            }
+
+            // Sort: Pending first
+            members.sort((a, b) => (a.hasCoupons === b.hasCoupons) ? 0 : a.hasCoupons ? 1 : -1);
+
+            members.forEach(m => {
+                const tr = document.createElement('tr');
+                // Highlight issued ones slightly differently but allow interaction
+                tr.className = m.hasCoupons ? 'bg-green-50/50' : 'hover:bg-gray-50';
+                
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <input type="checkbox" value="${m.email}" data-name="${m.fullName}" onchange="toggleRow(this)" class="member-check rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4">
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${m.fullName}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div>${m.email}</div>
+                        <div class="text-xs text-gray-400">${m.mobile || '-'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${m.hasCoupons 
+                            ? `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Issued</span>`
+                            : `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>`
+                        }
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+            updateSelectionUI();
+        }
+
+        // --- SELECTION LOGIC ---
+
+        function toggleAll(source) {
+            const checkboxes = document.querySelectorAll('.member-check');
+            checkboxes.forEach(cb => {
+                cb.checked = source.checked;
+            });
+            recalcSelection();
+        }
+
+        function toggleRow(checkbox) {
+            recalcSelection();
+        }
+
+        function recalcSelection() {
+            const checkboxes = document.querySelectorAll('.member-check:checked');
+            selectedRecipients = Array.from(checkboxes).map(cb => ({
+                email: cb.value,
+                name: cb.dataset.name
+            }));
+            
+            // Update Select All Checkbox State
+            const allCheckboxes = document.querySelectorAll('.member-check');
+            selectAllCheckbox.checked = allCheckboxes.length > 0 && checkboxes.length === allCheckboxes.length;
+            
+            updateSelectionUI();
+        }
+
+        function updateSelectionUI() {
+            const count = selectedRecipients.length;
+            const countLabel = document.getElementById('selectionCount');
+            
+            if (count > 0) {
+                countLabel.innerText = `${count} Selected`;
+                countLabel.classList.remove('hidden');
+                issueBtn.disabled = false;
+                issueBtn.innerHTML = `<span>🎁</span> Issue / Resend ${count} Coupons`;
+            } else {
+                countLabel.classList.add('hidden');
+                issueBtn.disabled = true;
+                issueBtn.innerHTML = `<span>🎁</span> Issue / Resend Coupons`;
+            }
+        }
+
+        // --- ACTION: ISSUE COUPONS ---
+
+        async function issueCoupons() {
+            if(selectedRecipients.length === 0) return;
+
+            if(!confirm(`Issue or Resend coupons to ${selectedRecipients.length} selected coordinators?`)) return;
+
+            // Loading State
+            issueBtn.disabled = true;
+            issueBtn.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Sending...`;
+
+            try {
+                const res = await fetch('/api/admin/issue-selected-coupons', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ recipients: selectedRecipients })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    showToast('✅ Success! Emails sent.');
+                    // Refresh current dept view
+                    const currentDept = document.getElementById('selectedDeptTitle').innerText;
+                    loadDepartment(currentDept);
+                } else {
+                    throw new Error(data.error);
+                }
+
+            } catch (err) {
+                console.error(err);
+                showToast('❌ Error: ' + err.message);
+                issueBtn.disabled = false;
+                issueBtn.innerHTML = `<span>🎁</span> Retry`;
+            }
+        }
+
+        // --- UTILS ---
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
