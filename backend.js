@@ -104,8 +104,8 @@ const razorpay = new Razorpay({
 const client = new DynamoDBClient({
     region: 'ap-south-1',
     credentials: {
-        accessKeyId: 'AKIAWJL64KMIFX67RTPV',
-        secretAccessKey: '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'
+        accessKeyId: 'AKIA5FK6RJPRHX72KY6Y',
+        secretAccessKey: '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'
     }
 });
 const docClient = DynamoDBDocumentClient.from(client);
