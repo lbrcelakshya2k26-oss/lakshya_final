@@ -4584,6 +4584,7 @@ app.get('/coordinator/onsite-reports', isAuthenticated('coordinator'), (req, res
     res.sendFile(path.join(__dirname, 'public/coordinator/onsite-reports-coordinator.html'));
 });
 // --- API: Get On-Site (Cash) Registrations for Coordinator Audit ---
+// --- API: Get On-Site (Cash) Registrations for Coordinator Audit ---
 app.get('/api/reports/onsite-registrations', isAuthenticated('coordinator'), async (req, res) => {
     const coordinatorEmail = req.session.user.email;
 
