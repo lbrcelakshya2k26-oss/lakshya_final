@@ -4524,14 +4524,12 @@ app.get('/health', (req, res) => {
 });
 // ... existing code ...
 const PORT = process.env.PORT || 3000;
-if (require.main === module) {
-    // CHANGE THIS BLOCK
-    const server = app.listen(PORT, () => { 
-        console.log(`Server running on http://localhost:${PORT}`); 
-    });
 
-    // CRITICAL: Set timeout to 10 minutes (600000ms) for 100MB files
-    server.setTimeout(600000);
-}
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
+
+server.setTimeout(600000);
+
 
 module.exports = app;
