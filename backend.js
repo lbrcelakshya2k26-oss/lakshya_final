@@ -4545,45 +4545,49 @@ app.post('/api/coordinator/on-site-register', isAuthenticated('coordinator'), as
     }
 });// ELB Health Check - Crucial for Auto Scaling
 // --- API: Get On-Site (Cash) Registrations ---
-app.get('/api/reports/onsite-registrations', isAuthenticated(['admin', 'coordinator']), async (req, res) => {
+app.put('/api/coordinator/update-onsite-reg', isAuthenticated(['admin', 'coordinator']), async (req, res) => {
+    const { registrationId, amountPaid, kitAllocated } = req.body;
+    const user = req.session.user;
+
+    if (!registrationId || amountPaid === undefined) {
+        return res.status(400).json({ error: "Missing required fields." });
+    }
+
     try {
-        // Fetch all registrations
-        const regRes = await docClient.send(new ScanCommand({
-            TableName: 'Lakshya_Registrations'
+        // 1. Fetch the existing record to verify owner
+        const current = await docClient.send(new GetCommand({
+            TableName: 'Lakshya_Registrations',
+            Key: { registrationId }
         }));
 
-        let onsiteRegs = (regRes.Items || []).filter(reg => reg.paymentMode === 'CASH');
+        if (!current.Item) return res.status(404).json({ error: "Registration record not found." });
 
-        // Fetch Event details to map titles
-        const eventData = await docClient.send(new ScanCommand({ TableName: 'Lakshya_Events' }));
-        const eventMap = {};
-        (eventData.Items || []).forEach(e => eventMap[e.eventId] = e.title);
-
-        // Fetch User details to map names if missing (though they are stored in regs usually)
-        onsiteRegs = onsiteRegs.map(reg => ({
-            ...reg,
-            eventTitle: eventMap[reg.eventId] || reg.eventId
-        }));
-
-        // Filter for coordinators: Only show what they personally managed
-        if (req.session.user.role === 'coordinator') {
-            onsiteRegs = onsiteRegs.filter(reg => reg.managedBy === req.session.user.email);
+        // 2. Security Check: 
+        // Only an Admin OR the Coordinator who managed the cash entry can edit it.
+        if (user.role !== 'admin' && current.Item.managedBy !== user.email) {
+            return res.status(403).json({ error: "Access Denied: You cannot edit records created by other coordinators." });
         }
 
-        // Sort by date descending
-        onsiteRegs.sort((a, b) => new Date(b.registeredAt) - new Date(a.registeredAt));
+        // 3. Perform the update in DynamoDB
+        await docClient.send(new UpdateCommand({
+            TableName: 'Lakshya_Registrations',
+            Key: { registrationId },
+            UpdateExpression: "SET amountPaid = :a, kitAllocated = :k, lastUpdatedBy = :u, updatedAt = :t",
+            ExpressionAttributeValues: {
+                ":a": parseFloat(amountPaid),
+                ":k": kitAllocated,
+                ":u": user.email,
+                ":t": new Date().toISOString()
+            }
+        }));
 
-        res.json(onsiteRegs);
+        res.json({ success: true, message: "Record updated successfully." });
+
     } catch (error) {
-        console.error("Report Fetch Error:", error);
-        res.status(500).json({ error: "Failed to fetch reports" });
+        console.error("Cash Update Error:", error);
+        res.status(500).json({ error: "Internal Server Error occurred while updating." });
     }
 });
-
-app.get('/coordinator/onsite-reports', isAuthenticated('coordinator'), (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/coordinator/onsite-reports-coordinator.html'));
-});
-// --- API: Get On-Site (Cash) Registrations for Coordinator Audit ---
 // --- API: Get On-Site (Cash) Registrations for Coordinator Audit ---
 app.get('/api/reports/onsite-registrations', isAuthenticated('coordinator'), async (req, res) => {
     const coordinatorEmail = req.session.user.email;
@@ -4623,6 +4627,10 @@ app.get('/api/reports/onsite-registrations', isAuthenticated('coordinator'), asy
         res.status(500).json({ error: "Failed to load audit records" });
     }
 });
+app.get('/coordinator/onsite-reports', isAuthenticated('coordinator'), (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/coordinator/onsite-reports-coordinator.html'));
+});
+
 // 2. Route for Admin to view global audit reports
 app.get('/admin/onsite-reports', isAuthenticated('admin'), (req, res) => {
     res.sendFile(path.join(__dirname, 'public/admin/onsite-reports-admin.html'));
