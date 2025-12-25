@@ -55,22 +55,31 @@ app.use('/js', express.static(path.join(__dirname, 'public/js')));
 // Point to public/static instead of just static
 app.use('/static', express.static(path.join(__dirname, 'public/static')));
 
+// --- UPDATED SESSION MANAGEMENT ---
+// --- UPDATED SESSION MANAGEMENT (CREDENTIAL FIX) ---
 app.use(session({
     store: new DynamoDBStore({
         table: 'Lakshya_Sessions',
-        AWSConfigJSON: { 
+        region: 'ap-south-1',
+        // Pass credentials directly if AWSConfigJSON is failing
+        accessKeyId: 'AKIAWJL64KMIFX67RTPV', 
+        secretAccessKey: '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',
+        AWSConfigJSON: {
             region: 'ap-south-1',
-            // Hardcoded credentials for the DynamoDB account
-            accessKeyId: 'AKIAWJL64KMIFX67RTPV', 
-            secretAccessKey: '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'
-        }
+            credentials: {
+                accessKeyId: 'AKIAWJL64KMIFX67RTPV',
+                secretAccessKey: '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'
+            }
+        },
+        flushInterval: 60000 // Removes expired sessions from memory every minute
     }),
     secret: process.env.SESSION_SECRET || 'lakshya_secret_key',
     resave: false,
     saveUninitialized: false,
+    rolling: true, 
     cookie: { 
         secure: false, 
-        maxAge: 24 * 60 * 60 * 1000 
+        maxAge: 24 * 60 * 60 * 1000 // 24 Hours
     }
 }));
 
@@ -113,8 +122,8 @@ const s3Client = new S3Client({
 const sesClient = new SESv2Client({
     region: process.env.AWS_REGION || 'ap-south-1',
     credentials: {
-        accessKeyId: process.env.AWS_SES_ACCESS_KEY_ID || 'AKIAS2VS4CZ2Q4RQV4WX',
-        secretAccessKey: process.env.AWS_SES_SECRET_ACCESS_KEY || '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'
+        accessKeyId: 'AKIAS2VS4CZ2Q4RQV4WX',
+        secretAccessKey: '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'
     }
 });
 
@@ -807,7 +816,7 @@ app.post('/api/payment/create-order', isAuthenticated('participant'), async (req
         const amountInPaise = Math.round(finalTotal * 100); 
 
         // 6. Create Payment Link
-        const CALLBACK_URL = "http://localhost:3000/participant/payment-success"; 
+        const CALLBACK_URL = "https://lakshya.lbrce.ac.in/participant/payment-success"; 
 
         const paymentLink = await razorpay.paymentLink.create({
             amount: amountInPaise, 
@@ -844,7 +853,7 @@ app.post('/api/payment/create-order', isAuthenticated('participant'), async (req
 app.post('/api/payment/verify', isAuthenticated('participant'), async (req, res) => {
     // 1. EXTRACT DATA
     let { razorpay_payment_id, couponCode, cartItems, pendingRegIds } = req.body; 
-    const CLIENT_URL = "http://localhost:3000"; 
+    const CLIENT_URL = "https://lakshya.lbrce.ac.in/"; 
     const logoUrl = "https://res.cloudinary.com/dpz44zf0z/image/upload/v1764605760/logo_oeso2m.png";
     const user = req.session.user;
 
@@ -2978,7 +2987,7 @@ app.post('/api/coordinator/toggle-kit-status', isAuthenticated('coordinator'), a
                             <strong>2 Digital Food Coupons</strong> have been added to your account.
                         </p>
                         <div style="margin-top: 15px;">
-                            <a href="http://localhost:3000/my-coupons?id=${registrationId}" 
+                            <a href="https://lakshya.lbrce.ac.in/my-coupons?id=${registrationId}" 
                                style="background-color: #ff00cc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 14px; display: inline-block;">
                                View My QR Codes
                             </a>
@@ -4310,7 +4319,7 @@ app.post('/api/admin/issue-selected-coupons', isAuthenticated('admin'), async (r
                         <div style="background-color: #f0fbff; border: 1px dashed #00d2ff; padding: 20px; border-radius: 8px; margin: 25px 0; text-align: center;">
                             <h3 style="color: #0077ff; margin: 0 0 10px 0;">🍔 Food Coupons Ready</h3>
                             <div style="margin-top: 15px;">
-                                <a href="http://localhost:3000/my-coupons?id=${linkId}" 
+                                <a href="https://lakshya.lbrce.ac.in/my-coupons?id=${linkId}" 
                                    style="background-color: #ff00cc; color: white; padding: 12px 25px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 14px; display: inline-block;">
                                    View My QR Codes
                                 </a>
@@ -4348,14 +4357,15 @@ app.get('/coordinator/register-participant', isAuthenticated('coordinator'), (re
 
 // 2. API: Search Participant & Calculate History-Based Discount Eligibility
 app.get('/api/coordinator/search-participant', isAuthenticated('coordinator'), async (req, res) => {
-    const { email } = req.query;
+    let { email } = req.query;
     if (!email) return res.status(400).json({ error: "Email is required" });
+    
+    email = email.toLowerCase().trim();
 
     try {
-        // Step A: Fetch User Profile
         const userRes = await docClient.send(new GetCommand({
             TableName: 'Lakshya_Users',
-            Key: { email: email.toLowerCase().trim() }
+            Key: { email: email }
         }));
 
         if (!userRes.Item) {
@@ -4363,34 +4373,49 @@ app.get('/api/coordinator/search-participant', isAuthenticated('coordinator'), a
         }
 
         const student = userRes.Item;
-        delete student.password; // Security
+        delete student.password; 
 
-        // Step B: Calculate History of Paid Eligible Events (Major, MBA, Cultural)
+        // Fetch Event Map to populate missing categories in history
+        const eventData = await docClient.send(new ScanCommand({ TableName: 'Lakshya_Events' }));
+        const eventMap = {};
+        (eventData.Items || []).forEach(e => eventMap[e.eventId] = e);
+
         const regRes = await docClient.send(new QueryCommand({
             TableName: 'Lakshya_Registrations',
             IndexName: 'StudentIndex',
             KeyConditionExpression: 'studentEmail = :email',
-            ExpressionAttributeValues: { ':email': email.toLowerCase().trim() }
+            ExpressionAttributeValues: { ':email': email }
         }));
 
-        const registrations = regRes.Items || [];
+        const registrations = (regRes.Items || []).map(reg => {
+            // Enrich category if missing (prevents "NA" in UI)
+            if (!reg.category && eventMap[reg.eventId]) {
+                reg.category = eventMap[reg.eventId].type;
+            }
+            return reg;
+        });
+        
         let historyCount = 0;
-
-        for (const reg of registrations) {
-            if (reg.paymentStatus === 'COMPLETED') {
-                // Determine if the past event was an eligible category
+        registrations.forEach(reg => {
+            const status = (reg.paymentStatus || '').toUpperCase();
+            if (status === 'COMPLETED') {
                 const cat = (reg.category || '').toLowerCase();
-                const eligibleKeywords = ['major', 'mba', 'management', 'cultural', 'music', 'dance', 'singing', 'drama', 'art', 'fashion', 'literary'];
-                const isEligible = eligibleKeywords.some(k => cat.includes(k)) && !cat.includes('special');
+                if (cat.includes('special')) return;
+
+                const eligibleKeywords = [
+                    'major', 'mba', 'management', 
+                    'cultural', 'music', 'dance', 'singing', 'drama', 'art', 'fashion', 'literary'
+                ];
                 
+                const isEligible = eligibleKeywords.some(k => cat.includes(k));
                 if (isEligible) historyCount++;
             }
-        }
+        });
 
         res.json({
             student,
             historyCount,
-            registrations // Send full history so coordinator can see what they already joined
+            registrations 
         });
 
     } catch (error) {
@@ -4399,22 +4424,21 @@ app.get('/api/coordinator/search-participant', isAuthenticated('coordinator'), a
     }
 });
 
-// 3. API: Process Cash Registration with Server-Side Pricing Logic
+// --- API: Process Cash Registration ---
 app.post('/api/coordinator/on-site-register', isAuthenticated('coordinator'), async (req, res) => {
     const { 
         studentEmail, 
         eventId, 
-        deptName, 
-        teamName, 
-        teamMembers, 
+        applyDiscount, 
         historyCount,
+        teamName, 
+        teamMembers, // Now capturing team data from frontend
         submissionTitle,
         submissionAbstract,
         submissionUrl
     } = req.body;
 
     try {
-        // 1. Fetch Event Details for Price Verification
         const eventRes = await docClient.send(new GetCommand({
             TableName: 'Lakshya_Events',
             Key: { eventId }
@@ -4424,44 +4448,48 @@ app.post('/api/coordinator/on-site-register', isAuthenticated('coordinator'), as
         const event = eventRes.Item;
         const baseFee = parseInt(event.fee);
 
-        // 2. Pricing Logic (Server-Side Enforcement)
+        // --- PRICING & KIT LOGIC ---
         let finalAmount = baseFee;
-        const isEligible = isEligibleForCombo(event);
+        let kitStatus = false;
+        
+        const isEligibleCategory = checkKitEligibility(event.type);
 
-        // If student has history OR this is not their first registration in this session, 50% off
-        if (isEligible && parseInt(historyCount) >= 1) {
+        if (applyDiscount && parseInt(historyCount) >= 1) {
             finalAmount = baseFee / 2;
+            kitStatus = false; 
+        } else {
+            finalAmount = baseFee;
+            kitStatus = isEligibleCategory; 
         }
 
-        // 3. Check for Duplicate Registration
+        // Check for existing COMPLETED registration to prevent duplicates
         const checkParams = {
             TableName: 'Lakshya_Registrations',
             IndexName: 'StudentIndex',
             KeyConditionExpression: 'studentEmail = :email',
-            FilterExpression: 'eventId = :eid AND deptName = :dept',
+            FilterExpression: 'eventId = :eid AND paymentStatus = :status',
             ExpressionAttributeValues: { 
                 ':email': studentEmail.toLowerCase(), 
                 ':eid': eventId, 
-                ':dept': deptName 
+                ':status': 'COMPLETED' 
             }
         };
         const existing = await docClient.send(new QueryCommand(checkParams));
-        if (existing.Items && existing.Items.some(r => r.paymentStatus === 'COMPLETED')) {
+        if (existing.Items && existing.Items.length > 0) {
             return res.status(400).json({ error: "Student is already registered and paid for this event." });
         }
 
-        // 4. Create Registration Object
         const registrationId = uuidv4();
         const regItem = {
             registrationId,
             studentEmail: studentEmail.toLowerCase(),
             eventId,
-            deptName,
+            deptName: event.departments ? event.departments[0] : 'General',
             category: event.type,
-            kitAllocated: checkKitEligibility(event.type),
+            kitAllocated: kitStatus, 
             teamName: teamName || null,
             teamMembers: teamMembers || [],
-            paymentStatus: "COMPLETED", // Immediate confirmation
+            paymentStatus: "COMPLETED",
             paymentId: `CASH-${uuidv4().substring(0,8).toUpperCase()}`,
             paymentMode: "CASH",
             paymentDate: new Date().toISOString(),
@@ -4471,7 +4499,7 @@ app.post('/api/coordinator/on-site-register', isAuthenticated('coordinator'), as
             submissionTitle: submissionTitle || null,
             submissionAbstract: submissionAbstract || null,
             submissionUrl: submissionUrl || null,
-            managedBy: req.session.user.email // Track which coordinator did the reg
+            managedBy: req.session.user.email
         };
 
         await docClient.send(new PutCommand({
@@ -4479,7 +4507,6 @@ app.post('/api/coordinator/on-site-register', isAuthenticated('coordinator'), as
             Item: regItem
         }));
 
-        // 5. Send Email Confirmation
         const logoUrl = "https://res.cloudinary.com/dpz44zf0z/image/upload/v1764605760/logo_oeso2m.png";
         const emailHtml = `
             <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee;">
@@ -4490,14 +4517,13 @@ app.post('/api/coordinator/on-site-register', isAuthenticated('coordinator'), as
                 <div style="padding: 30px;">
                     <p>Dear Participant,</p>
                     <p>Your on-site registration for <strong>${event.title}</strong> was successful.</p>
-                    
                     <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
                         <p><strong>Registration ID:</strong> ${registrationId}</p>
                         <p><strong>Amount Received:</strong> ₹${finalAmount}</p>
-                        <p><strong>Payment Mode:</strong> CASH (Collected by Coordinator)</p>
+                        <p><strong>Payment Mode:</strong> CASH</p>
+                        ${kitStatus ? `<p style="color: #ff00cc; font-weight: bold;">🎁 This registration includes a FREE KIT!</p>` : ''}
                         <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
                     </div>
-
                     <p style="font-size: 14px; color: #666;">Please show your Registration ID at the event venue for attendance.</p>
                     <p>Best Regards,<br>Team LAKSHYA</p>
                 </div>
@@ -4517,20 +4543,61 @@ app.post('/api/coordinator/on-site-register', isAuthenticated('coordinator'), as
         console.error("On-Site Reg Error:", error);
         res.status(500).json({ error: "Failed to process registration" });
     }
-});
-// ELB Health Check - Crucial for Auto Scaling
-app.get('/health', (req, res) => {
-  res.status(200).send('OK');
+});// ELB Health Check - Crucial for Auto Scaling
+// --- API: Get On-Site (Cash) Registrations ---
+app.get('/api/reports/onsite-registrations', isAuthenticated(['admin', 'coordinator']), async (req, res) => {
+    try {
+        // Fetch all registrations
+        const regRes = await docClient.send(new ScanCommand({
+            TableName: 'Lakshya_Registrations'
+        }));
+
+        let onsiteRegs = (regRes.Items || []).filter(reg => reg.paymentMode === 'CASH');
+
+        // Fetch Event details to map titles
+        const eventData = await docClient.send(new ScanCommand({ TableName: 'Lakshya_Events' }));
+        const eventMap = {};
+        (eventData.Items || []).forEach(e => eventMap[e.eventId] = e.title);
+
+        // Fetch User details to map names if missing (though they are stored in regs usually)
+        onsiteRegs = onsiteRegs.map(reg => ({
+            ...reg,
+            eventTitle: eventMap[reg.eventId] || reg.eventId
+        }));
+
+        // Filter for coordinators: Only show what they personally managed
+        if (req.session.user.role === 'coordinator') {
+            onsiteRegs = onsiteRegs.filter(reg => reg.managedBy === req.session.user.email);
+        }
+
+        // Sort by date descending
+        onsiteRegs.sort((a, b) => new Date(b.registeredAt) - new Date(a.registeredAt));
+
+        res.json(onsiteRegs);
+    } catch (error) {
+        console.error("Report Fetch Error:", error);
+        res.status(500).json({ error: "Failed to fetch reports" });
+    }
 });
 
+app.get('/coordinator/onsite-reports', isAuthenticated('coordinator'), (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/coordinator/onsite-reports-coordinator.html'));
+});
+
+// 2. Route for Admin to view global audit reports
+app.get('/admin/onsite-reports', isAuthenticated('admin'), (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/admin/onsite-reports-admin.html'));
+});
 // ... existing code ...
 const PORT = process.env.PORT || 3000;
+if (require.main === module) {
+    // CHANGE THIS BLOCK
+    const server = app.listen(PORT, () => { 
+        console.log(`Server running on http://localhost:${PORT}`); 
+    });
 
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Server running on port ${PORT}`);
-});
-
-server.setTimeout(600000);
-
+    // CRITICAL: Set timeout to 10 minutes (600000ms) for 100MB files
+    server.setTimeout(600000);
+}
 
 module.exports = app;
