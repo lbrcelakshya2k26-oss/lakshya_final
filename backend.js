@@ -4520,8 +4520,9 @@ app.post('/api/coordinator/on-site-register', isAuthenticated('coordinator'), as
 });
 // ELB Health Check - Crucial for Auto Scaling
 app.get('/health', (req, res) => {
-    res.status(200).send('OK');
+  res.status(200).send('OK');
 });
+
 // ... existing code ...
 const PORT = process.env.PORT || 3000;
 
