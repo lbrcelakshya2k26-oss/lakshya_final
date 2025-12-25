@@ -4583,7 +4583,45 @@ app.get('/api/reports/onsite-registrations', isAuthenticated(['admin', 'coordina
 app.get('/coordinator/onsite-reports', isAuthenticated('coordinator'), (req, res) => {
     res.sendFile(path.join(__dirname, 'public/coordinator/onsite-reports-coordinator.html'));
 });
+// --- API: Get On-Site (Cash) Registrations for Coordinator Audit ---
+app.get('/api/reports/onsite-registrations', isAuthenticated('coordinator'), async (req, res) => {
+    const coordinatorEmail = req.session.user.email;
 
+    try {
+        // 1. Fetch all registrations handled by this coordinator
+        // Using Scan with FilterExpression to find CASH payments managed by this user
+        const params = {
+            TableName: 'Lakshya_Registrations',
+            FilterExpression: 'managedBy = :email AND paymentMode = :mode',
+            ExpressionAttributeValues: {
+                ':email': coordinatorEmail,
+                ':mode': 'CASH'
+            }
+        };
+
+        const regData = await docClient.send(new ScanCommand(params));
+        const registrations = regData.Items || [];
+
+        if (registrations.length === 0) return res.json([]);
+
+        // 2. Fetch Events to map IDs to Titles for the frontend table
+        const eventData = await docClient.send(new ScanCommand({ TableName: 'Lakshya_Events' }));
+        const eventMap = {};
+        (eventData.Items || []).forEach(e => eventMap[e.eventId] = e.title);
+
+        // 3. Enrich the registration data with event titles
+        const enrichedReport = registrations.map(reg => ({
+            ...reg,
+            eventTitle: eventMap[reg.eventId] || 'Unknown Event'
+        }));
+
+        res.json(enrichedReport);
+
+    } catch (error) {
+        console.error("Onsite Report Fetch Error:", error);
+        res.status(500).json({ error: "Failed to load audit records" });
+    }
+});
 // 2. Route for Admin to view global audit reports
 app.get('/admin/onsite-reports', isAuthenticated('admin'), (req, res) => {
     res.sendFile(path.join(__dirname, 'public/admin/onsite-reports-admin.html'));
