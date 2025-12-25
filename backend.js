@@ -816,7 +816,7 @@ app.post('/api/payment/create-order', isAuthenticated('participant'), async (req
         const amountInPaise = Math.round(finalTotal * 100); 
 
         // 6. Create Payment Link
-        const CALLBACK_URL = "https://lakshya.lbrce.ac.in/participant/payment-success"; 
+        const CALLBACK_URL = "http://13.205.14.219/participant/payment-success"; 
 
         const paymentLink = await razorpay.paymentLink.create({
             amount: amountInPaise, 
@@ -866,7 +866,7 @@ app.post('/api/payment/verify', isAuthenticated('participant'), async (req, res)
             return res.status(400).json({ error: 'Payment not captured or failed.' });
         }
 
-        // 3. IDEMPOTENCY CHECK (Prevents duplicate registrations if student refreshes)
+        // 3. IDEMPOTENCY CHECK (Prevents duplicate registrations if student refreshes page)
         const existing = await docClient.send(new ScanCommand({
             TableName: 'Lakshya_Registrations',
             FilterExpression: 'paymentId = :pid',
@@ -876,7 +876,7 @@ app.post('/api/payment/verify', isAuthenticated('participant'), async (req, res)
             return res.json({ status: 'success', message: 'Already processed' });
         }
 
-        // 4. THE CRITICAL FIX: ROBUST CART RECOVERY
+        // 4. THE CRITICAL FIX: PROACTIVE CART RECOVERY
         // If frontend sent empty cart (common mobile browser bug), pull from server-side Lakshya_Cart table
         if (!pendingRegIds && (!cartItems || cartItems.length === 0)) {
             try {
@@ -933,7 +933,7 @@ app.post('/api/payment/verify', isAuthenticated('participant'), async (req, res)
             }
         }
 
-        // If after recovery attempt it's still empty, stop here.
+        // If after recovery attempt it's still empty, stop here to avoid creating null registrations
         if (eventsToProcess.length === 0) return res.json({ status: 'success', warning: 'No Items Found' }); 
 
         // 5. SERVER-SIDE RE-CALCULATION (Pricing Logic)
@@ -959,11 +959,7 @@ app.post('/api/payment/verify', isAuthenticated('participant'), async (req, res)
                 const regs = existingRegs.Items || [];
                 for (const reg of regs) {
                     if (reg.paymentStatus === 'COMPLETED' && !eventsToProcess.some(e => e.eventId === reg.eventId)) {
-                        if (reg.category) {
-                            if (isEligibleForCombo({ type: reg.category, title: '', fee: 100 })) historyCount++; 
-                        } else if(reg.amountPaid) {
-                            historyCount++; 
-                        }
+                        historyCount++; 
                     }
                 }
             } catch (e) { console.error("History check error:", e); }
@@ -1056,69 +1052,85 @@ app.post('/api/payment/verify', isAuthenticated('participant'), async (req, res)
             if(u.Item) userName = u.Item.fullName;
         } catch(e) {}
 
-        // 8. SEND EMAILS (Original Templates Restored)
+        // 8. SEND EMAILS
         if (regItemsForEmail.length > 0) {
             const totalPaid = payment.amount / 100;
             const platformFee = totalPaid - totalBaseForEmail; 
 
-            // Template 1: Registration Confirmed
+            // --- TEMPLATE 1: Registration Confirmation ---
             const eventsHtml = regItemsForEmail.map(item => `
                 <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #00d2ff;">
-                    <p style="margin: 5px 0;"><strong>Event:</strong> ${item.title}</p>
-                    <p style="margin: 5px 0;"><strong>Reg ID:</strong> ${item.regId}</p>
-                    <p style="margin: 5px 0;"><strong>Dept:</strong> ${item.dept}</p>
-                    ${item.teamName ? `<p style="margin: 5px 0;"><strong>Team:</strong> ${item.teamName}</p>` : ''}
+                    <p style="margin: 5px 0; color: #333;"><strong>Event:</strong> ${item.title}</p>
+                    <p style="margin: 5px 0; color: #555;"><strong>Registration ID:</strong> ${item.regId}</p>
+                    <p style="margin: 5px 0; color: #555;"><strong>Department:</strong> ${item.dept}</p>
+                    ${item.teamName ? `<p style="margin: 5px 0; color: #555;"><strong>Team:</strong> ${item.teamName}</p>` : ''}
                     <div style="margin-top: 15px;">
-                        <a href="${CLIENT_URL}receipt-view?id=${item.regId}" style="display: inline-block; background-color: #00d2ff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px;">View Ticket</a>
+                        <a href="${CLIENT_URL}receipt-view?id=${item.regId}" style="display: inline-block; background-color: #00d2ff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px;">View Digital Ticket</a>
                     </div>
                 </div>`).join('');
 
             const regEmailHtml = `
-                <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; border: 1px solid #eee; max-width: 600px; margin: 0 auto;">
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <img src="${logoUrl}" style="height: 50px;">
-                        <h2 style="color: #4fc3f7; margin: 10px 0;">Registration Confirmed</h2>
+                <div style="font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; border: 1px solid #eee; max-width: 600px; margin: 0 auto; background-color: #fff;">
+                    <div style="text-align: center; margin-bottom: 25px;">
+                        <img src="${logoUrl}" style="height: 55px;">
+                        <h2 style="color: #00d2ff; margin: 10px 0; font-family: Montserrat, sans-serif;">REGISTRATION CONFIRMED</h2>
                     </div>
-                    <p>Dear ${userName},</p>
-                    <p>Thank you for registering!</p>
+                    <p style="font-size: 15px; color: #333;">Dear ${userName},</p>
+                    <p style="font-size: 15px; color: #333;">We have successfully received your registration for the following event(s):</p>
+                    
                     ${eventsHtml}
-                    <p style="color: #4CAF50; font-weight: bold;">Status: Payment Successful</p>
-                    <p style="color: #555; font-size: 14px; margin-top: 30px;">Best Regards,<br>Team LAKSHYA</p>
+                    
+                    <p style="color: #4CAF50; font-weight: bold; font-size: 16px;">Status: Payment Successful</p>
+                    <p style="color: #888; font-size: 13px; margin-top: 30px;">This is an automated confirmation from LAKSHYA 2K26. Please present your digital ticket at the event venue.</p>
+                    <p style="color: #333; font-size: 14px; margin-top: 10px;">Best Regards,<br><strong>Team LAKSHYA</strong></p>
                 </div>`;
             
-            // Template 2: Receipt
+            // --- TEMPLATE 2: Detailed Payment Receipt ---
             const paymentRows = regItemsForEmail.map(item => `
                 <tr>
-                    <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.title}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">₹${item.paidAmount.toFixed(2)}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; color: #333;">${item.title}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; color: #333;">₹${item.paidAmount.toFixed(2)}</td>
                 </tr>`).join('');
             
             const receiptHtml = `
-                <div style="font-family: 'Segoe UI', sans-serif; border: 1px solid #eee; max-width: 600px; margin: 0 auto; border-radius: 8px; overflow: hidden;">
-                    <div style="background-color: #00d2ff; padding: 20px; text-align: center; color: white;">
-                        <img src="${logoUrl}" style="height: 40px; margin-bottom: 10px; background: rgba(255,255,255,0.2); padding: 5px; border-radius: 5px;">
-                        <h2 style="margin: 0;">PAYMENT RECEIPT</h2>
+                <div style="font-family: 'Segoe UI', sans-serif; border: 1px solid #eee; max-width: 600px; margin: 0 auto; border-radius: 10px; overflow: hidden; background-color: #fff;">
+                    <div style="background-color: #00d2ff; padding: 25px; text-align: center; color: white;">
+                        <h2 style="margin: 0; font-size: 22px; letter-spacing: 1px;">PAYMENT RECEIPT</h2>
+                        <p style="margin: 5px 0 0; opacity: 0.8; font-size: 14px;">LAKSHYA 2K26 Techno-Cultural Fest</p>
                     </div>
-                    <div style="padding: 20px;">
-                        <p>Dear ${userName},</p>
-                        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                            <tr style="background-color: #f5f5f5;">
-                                <th style="padding: 10px; text-align: left;">Event</th>
-                                <th style="padding: 10px; text-align: right;">Amount</th>
+                    <div style="padding: 25px;">
+                        <p style="font-size: 15px; color: #333;">Dear ${userName},</p>
+                        <p style="font-size: 14px; color: #666;">Thank you for your payment. Here is your transaction summary:</p>
+                        
+                        <table style="width: 100%; border-collapse: collapse; margin: 25px 0;">
+                            <tr style="background-color: #f8f9fa; border-bottom: 2px solid #eee;">
+                                <th style="padding: 12px; text-align: left; color: #555; font-size: 13px;">ITEM DESCRIPTION</th>
+                                <th style="padding: 12px; text-align: right; color: #555; font-size: 13px;">AMOUNT</th>
                             </tr>
                             ${paymentRows}
-                            <tr><td style="padding: 8px; color: #888;">Platform Fee</td><td style="padding: 8px; text-align: right; color: #888;">₹${platformFee.toFixed(2)}</td></tr>
-                            <tr><td style="padding: 10px; font-weight: bold;">Total Paid</td><td style="padding: 10px; font-weight: bold; text-align: right;">₹${totalPaid.toFixed(2)}</td></tr>
+                            <tr>
+                                <td style="padding: 10px; color: #888; font-size: 13px;">Platform & Gateway Fee (2.36%)</td>
+                                <td style="padding: 10px; text-align: right; color: #888; font-size: 13px;">₹${platformFee.toFixed(2)}</td>
+                            </tr>
+                            <tr style="border-top: 2px solid #00d2ff;">
+                                <td style="padding: 12px; font-weight: bold; color: #333; font-size: 16px;">TOTAL PAID</td>
+                                <td style="padding: 12px; font-weight: bold; text-align: right; color: #00d2ff; font-size: 18px;">₹${totalPaid.toFixed(2)}</td>
+                            </tr>
                         </table>
-                        <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #4CAF50;">
-                            <p style="margin: 5px 0; font-size: 13px;"><strong>Transaction ID:</strong> ${razorpay_payment_id}</p>
+
+                        <div style="background-color: #f0f7ff; padding: 15px; border-left: 4px solid #00d2ff; border-radius: 4px; margin-bottom: 20px;">
+                            <p style="margin: 0; font-size: 13px; color: #555;"><strong>Transaction ID:</strong> ${razorpay_payment_id}</p>
+                            <p style="margin: 5px 0 0; font-size: 13px; color: #555;"><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+                            <p style="margin: 5px 0 0; font-size: 13px; color: #555;"><strong>Payment Mode:</strong> Online (Razorpay)</p>
                         </div>
+
+                        <p style="color: #999; font-size: 12px; text-align: center; margin-top: 20px;">For any billing queries, please contact support@lakshya.lbrce.ac.in</p>
                     </div>
                 </div>`;
 
-            // Parallel Send for efficiency
+            // Parallel Send for maximum efficiency
             await Promise.all([
-                sendEmail(user.email, `Registration Confirmed`, regEmailHtml),
+                sendEmail(user.email, `Registration Confirmed - LAKSHYA 2K26`, regEmailHtml),
                 sendEmail(user.email, `Payment Receipt - Transaction ${razorpay_payment_id}`, receiptHtml)
             ]);
         }
